@@ -46,7 +46,8 @@ class MainWPChild
         // 'get_next_time_of_page_to_post' => 'get_next_time_of_page_to_post',
         'serverInformation' => 'serverInformation',
         'maintenance_site' => 'maintenance_site',
-        'keyword_links_action' => 'keyword_links_action'
+        'keyword_links_action' => 'keyword_links_action',
+		'branding_child_plugin' => 'branding_child_plugin'
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -65,7 +66,7 @@ class MainWPChild
     private $filterFunction = null;
 
     public function __construct($plugin_file)
-    {
+    {			
         $this->filterFunction = create_function( '$a', 'if ($a == null) { return false; } return $a;' );
         $this->plugin_dir = dirname($plugin_file);
         $this->plugin_slug = plugin_basename($plugin_file);
@@ -76,9 +77,10 @@ class MainWPChild
         $this->comments_and_clauses = '';
         add_action('init', array(&$this, 'parse_init'));
         add_action('admin_menu', array(&$this, 'admin_menu'));
+		add_action('admin_init', array(&$this, 'admin_init'));
         add_action('init', array(&$this, 'localization'));
         $this->checkOtherAuth();
-
+		
         MainWPClone::init();
 
         //Clean legacy...
@@ -166,6 +168,10 @@ class MainWPChild
             MainWPClone::init_restore_menu();
         }
     }
+	
+	 function admin_init(){
+		MainWPChildBranding::admin_init();
+	}
 
     function settings()
     {
@@ -445,7 +451,7 @@ class MainWPChild
          * Security
          */
         MainWPSecurity::fixAll();
-
+		
         if (isset($_GET['test']))
         {
             error_reporting(E_ALL);
@@ -512,7 +518,7 @@ class MainWPChild
                 }
             }
         }
-
+		
         //Redirect to the admin part if needed
         if ($auth && isset($_POST['admin']) && $_POST['admin'] == 1)
         {
@@ -538,6 +544,10 @@ class MainWPChild
         {
             MainWPKeywordLinks::clear_htaccess(); // force clear
         }
+		
+		// Branding extension
+		MainWPChildBranding::Instance()->branding_init();
+		
     }
 
     function default_option_active_plugins($default)
@@ -2857,6 +2867,7 @@ class MainWPChild
                 delete_option($delete);
             }
         }
+		do_action('mainwp_child_deactivation');
     }
 
     function getWPFilesystem()
@@ -3086,7 +3097,10 @@ class MainWPChild
     public function keyword_links_action() {
         MainWPKeywordLinks::Instance()->action();
     }
-
+	
+	public function branding_child_plugin() {		
+        MainWPChildBranding::Instance()->action();
+    }
 }
 
 ?>

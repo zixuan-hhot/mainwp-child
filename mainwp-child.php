@@ -28,7 +28,6 @@ else
         mainwp_child_autoload($class_name);
     }
 }
-
 $mainWPChild = new MainWPChild(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . plugin_basename(__FILE__));
 register_activation_hook(__FILE__, array($mainWPChild, 'activation'));
 register_deactivation_hook(__FILE__, array($mainWPChild, 'deactivation'));
