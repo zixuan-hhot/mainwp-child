@@ -208,9 +208,7 @@ class MainWPCloneInstall
         $query = '';
         $tableName = '';
         $wpdb->query('SET foreign_key_checks = 0');
-        $handle = @fopen(WP_CONTENT_DIR . '/dbBackup.sql', 'r');
-		if (!$handle) // it may be bug when sometime dbBackup.sql place at parent folder of WP_CONTENT_DIR
-			$handle = @fopen(dirname(WP_CONTENT_DIR) . '/dbBackup.sql', 'r');
+        $handle = @fopen(WP_CONTENT_DIR . '/dbBackup.sql', 'r');		
         if ($handle)
         {
             $readline = '';
@@ -288,8 +286,11 @@ class MainWPCloneInstall
 				if (strpos($curr_table[0], $wpdb->prefix) !== false)
 					$tables[] = $curr_table[0];
             }
-
-            $this->icit_srdb_replacer($wpdb->dbh, $this->config['home'], $home, $tables);
+			// Replace importance data first so if other replace failed, the website still work
+			$wpdb->query('UPDATE '.$table_prefix.'options SET option_value = "'.$site_url.'" WHERE option_name = "siteurl"');
+			$wpdb->query('UPDATE '.$table_prefix.'options SET option_value = "'.$home.'" WHERE option_name = "home"');
+            // Replace others
+			$this->icit_srdb_replacer($wpdb->dbh, $this->config['home'], $home, $tables);
             $this->icit_srdb_replacer($wpdb->dbh, $this->config['siteurl'], $site_url, $tables);			
         }
 

@@ -1024,7 +1024,7 @@ class MainWPClone
             $nossl = get_option('mainwp_child_nossl');
             $nossl_key = get_option('mainwp_child_nossl_key');
             $sitesToClone = get_option('mainwp_child_clone_sites');
-
+			
             $cloneInstall->install();
             $cloneInstall->updateWPConfig();
 
@@ -1052,7 +1052,7 @@ class MainWPClone
             {
                 update_option('mainwp_child_clone_permalink', true);
             }
-
+			
             $cloneInstall->clean();
             if ($plugins !== false)
             {
