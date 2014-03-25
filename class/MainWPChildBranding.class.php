@@ -43,8 +43,7 @@ class MainWPChildBranding
 							'mainwp_branding_show_support',
 							'mainwp_branding_support_email', 
 							'mainwp_branding_support_message', 
-							'mainwp_branding_plugin_header', 
-							'mainwp_branding_specical_header');
+							'mainwp_branding_plugin_header');
 		foreach($dell_all as $opt) {
 			delete_option($opt);
 		}
@@ -56,7 +55,7 @@ class MainWPChildBranding
 	    switch ($_POST['action']) {
 			case 'update_branding':
                 $information = $this->update_branding();
-			break;			
+			break;						
         }        
         MainWPHelper::write($information);
     }
@@ -64,9 +63,9 @@ class MainWPChildBranding
 	public function update_branding() {		
 		$information = array();		
 		$settings = unserialize(base64_decode($_POST['settings']));						
-		if (!is_array($settings) || !isset($settings['child_plugin_name']) || empty($settings['child_plugin_name']))
+		if (!is_array($settings))
 			return $information;
-  
+				  
 		$header = array('name' => $settings['child_plugin_name'],
 						'description' => $settings['child_plugin_desc'],
 						'author' => $settings['child_plugin_author'],
@@ -265,14 +264,18 @@ class MainWPChildBranding
 				return $plugins;
 			}		
 			
-			return $this->update_child_header($plugins);
+			$header = get_option('mainwp_branding_plugin_header');			
+			if (is_array($header) && !empty($header['name']))	
+				return $this->update_child_header($plugins, $header);
+			else
+				return $plugins;
 		}
 		
 		public function plugin_action_links($links, $file ) {
 			return $links;			
 		}
 		
-		public function update_child_header($plugins) {
+		public function update_child_header($plugins, $header) {
 			$plugin_key = "";
 			foreach ( $plugins as $key => $value ) 
 			{ 				
@@ -283,19 +286,12 @@ class MainWPChildBranding
 				}					
 			}			
 			
-			if (!empty($plugin_key)){
-				$header = get_option('mainwp_branding_specical_header');
-				
-				if (!is_array($header) || empty($header['name'])) 
-					$header = get_option('mainwp_branding_plugin_header');
-					
-				if (is_array($header) && !empty($header['name'])) {
+			if (!empty($plugin_key)) {				
 					$plugin_data['Name'] = $header['name'];
 					$plugin_data['Description'] = $header['description'];
 					$plugin_data['Author'] = $header['author'];
 					$plugin_data['AuthorURI'] = $header['authoruri'];
-					$plugins[$plugin_key] = $plugin_data;
-				}				
+					$plugins[$plugin_key] = $plugin_data;				
 			}
 			return $plugins;
 		}
