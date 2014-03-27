@@ -98,15 +98,16 @@ class MainWPChildBranding
 	
 	 
 		public function branding_init()
-		{		   
+		{	
 			add_filter( 'map_meta_cap', array($this, 'theme_plugin_disable_change'), 10, 5);
 			add_filter( 'all_plugins', array($this, 'branding_child_plugin'));		   
 			add_filter( 'plugin_action_links', array( $this, 'plugin_action_links' ), 10, 2 );		   
-			
+						
 			if (get_option('mainwp_branding_show_support') == 'T') {							
 				add_action('admin_bar_menu', array( $this, 'add_support_button'), 100);	
 				add_filter('update_footer', array(&$this, 'update_footer'), 15);
 			}
+			
 		}
 		
 		public function send_support_mail() {
@@ -239,18 +240,15 @@ class MainWPChildBranding
 
 		public function theme_plugin_disable_change($caps, $cap, $user_id, $args )
 		{
-			if (get_option('mainwp_branding_disable_change') == 'T') {				
-				if ($cap != 'switch_themes') {
+			if (get_option('mainwp_branding_disable_change') == 'T') {								
 					// disable: edit, update, install, active themes and plugins
-					if (strpos($cap, 'plugins') !== false || strpos($cap, 'themes') !== false) { 					
+					if (strpos($cap, 'plugins') !== false || strpos($cap, 'themes') !== false || $cap == 'edit_theme_options' ) { 					
 						//echo $cap."======<br />";
 						$caps[0] = 'do_not_allow';
-					}			
-				}
+					}							
 			}
 			return $caps;
-		}	
-	
+		}
 		
 		public function branding_child_plugin( $plugins )
 		{		
