@@ -1865,14 +1865,13 @@ class MainWPChild
         $auths = get_option('mainwp_child_auth');
         $information['extauth'] = ($auths && isset($auths[$this->maxHistory]) ? $auths[$this->maxHistory] : null);
 
-        $plugins = false;
-        $themes = false;
+        $plugins = $this->get_all_plugins_int(false);
+        $themes = $this->get_all_themes_int(false);
+		$information['plugins'] = $plugins;            
+		$information['themes'] = $themes;
+		
         if (isset($_POST['optimize']) && ($_POST['optimize'] == 1))
-        {
-            $plugins = $this->get_all_plugins_int(false);
-            $information['plugins'] = $plugins;
-            $themes = $this->get_all_themes_int(false);
-            $information['themes'] = $themes;
+        {   
             $information['users'] = $this->get_all_users_int();
         }
 
@@ -1914,7 +1913,7 @@ class MainWPChild
             }
             if (count($conflicts) > 0) $information['themeConflicts'] = $conflicts;
         }
-
+		
         $last_post = wp_get_recent_posts(array( 'numberposts' => absint('1')));
         if (isset($last_post[0])) $last_post = $last_post[0];
         if (isset($last_post)) $information['last_post_gmt'] = strtotime($last_post['post_modified_gmt']);
@@ -2547,6 +2546,7 @@ class MainWPChild
                 $out['version'] = $theme['Version'];
                 $out['active'] = ($theme['Name'] == $theme_name) ? 1 : 0;
                 $out['slug'] = $theme['Stylesheet'];
+				$out['themeURI'] = $theme['themeURI'];
                 if (!$filter)
                 {
                     $rslt[] = $out;
@@ -2662,6 +2662,7 @@ class MainWPChild
                 $out['description'] = $plugin['Description'];
                 $out['version'] = $plugin['Version'];
                 $out['active'] = (is_array($active_plugins) && in_array($pluginslug, $active_plugins)) ? 1 : 0;
+				$out['pluginURI'] = $plugin['pluginURI'];
                 if (!$filter)
                 {
                     $rslt[] = $out;
