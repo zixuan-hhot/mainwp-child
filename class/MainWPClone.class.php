@@ -10,15 +10,19 @@ class MainWPClone
         if (get_option('mainwp_child_clone_permalink') || get_option('mainwp_child_restore_permalink')) add_action('admin_notices', array('MainWPClone', 'permalinkAdminNotice'));
     }
 
-    public static function init_menu()
-    {
-        $page = add_options_page('MainWPClone', __('MainWP Clone','mainwp-child'), 'manage_options', 'MainWPClone', array('MainWPClone', 'render'));
+    public static function init_menu($the_branding)
+    {     
+        if (empty($the_branding))
+            $the_branding = "MainWP";
+        $page = add_options_page('MainWPClone', __($the_branding . ' Clone','mainwp-child'), 'manage_options', 'MainWPClone', array('MainWPClone', 'render'));
         add_action('admin_print_scripts-'.$page, array('MainWPClone', 'print_scripts'));
     }
 
-    public static function init_restore_menu()
+    public static function init_restore_menu($the_branding)
     {
-        $page = add_options_page('MainWPClone', __('MainWP Restore','mainwp-child'), 'manage_options', 'MainWPRestore', array('MainWPClone', 'renderNormalRestore'));
+        if (empty($the_branding))
+            $the_branding = "MainWP";
+        $page = add_options_page('MainWPClone', __($the_branding . ' Restore','mainwp-child'), 'manage_options', 'MainWPRestore', array('MainWPClone', 'renderNormalRestore'));
         add_action('admin_print_scripts-'.$page, array('MainWPClone', 'print_scripts'));
     }
 
@@ -286,7 +290,7 @@ Author URI: http://dd32.id.au/
         echo '<p>' . __('<strong>Current Directory:</strong> <span>' . $dirparts . '</span>', 'mainwp') . '</p>';
         $quick_dirs = array();		
         $quick_dirs[] = array( __('Site Root', 'mainwp'), ABSPATH );
-        $quick_dirs[] = array( __('MainWP Backup', 'mainwp'), $backup_dir );
+        $quick_dirs[] = array( __('Backup', 'mainwp'), $backup_dir );
         if (($uploads = wp_upload_dir()) && false === $uploads['error'])
                 $quick_dirs[] = array( __('Uploads Folder', 'mainwp'), $uploads['path']);
         $quick_dirs[] = array( __('Content Folder', 'mainwp'), WP_CONTENT_DIR );		
