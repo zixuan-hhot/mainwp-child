@@ -151,7 +151,7 @@ class MainWPClone
             <?php
             }
 ?>
-    <div id="icon-options-general" class="icon32"><br></div><h2><?php _e('Restore/Clone From Backup','mainwp-child'); ?></h2>
+    <div id="icon-options-general" class="icon32"><br></div><h2><strong>Option 1: </strong><?php _e('Restore/Clone From Backup','mainwp-child'); ?></h2>
         <br />
     <?php _e('Upload backup in .zip format (Maximum filesize for your server settings: ','mainwp-child'); ?><?php echo $uploadSize; ?>)<br/>
     <i><?php _e('If you have a FULL backup created by your Network dashboard you may restore it by uploading here.','mainwp-child'); ?><br />
