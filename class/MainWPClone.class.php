@@ -262,8 +262,9 @@ Author URI: http://dd32.id.au/
         if ( strlen($current_dir) > 1 )
                 $current_dir = untrailingslashit($current_dir);
 
-        echo "<br />";
-        echo '<h2 id="title_03">' . __('Restore/Clone From Server','mainwp-child') . '</h2>';
+        echo "<br /><hr /><br />";
+        echo '<h2 id="title_03"><strong>Option 2: </strong>' . __('Restore/Clone From Server','mainwp-child') . '</h2>';
+		echo __('If you have uploaded a FULL backup to your server (via FTP or other means) you can use this section to locate the zip file and select it.  A database only backup will not work.','mainwp-child'); 
 
         if (!is_readable($current_dir)) {
                 echo '<div class="mainwp-child_info-box-yellow"><strong>' . __('Root directory is not readable. Please contact with site administrator to correct.','mainwp-child') . '</strong></div>';
