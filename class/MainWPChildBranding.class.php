@@ -16,20 +16,7 @@ class MainWPChildBranding
 
     public function __construct()
     {
-        $this->child_plugin_dir = dirname(dirname(__FILE__));
-        $default_header = get_option('mainwp_branding_default_header', false);
-        if (empty($default_header))
-        {
-            $info = get_plugin_data($this->child_plugin_dir . '/mainwp-child.php');
-            if (is_array($info))
-            {
-                $default_header = array('name' => $info['Name'],
-                    'description' => $info['Description'],
-                    'authoruri' => $info['AuthorURI'],
-                    'author' => $info['Author']);
-                update_option('mainwp_branding_default_header', $default_header);
-            }
-        }
+        $this->child_plugin_dir = dirname(dirname(__FILE__));        
         add_action('mainwp_child_deactivation', array($this, 'child_deactivation'));
     }
 
@@ -218,7 +205,7 @@ class MainWPChildBranding
         <div style="height: 230px; margin-bottom: 10px; text-align: left">
             <div class="mainwp_info-box-yellow" id="mainwp_branding_contact_ajax_message_zone"
                  style="display: none;"></div>
-            <p><?php echo get_option('mainwp_branding_support_message'); ?></p>
+            <p><?php echo stripslashes(get_option('mainwp_branding_support_message')); ?></p>
             <textarea id="mainwp_branding_contact_message_content" name="mainwp_branding_contact_message_content"
                       cols="69" rows="5" class="text"></textarea>
         </div>
@@ -369,10 +356,10 @@ class MainWPChildBranding
 
         if (!empty($plugin_key))
         {
-            $plugin_data['Name'] = $header['name'];
-            $plugin_data['Description'] = $header['description'];
-            $plugin_data['Author'] = $header['author'];
-            $plugin_data['AuthorURI'] = $header['authoruri'];
+            $plugin_data['Name'] = stripslashes($header['name']);
+            $plugin_data['Description'] = stripslashes($header['description']);
+            $plugin_data['Author'] = stripslashes($header['author']);
+            $plugin_data['AuthorURI'] = stripslashes($header['authoruri']);
             $plugins[$plugin_key] = $plugin_data;
         }
         return $plugins;

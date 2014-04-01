@@ -182,7 +182,7 @@ class MainWPChild
         $branding_header = get_option('mainwp_branding_plugin_header');        
                 
         if (is_array($branding_header) && !empty($branding_header['name']))
-             $this->branding = $branding_header['name'];
+             $this->branding = stripslashes($branding_header['name']);
         
         if (!get_option('mainwp_branding_remove_setting'))
             add_options_page('MainWPSettings', __($this->branding . ' Settings','mainwp-child'), 'manage_options', 'MainWPSettings', array(&$this, 'settings'));
