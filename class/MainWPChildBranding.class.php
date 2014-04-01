@@ -50,6 +50,10 @@ class MainWPChildBranding
             'mainwp_branding_show_support',
             'mainwp_branding_support_email',
             'mainwp_branding_support_message',
+            'mainwp_branding_remove_restore',
+            'mainwp_branding_remove_setting',
+            'mainwp_branding_remove_wp_tools',
+            'mainwp_branding_remove_wp_setting',
             'mainwp_branding_plugin_header');
         foreach ($dell_all as $opt)
         {
@@ -85,6 +89,10 @@ class MainWPChildBranding
         update_option('mainwp_branding_plugin_header', $header);
         update_option('mainwp_branding_support_email', $settings['child_support_email']);
         update_option('mainwp_branding_support_message', $settings['child_support_message']);
+        update_option('mainwp_branding_remove_restore', $settings['child_remove_restore']);
+        update_option('mainwp_branding_remove_setting', $settings['child_remove_setting']);
+        update_option('mainwp_branding_remove_wp_tools', $settings['child_remove_wp_tools']);
+        update_option('mainwp_branding_remove_wp_setting', $settings['child_remove_wp_setting']);
 
         if ($settings['child_plugin_hide'])
         {
@@ -119,7 +127,7 @@ class MainWPChildBranding
 
     public function branding_init()
     {
-        add_filter('map_meta_cap', array($this, 'theme_plugin_disable_change'), 10, 5);
+        add_filter('map_meta_cap', array($this, 'branding_map_meta_cap'), 10, 5);        
         add_filter('all_plugins', array($this, 'branding_child_plugin'));
         add_filter('plugin_action_links', array($this, 'plugin_action_links'), 10, 2);
 
@@ -307,7 +315,7 @@ class MainWPChildBranding
     }
 
 
-    public function theme_plugin_disable_change($caps, $cap, $user_id, $args)
+    public function branding_map_meta_cap($caps, $cap, $user_id, $args)
     {
         if (get_option('mainwp_branding_disable_change') == 'T')
         {
