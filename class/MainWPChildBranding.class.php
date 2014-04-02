@@ -26,7 +26,7 @@ class MainWPChildBranding
         {
             wp_enqueue_script('jquery-ui-dialog');
             wp_enqueue_style('jquery-ui-style', '//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/smoothness/jquery-ui.css');
-            add_action('wp_ajax_mainwp-child_branding_send_suppport_mail', array(MainWPChildBranding::Instance(), 'send_support_mail'));
+            add_action('wp_ajax_mainwp-child_branding_send_support_mail', array(MainWPChildBranding::Instance(), 'send_support_mail'));
         }
     }
 
@@ -71,8 +71,9 @@ class MainWPChildBranding
         $header = array('name' => $settings['child_plugin_name'],
             'description' => $settings['child_plugin_desc'],
             'author' => $settings['child_plugin_author'],
-            'authoruri' => $settings['child_plugin_author_uri']);
-
+            'authoruri' => $settings['child_plugin_author_uri'],
+            'pluginuri' => $settings['child_plugin_uri']);
+        
         update_option('mainwp_branding_plugin_header', $header);
         update_option('mainwp_branding_support_email', $settings['child_support_email']);
         update_option('mainwp_branding_support_message', $settings['child_support_message']);
@@ -80,6 +81,9 @@ class MainWPChildBranding
         update_option('mainwp_branding_remove_setting', $settings['child_remove_setting']);
         update_option('mainwp_branding_remove_wp_tools', $settings['child_remove_wp_tools']);
         update_option('mainwp_branding_remove_wp_setting', $settings['child_remove_wp_setting']);
+        update_option('mainwp_branding_button_contact_label', $settings['child_button_contact_label']);
+        update_option('mainwp_branding_send_email_message', $settings['child_send_email_message']);
+        
 
         if ($settings['child_plugin_hide'])
         {
@@ -115,9 +119,7 @@ class MainWPChildBranding
     public function branding_init()
     {
         add_filter('map_meta_cap', array($this, 'branding_map_meta_cap'), 10, 5);        
-        add_filter('all_plugins', array($this, 'branding_child_plugin'));
-        add_filter('plugin_action_links', array($this, 'plugin_action_links'), 10, 2);
-
+        add_filter('all_plugins', array($this, 'branding_child_plugin'));                
         if (get_option('mainwp_branding_show_support') == 'T')
         {
             add_action('admin_bar_menu', array($this, 'add_support_button'), 100);
@@ -125,19 +127,21 @@ class MainWPChildBranding
         }
 
     }
-
+    
     public function send_support_mail()
     {
         $email = get_option('mainwp_branding_support_email');
         if (!empty($_POST['content']) && !empty($email))
         {
-            $mail = '<p>This email send from Contact support form at <a href="' . site_url() . '">' . site_url() . '</a></p>';
+            $mail = '<p>Support Email from: <a href="' . site_url() . '">' . site_url() . '</a></p>';
+            $mail .= '<p>Sent from WordPress page: ' . (!empty($_POST['from_page']) ? '<a href="' . $_POST['from_page'] . '">' . $_POST['from_page'] . '</a></p>' : "");
             $mail .= '<p>Admin email: ' . get_option('admin_email') . ' </p>';
-            $mail .= $_POST['content'];
+            $mail .= '<p>Support Text:</p>';            
+            $mail .= '<p>' . $_POST['content'] . '</p>';
             if (wp_mail($email, 'MainWP - Support Contact', $mail, array('From: "' . get_option('admin_email') . '" <' . get_option('admin_email') . '>', 'content-type: text/html'))) ;
             die('SUCCESS');
         }
-        die($email);
+        die('');
     }
 
     function update_footer()
@@ -199,19 +203,43 @@ class MainWPChildBranding
             -webkit-border-radius: 3px;
             clear: both;
         }
+        .ui-widget-overlay {
+            background: url("images/ui-bg_flat_0_aaaaaa_40x100.png") repeat-x scroll 50% 50% #AAAAAA;
+            opacity: 0.3;
+        }
+        .ui-widget-overlay {
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 90 !important;
+        }        
     </style>
 
     <div id="mainwp-branding-contact-support-box" title="Contact support" style="display: none; text-align: center">
-        <div style="height: 230px; margin-bottom: 10px; text-align: left">
+        <div style="height: auto; margin-bottom: 10px; text-align: left">
             <div class="mainwp_info-box-yellow" id="mainwp_branding_contact_ajax_message_zone"
                  style="display: none;"></div>
             <p><?php echo stripslashes(get_option('mainwp_branding_support_message')); ?></p>
             <textarea id="mainwp_branding_contact_message_content" name="mainwp_branding_contact_message_content"
-                      cols="69" rows="5" class="text"></textarea>
+                      cols="58" rows="7" class="text"></textarea>
         </div>
         <input id="mainwp-branding-contact-support-submit" type="button" name="submit" value="Submit"
                class="button-primary button"/>
     </div>
+    <?php 
+    $protocol = isset($_SERVER['HTTPS']) && strcasecmp($_SERVER['HTTPS'], 'off') ? 'https://' : 'http://';
+    $fullurl = $protocol .$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']; 
+    
+    $send_email_message = get_option("mainwp_branding_send_email_message");
+    if (!empty($send_email_message)) {
+        $send_email_message = stripslashes($send_email_message);
+    } else 
+        $send_email_message = "Support Contacted Successfully.";
+        
+    ?>
+    <input type="hidden" id="mainwp_branding_send_from_page" name="mainwp_branding_send_from_page" value="<?php echo $fullurl;?>" />
     <script>
         jQuery(document).ready(function ()
         {
@@ -226,6 +254,7 @@ class MainWPChildBranding
                 var messageEl = jQuery('#mainwp_branding_contact_ajax_message_zone');
                 messageEl.hide();
                 var content = jQuery('#mainwp_branding_contact_message_content').val();
+                var from_page = jQuery('#mainwp_branding_send_from_page').val();
 
                 if (jQuery.trim(content) == '')
                 {
@@ -235,8 +264,9 @@ class MainWPChildBranding
                 jQuery(this).attr('disabled', 'true'); //Disable
                 messageEl.html('Mail sending...').show();
                 var data = {
-                    action:'mainwp-child_branding_send_suppport_mail',
-                    content:content
+                    action:'mainwp-child_branding_send_support_mail',
+                    content:content,
+                    from_page: from_page
                 };
                 jQuery.ajax({
                     type:"POST",
@@ -246,7 +276,7 @@ class MainWPChildBranding
                     {
                         if (resp == 'SUCCESS')
                         {
-                            messageEl.html('Send mail successful.').show();
+                            messageEl.html("<?php echo addslashes($send_email_message); ?>").show();
                         }
                         else
                         {
@@ -255,10 +285,10 @@ class MainWPChildBranding
                             jQuery('#mainwp-branding-contact-support-submit').removeAttr('disabled');
                             return;
                         }
-                        setTimeout(function ()
-                        {
-                            jQuery('#mainwp-branding-contact-support-box').dialog('close');
-                        }, 1500);
+//                        setTimeout(function ()
+//                        {
+//                            jQuery('#mainwp-branding-contact-support-box').dialog('close');
+//                        }, 1500);
                     }
                 });
                 return false;
@@ -279,6 +309,13 @@ class MainWPChildBranding
                     location.href = location.href;
                 }});
         };
+        function addslashes(str) {
+            str=str.replace(/\\/g,'\\\\');
+            str=str.replace(/\'/g,'\\\'');
+            str=str.replace(/\"/g,'\\"');
+            str=str.replace(/\0/g,'\\0');
+            return str;
+        }
 
     </script>
     <?php
@@ -291,9 +328,15 @@ class MainWPChildBranding
      */
     public function add_support_button($wp_admin_bar)
     {
+        $label = get_option("mainwp_branding_button_contact_label");
+        if (!empty($label)) {
+            $label = stripslashes($label);
+        } else 
+            $label = "Contact Support";
+        
         $args = array(
             'id' => false,
-            'title' => 'Contact Support',
+            'title' => $label,
             'parent' => 'top-secondary',
             'href' => '#',
             'meta' => array('class' => 'mainwp_branding_support_top_bar_button', 'title' => 'Contact support')
@@ -335,12 +378,7 @@ class MainWPChildBranding
         else
             return $plugins;
     }
-
-    public function plugin_action_links($links, $file)
-    {
-        return $links;
-    }
-
+   
     public function update_child_header($plugins, $header)
     {
         $plugin_key = "";
@@ -357,9 +395,11 @@ class MainWPChildBranding
         if (!empty($plugin_key))
         {
             $plugin_data['Name'] = stripslashes($header['name']);
-            $plugin_data['Description'] = stripslashes($header['description']);
+            $plugin_data['Description'] = stripslashes($header['description']);            
             $plugin_data['Author'] = stripslashes($header['author']);
             $plugin_data['AuthorURI'] = stripslashes($header['authoruri']);
+            if (!empty($header['pluginuri']))
+                $plugin_data['PluginURI'] = stripslashes($header['pluginuri']);
             $plugins[$plugin_key] = $plugin_data;
         }
         return $plugins;
