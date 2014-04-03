@@ -4,6 +4,7 @@ class MainWPChildBranding
 {
     public static $instance = null;
     protected $child_plugin_dir;
+    protected $settings = null;
 
     static function Instance()
     {
@@ -18,6 +19,14 @@ class MainWPChildBranding
     {
         $this->child_plugin_dir = dirname(dirname(__FILE__));        
         add_action('mainwp_child_deactivation', array($this, 'child_deactivation'));
+        
+        $label = get_option("mainwp_branding_button_contact_label");
+        if (!empty($label)) {
+            $label = stripslashes($label);
+        } else 
+            $label = "Contact Support";
+        
+        $this->settings['contact_support_label'] = $label;
     }
 
     public static function admin_init()
@@ -122,6 +131,7 @@ class MainWPChildBranding
         add_filter('all_plugins', array($this, 'branding_child_plugin'));                
         if (get_option('mainwp_branding_show_support') == 'T')
         {
+            add_submenu_page( null, $this->settings['contact_support_label'], $this->settings['contact_support_label'] , 'read', "ContactSupport", array($this, "contact_support") ); 
             add_action('admin_bar_menu', array($this, 'add_support_button'), 100);
             add_filter('update_footer', array(&$this, 'update_footer'), 15);
         }
@@ -144,10 +154,9 @@ class MainWPChildBranding
         die('');
     }
 
-    function update_footer()
-    {
-        ob_start();
-        ?>
+    function contact_support()
+    {       
+    ?>
     <style>
         .ui-dialog {
             padding: .5em;
@@ -217,10 +226,10 @@ class MainWPChildBranding
         }        
     </style>
 
-    <div id="mainwp-branding-contact-support-box" title="Contact support" style="display: none; text-align: center">
+    <div id="mainwp-branding-contact-support-box" title="<?php echo $this->settings['contact_support_label']; ?>" style="display: none; text-align: center">
         <div style="height: auto; margin-bottom: 10px; text-align: left">
             <div class="mainwp_info-box-yellow" id="mainwp_branding_contact_ajax_message_zone"
-                 style="display: none;"></div>
+                 style="display: none;"></div>                
             <p><?php echo stripslashes(get_option('mainwp_branding_support_message')); ?></p>
             <textarea id="mainwp_branding_contact_message_content" name="mainwp_branding_contact_message_content"
                       cols="58" rows="7" class="text"></textarea>
@@ -228,26 +237,23 @@ class MainWPChildBranding
         <input id="mainwp-branding-contact-support-submit" type="button" name="submit" value="Submit"
                class="button-primary button"/>
     </div>
-    <?php 
-    $protocol = isset($_SERVER['HTTPS']) && strcasecmp($_SERVER['HTTPS'], 'off') ? 'https://' : 'http://';
-    $fullurl = $protocol .$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']; 
-    
+    <?php      
     $send_email_message = get_option("mainwp_branding_send_email_message");
     if (!empty($send_email_message)) {
         $send_email_message = stripslashes($send_email_message);
     } else 
         $send_email_message = "Support Contacted Successfully.";
-        
+    $from_page = urldecode($_GET['from_page']);    
     ?>
-    <input type="hidden" id="mainwp_branding_send_from_page" name="mainwp_branding_send_from_page" value="<?php echo $fullurl;?>" />
+    <input type="hidden" id="mainwp_branding_send_from_page" name="mainwp_branding_send_from_page" value="<?php echo $from_page;?>" />
     <script>
         jQuery(document).ready(function ()
         {
-            jQuery('.mainwp_branding_support_top_bar_button').live('click', function (event)
-            {
+            //jQuery('.mainwp_branding_support_top_bar_button').live('click', function (event)
+            //{
                 mainwp_branding_contact();
-                return false;
-            });
+            //  return false;
+            //});
 
             jQuery('#mainwp-branding-contact-support-submit').live('click', function (event)
             {
@@ -297,7 +303,10 @@ class MainWPChildBranding
         });
 
         mainwp_branding_contact = function ()
-        {
+        {      
+            var from_page = jQuery('#mainwp_branding_send_from_page').val();
+            if (from_page == '')
+                from_page = '<?php echo admin_url()?>';
             jQuery('#mainwp-branding-contact-support-box').dialog({
                 resizable:false,
                 height:350,
@@ -306,7 +315,7 @@ class MainWPChildBranding
                 close:function (event, ui)
                 {
                     jQuery('#mainwp-branding-contact-support-box').dialog('destroy');
-                    location.href = location.href;
+                    location.href = from_page;
                 }});
         };
         function addslashes(str) {
@@ -319,8 +328,6 @@ class MainWPChildBranding
 
     </script>
     <?php
-        $newOutput = ob_get_clean();
-        return $newOutput;
     }
 
     /**
@@ -328,19 +335,21 @@ class MainWPChildBranding
      */
     public function add_support_button($wp_admin_bar)
     {
-        $label = get_option("mainwp_branding_button_contact_label");
-        if (!empty($label)) {
-            $label = stripslashes($label);
-        } else 
-            $label = "Contact Support";
-        
+        if (isset($_GET['from_page']))
+            $href = admin_url('admin.php?page=ContactSupport&from_page=' . urlencode ($_GET['from_page']));
+        else {                         
+            $protocol = isset($_SERVER['HTTPS']) && strcasecmp($_SERVER['HTTPS'], 'off') ? 'https://' : 'http://';
+            $fullurl = $protocol .$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']; 
+            $href = admin_url('admin.php?page=ContactSupport&from_page=' . urlencode($fullurl));
+        }
         $args = array(
             'id' => false,
-            'title' => $label,
+            'title' => $this->settings['contact_support_label'],
             'parent' => 'top-secondary',
-            'href' => '#',
-            'meta' => array('class' => 'mainwp_branding_support_top_bar_button', 'title' => 'Contact support')
+            'href' => $href,
+            'meta' => array('class' => 'mainwp_branding_support_top_bar_button', 'title' => $this->settings['contact_support_label'])
         );
+        
         $wp_admin_bar->add_node($args);
     }
 
