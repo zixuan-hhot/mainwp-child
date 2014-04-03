@@ -226,7 +226,8 @@ class MainWPChildBranding
         }        
     </style>
 
-    <div id="mainwp-branding-contact-support-box" title="<?php echo $this->settings['contact_support_label']; ?>" style="display: none; text-align: center">
+    <div style="width: 99%;">
+        <h2><?php echo $this->settings['contact_support_label']; ?></h2>
         <div style="height: auto; margin-bottom: 10px; text-align: left">
             <div class="mainwp_info-box-yellow" id="mainwp_branding_contact_ajax_message_zone"
                  style="display: none;"></div>                
@@ -235,7 +236,7 @@ class MainWPChildBranding
                       cols="58" rows="7" class="text"></textarea>
         </div>
         <input id="mainwp-branding-contact-support-submit" type="button" name="submit" value="Submit"
-               class="button-primary button"/>
+               class="button-primary button" style="float: left"/>
     </div>
     <?php      
     $send_email_message = get_option("mainwp_branding_send_email_message");
@@ -248,13 +249,7 @@ class MainWPChildBranding
     <input type="hidden" id="mainwp_branding_send_from_page" name="mainwp_branding_send_from_page" value="<?php echo $from_page;?>" />
     <script>
         jQuery(document).ready(function ()
-        {
-            //jQuery('.mainwp_branding_support_top_bar_button').live('click', function (event)
-            //{
-                mainwp_branding_contact();
-            //  return false;
-            //});
-
+        {   
             jQuery('#mainwp-branding-contact-support-submit').live('click', function (event)
             {
                 var messageEl = jQuery('#mainwp_branding_contact_ajax_message_zone');
@@ -268,7 +263,7 @@ class MainWPChildBranding
                     return false;
                 }
                 jQuery(this).attr('disabled', 'true'); //Disable
-                messageEl.html('Mail sending...').show();
+                messageEl.html('Mail sending...').fadeIn(1000);
                 var data = {
                     action:'mainwp-child_branding_send_support_mail',
                     content:content,
@@ -282,7 +277,7 @@ class MainWPChildBranding
                     {
                         if (resp == 'SUCCESS')
                         {
-                            messageEl.html("<?php echo addslashes($send_email_message); ?>").show();
+                            messageEl.html("<?php echo addslashes($send_email_message); ?>" + ' ' + (from_page ? ('<a href="' + from_page + '" title="<?php _e("Go Back"); ?>"><?php _e("Go Back"); ?></a>') : '')).fadeIn(1000);
                         }
                         else
                         {
@@ -291,41 +286,12 @@ class MainWPChildBranding
                             jQuery('#mainwp-branding-contact-support-submit').removeAttr('disabled');
                             return;
                         }
-//                        setTimeout(function ()
-//                        {
-//                            jQuery('#mainwp-branding-contact-support-box').dialog('close');
-//                        }, 1500);
                     }
                 });
                 return false;
             });
 
         });
-
-        mainwp_branding_contact = function ()
-        {      
-            var from_page = jQuery('#mainwp_branding_send_from_page').val();
-            if (from_page == '')
-                from_page = '<?php echo admin_url()?>';
-            jQuery('#mainwp-branding-contact-support-box').dialog({
-                resizable:false,
-                height:350,
-                width:500,
-                modal:true,
-                close:function (event, ui)
-                {
-                    jQuery('#mainwp-branding-contact-support-box').dialog('destroy');
-                    location.href = from_page;
-                }});
-        };
-        function addslashes(str) {
-            str=str.replace(/\\/g,'\\\\');
-            str=str.replace(/\'/g,'\\\'');
-            str=str.replace(/\"/g,'\\"');
-            str=str.replace(/\0/g,'\\0');
-            return str;
-        }
-
     </script>
     <?php
     }
