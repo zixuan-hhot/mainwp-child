@@ -132,8 +132,7 @@ class MainWPChildBranding
         if (get_option('mainwp_branding_show_support') == 'T')
         {
             add_submenu_page( null, $this->settings['contact_support_label'], $this->settings['contact_support_label'] , 'read', "ContactSupport", array($this, "contact_support") ); 
-            add_action('admin_bar_menu', array($this, 'add_support_button'), 100);
-            add_filter('update_footer', array(&$this, 'update_footer'), 15);
+            add_action('admin_bar_menu', array($this, 'add_support_button'), 100);            
         }
 
     }
