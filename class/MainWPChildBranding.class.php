@@ -92,7 +92,8 @@ class MainWPChildBranding
         update_option('mainwp_branding_remove_wp_setting', $settings['child_remove_wp_setting']);
         update_option('mainwp_branding_button_contact_label', $settings['child_button_contact_label']);
         update_option('mainwp_branding_send_email_message', $settings['child_send_email_message']);
-        
+        update_option('mainwp_branding_message_return_sender', $settings['child_message_return_sender']);
+        update_option('mainwp_branding_submit_button_title', $settings['child_submit_button_title']);
 
         if ($settings['child_plugin_hide'])
         {
@@ -234,7 +235,11 @@ class MainWPChildBranding
             <textarea id="mainwp_branding_contact_message_content" name="mainwp_branding_contact_message_content"
                       cols="58" rows="7" class="text"></textarea>
         </div>
-        <input id="mainwp-branding-contact-support-submit" type="button" name="submit" value="Submit"
+        <?php
+            $button_title = get_option("mainwp_branding_submit_button_title");
+            $button_title = !empty($button_title) ? $button_title : __("Submit");
+        ?>
+        <input id="mainwp-branding-contact-support-submit" type="button" name="submit" value="<?php echo $button_title; ?>"
                class="button-primary button" style="float: left"/>
     </div>
     <?php      
@@ -243,7 +248,10 @@ class MainWPChildBranding
         $send_email_message = stripslashes($send_email_message);
     } else 
         $send_email_message = "Support Contacted Successfully.";
-    $from_page = urldecode($_GET['from_page']);    
+    $from_page = urldecode($_GET['from_page']);  
+    
+    $back_link = get_option('mainwp_branding_message_return_sender');
+    $back_link = !empty($back_link) ? $back_link : "Go Back";
     ?>
     <input type="hidden" id="mainwp_branding_send_from_page" name="mainwp_branding_send_from_page" value="<?php echo $from_page;?>" />
     <script>
@@ -276,7 +284,7 @@ class MainWPChildBranding
                     {
                         if (resp == 'SUCCESS')
                         {
-                            messageEl.html("<?php echo addslashes($send_email_message); ?>" + ' ' + (from_page ? ('<a href="' + from_page + '" title="<?php _e("Go Back"); ?>"><?php _e("Go Back"); ?></a>') : '')).fadeIn(1000);
+                            messageEl.html("<?php echo addslashes($send_email_message); ?>" + '&nbsp;&nbsp;' + (from_page ? ('<a href="' + from_page + '" title="<?php echo $back_link; ?>"><?php echo $back_link; ?></a>') : '')).fadeIn(1000);
                         }
                         else
                         {
