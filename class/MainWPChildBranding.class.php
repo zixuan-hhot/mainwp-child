@@ -225,12 +225,25 @@ class MainWPChildBranding
             z-index: 90 !important;
         }        
     </style>
+    <?php   
+            $from_page = urldecode($_GET['from_page']); 
+            $back_link = get_option('mainwp_branding_message_return_sender');
+            $back_link = !empty($back_link) ? $back_link : "Go Back";
+            $back_link = !empty($from_page) ? '<a href="' .  $from_page . '" title="' . $back_link . '">' . $back_link . '</a>' : '';
 
+            $send_email_message = get_option("mainwp_branding_send_email_message");
+            if (!empty($send_email_message)) {
+                $send_email_message = stripslashes($send_email_message);
+            } else 
+                $send_email_message = "Support Contacted Successfully.";
+    ?>
     <div style="width: 99%;">
         <h2><?php echo $this->settings['contact_support_label']; ?></h2>
         <div style="height: auto; margin-bottom: 10px; text-align: left">
             <div class="mainwp_info-box-yellow" id="mainwp_branding_contact_ajax_message_zone"
-                 style="display: none;"></div>                
+                 style="display: none;"></div>   
+            <div class="mainwp_info-box-yellow" id="mainwp_branding_contact_success_ajax_message_zone" 
+                 style="display: none;"><?php echo $send_email_message . "&nbsp;&nbsp" . $back_link; ?></div>     
             <p><?php echo stripslashes(get_option('mainwp_branding_support_message')); ?></p>
             <textarea id="mainwp_branding_contact_message_content" name="mainwp_branding_contact_message_content"
                       cols="58" rows="7" class="text"></textarea>
@@ -242,17 +255,7 @@ class MainWPChildBranding
         <input id="mainwp-branding-contact-support-submit" type="button" name="submit" value="<?php echo $button_title; ?>"
                class="button-primary button" style="float: left"/>
     </div>
-    <?php      
-    $send_email_message = get_option("mainwp_branding_send_email_message");
-    if (!empty($send_email_message)) {
-        $send_email_message = stripslashes($send_email_message);
-    } else 
-        $send_email_message = "Support Contacted Successfully.";
-    $from_page = urldecode($_GET['from_page']);  
     
-    $back_link = get_option('mainwp_branding_message_return_sender');
-    $back_link = !empty($back_link) ? $back_link : "Go Back";
-    ?>
     <input type="hidden" id="mainwp_branding_send_from_page" name="mainwp_branding_send_from_page" value="<?php echo $from_page;?>" />
     <script>
         jQuery(document).ready(function ()
@@ -284,7 +287,8 @@ class MainWPChildBranding
                     {
                         if (resp == 'SUCCESS')
                         {
-                            messageEl.html("<?php echo addslashes($send_email_message); ?>" + '&nbsp;&nbsp;' + (from_page ? ('<a href="' + from_page + '" title="<?php echo $back_link; ?>"><?php echo $back_link; ?></a>') : '')).fadeIn(1000);
+                            messageEl.hide();
+                            jQuery('#mainwp_branding_contact_success_ajax_message_zone').fadeIn(1000);                               
                         }
                         else
                         {
