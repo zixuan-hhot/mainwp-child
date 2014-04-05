@@ -232,10 +232,14 @@ class MainWPChildBranding
             $back_link = !empty($from_page) ? '<a href="' .  $from_page . '" title="' . $back_link . '">' . $back_link . '</a>' : '';
 
             $send_email_message = get_option("mainwp_branding_send_email_message");
-            if (!empty($send_email_message)) {
-                $send_email_message = stripslashes($send_email_message);
+            if (!empty($send_email_message)) {                
+                $send_email_message = nl2br(stripslashes($send_email_message));
             } else 
                 $send_email_message = "Support Contacted Successfully.";
+            
+            $support_message = get_option('mainwp_branding_support_message');
+            $support_message = nl2br(stripslashes($support_message));
+                    
     ?>
     <div style="width: 99%;">
         <h2><?php echo $this->settings['contact_support_label']; ?></h2>
@@ -244,7 +248,7 @@ class MainWPChildBranding
                  style="display: none;"></div>   
             <div class="mainwp_info-box-yellow" id="mainwp_branding_contact_success_ajax_message_zone" 
                  style="display: none;"><?php echo $send_email_message . "&nbsp;&nbsp" . $back_link; ?></div>     
-            <p><?php echo stripslashes(get_option('mainwp_branding_support_message')); ?></p>
+            <p><?php echo $support_message; ?></p>
             <textarea id="mainwp_branding_contact_message_content" name="mainwp_branding_contact_message_content"
                       cols="58" rows="7" class="text"></textarea>
         </div>
