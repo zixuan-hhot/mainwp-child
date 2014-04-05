@@ -31,12 +31,6 @@ class MainWPChildBranding
 
     public static function admin_init()
     {
-        if (get_option('mainwp_branding_show_support') == 'T')
-        {
-            wp_enqueue_script('jquery-ui-dialog');
-            wp_enqueue_style('jquery-ui-style', '//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/smoothness/jquery-ui.css');
-            add_action('wp_ajax_mainwp-child_branding_send_support_mail', array(MainWPChildBranding::Instance(), 'send_support_mail'));
-        }
     }
 
     public function child_deactivation()
@@ -141,67 +135,24 @@ class MainWPChildBranding
     public function send_support_mail()
     {
         $email = get_option('mainwp_branding_support_email');
-        if (!empty($_POST['content']) && !empty($email))
+        $content = nl2br(stripslashes($_POST['mainwp_branding_contact_message_content']));        
+        if (!empty($_POST['mainwp_branding_contact_message_content']) && !empty($email))
         {
             $mail = '<p>Support Email from: <a href="' . site_url() . '">' . site_url() . '</a></p>';
             $mail .= '<p>Sent from WordPress page: ' . (!empty($_POST['from_page']) ? '<a href="' . $_POST['from_page'] . '">' . $_POST['from_page'] . '</a></p>' : "");
             $mail .= '<p>Admin email: ' . get_option('admin_email') . ' </p>';
             $mail .= '<p>Support Text:</p>';            
-            $mail .= '<p>' . $_POST['content'] . '</p>';
+            $mail .= '<p>' . $content . '</p>';
             if (wp_mail($email, 'MainWP - Support Contact', $mail, array('From: "' . get_option('admin_email') . '" <' . get_option('admin_email') . '>', 'content-type: text/html'))) ;
-            die('SUCCESS');
+                return true;
         }
-        die('');
+        return false;
     }
 
     function contact_support()
     {       
     ?>
-    <style>
-        .ui-dialog {
-            padding: .5em;
-            width: 600px !important;
-            overflow: hidden;
-            -webkit-box-shadow: 0px 0px 15px rgba(50, 50, 50, 0.45);
-            -moz-box-shadow: 0px 0px 15px rgba(50, 50, 50, 0.45);
-            box-shadow: 0px 0px 15px rgba(50, 50, 50, 0.45);
-            background: #fff !important;
-            z-index: 99999;
-        }
-
-        .ui-dialog .ui-dialog-titlebar {
-            background: none;
-            border: none;
-        }
-
-        .ui-dialog .ui-dialog-title {
-            font-size: 20px;
-            font-family: Helvetica;
-            text-transform: uppercase;
-            color: #555;
-        }
-
-        .ui-dialog h3 {
-            font-family: Helvetica;
-            text-transform: uppercase;
-            color: #888;
-            border-radius: 25px;
-            -moz-border-radius: 25px;
-            -webkit-border-radius: 25px;
-        }
-
-        .ui-dialog .ui-dialog-titlebar-close {
-            background: none;
-            border-radius: 15px;
-            -moz- border-radius : 15 px;
-            -webkit- border-radius : 15 px;
-            color: #fff;
-        }
-
-        .ui-dialog .ui-dialog-titlebar-close:hover {
-            background: #7fb100;
-        }
-
+    <style>  
         .mainwp_info-box-yellow {
             margin: 5px 0 15px;
             padding: .6em;
@@ -211,104 +162,60 @@ class MainWPChildBranding
             -moz-border-radius: 3px;
             -webkit-border-radius: 3px;
             clear: both;
-        }
-        .ui-widget-overlay {
-            background: url("images/ui-bg_flat_0_aaaaaa_40x100.png") repeat-x scroll 50% 50% #AAAAAA;
-            opacity: 0.3;
-        }
-        .ui-widget-overlay {
-            height: 100%;
-            left: 0;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 90 !important;
         }        
     </style>
-    <?php   
-            $from_page = urldecode($_GET['from_page']); 
+    <?php 
+        if (isset($_POST['submit'])) {                  
+            $from_page = $_POST['mainwp_branding_send_from_page']; 
             $back_link = get_option('mainwp_branding_message_return_sender');
             $back_link = !empty($back_link) ? $back_link : "Go Back";
-            $back_link = !empty($from_page) ? '<a href="' .  $from_page . '" title="' . $back_link . '">' . $back_link . '</a>' : '';
-
-            $send_email_message = get_option("mainwp_branding_send_email_message");
-            if (!empty($send_email_message)) {                
-                $send_email_message = nl2br(stripslashes($send_email_message));
-            } else 
-                $send_email_message = "Support Contacted Successfully.";
+            $back_link = !empty($from_page) ? '<a href="' .  $from_page . '" title="' . $back_link . '">' . $back_link . '</a>' : '';          
             
+           if ($this->send_support_mail()) {
+                $send_email_message = get_option("mainwp_branding_send_email_message");
+                if (!empty($send_email_message)) {                
+                    $send_email_message = stripslashes($send_email_message);
+                } else 
+                    $send_email_message = "Your Message was successfully submitted.";
+           } else {
+               $send_email_message = __("Error: send mail failed.");
+           }
+           ?><div class="mainwp_info-box-yellow"><?php echo $send_email_message . "&nbsp;&nbsp" . $back_link; ?></div><?php                
+        } else {    
+            $from_page = urldecode($_GET['from_page']); 
             $support_message = get_option('mainwp_branding_support_message');
             $support_message = nl2br(stripslashes($support_message));
-                    
-    ?>
-    <div style="width: 99%;">
-        <h2><?php echo $this->settings['contact_support_label']; ?></h2>
-        <div style="height: auto; margin-bottom: 10px; text-align: left">
-            <div class="mainwp_info-box-yellow" id="mainwp_branding_contact_ajax_message_zone"
-                 style="display: none;"></div>   
-            <div class="mainwp_info-box-yellow" id="mainwp_branding_contact_success_ajax_message_zone" 
-                 style="display: none;"><?php echo $send_email_message . "&nbsp;&nbsp" . $back_link; ?></div>     
-            <p><?php echo $support_message; ?></p>
-            <textarea id="mainwp_branding_contact_message_content" name="mainwp_branding_contact_message_content"
-                      cols="58" rows="7" class="text"></textarea>
-        </div>
-        <?php
-            $button_title = get_option("mainwp_branding_submit_button_title");
-            $button_title = !empty($button_title) ? $button_title : __("Submit");
-        ?>
-        <input id="mainwp-branding-contact-support-submit" type="button" name="submit" value="<?php echo $button_title; ?>"
-               class="button-primary button" style="float: left"/>
-    </div>
-    
-    <input type="hidden" id="mainwp_branding_send_from_page" name="mainwp_branding_send_from_page" value="<?php echo $from_page;?>" />
-    <script>
-        jQuery(document).ready(function ()
-        {   
-            jQuery('#mainwp-branding-contact-support-submit').live('click', function (event)
-            {
-                var messageEl = jQuery('#mainwp_branding_contact_ajax_message_zone');
-                messageEl.hide();
-                var content = jQuery('#mainwp_branding_contact_message_content').val();
-                var from_page = jQuery('#mainwp_branding_send_from_page').val();
-
-                if (jQuery.trim(content) == '')
-                {
-                    messageEl.html(__('You content message must not be empty.')).fadeIn();
-                    return false;
-                }
-                jQuery(this).attr('disabled', 'true'); //Disable
-                messageEl.html('Mail sending...').fadeIn(1000);
-                var data = {
-                    action:'mainwp-child_branding_send_support_mail',
-                    content:content,
-                    from_page: from_page
-                };
-                jQuery.ajax({
-                    type:"POST",
-                    url:ajaxurl,
-                    data:data,
-                    success:function (resp)
-                    {
-                        if (resp == 'SUCCESS')
-                        {
-                            messageEl.hide();
-                            jQuery('#mainwp_branding_contact_success_ajax_message_zone').fadeIn(1000);                               
-                        }
-                        else
-                        {
-                            messageEl.css('color', 'red');
-                            messageEl.html('Error send mail.').show();
-                            jQuery('#mainwp-branding-contact-support-submit').removeAttr('disabled');
-                            return;
-                        }
-                    }
-                });
-                return false;
-            });
-
-        });
-    </script>
-    <?php
+            ?>
+            <form action="" method="post">
+                    <div style="width: 99%;">        
+                        <h2><?php echo $this->settings['contact_support_label']; ?></h2>
+                        <div style="height: auto; margin-bottom: 10px; text-align: left">                                                          
+                            <p><?php echo $support_message; ?></p>   
+                            <div style="max-width: 650px;">
+                                <?php             
+                                remove_editor_styles(); // stop custom theme styling interfering with the editor
+                                wp_editor( "", 'mainwp_branding_contact_message_content', array(
+                                                'textarea_name' => 'mainwp_branding_contact_message_content',
+                                                'textarea_rows' => 10,                                    
+                                                'teeny' => true,
+                                                'wpautop' => true,
+                                                'media_buttons' => false,
+                                        )
+                                );  
+                                ?>   
+                            </div>
+                        </div>
+                        <br />
+                        <?php
+                            $button_title = get_option("mainwp_branding_submit_button_title");
+                            $button_title = !empty($button_title) ? $button_title : __("Submit");
+                        ?>
+                        <input id="mainwp-branding-contact-support-submit" type="submit" name="submit" value="<?php echo $button_title; ?>"
+                               class="button-primary button" style="float: left"/>        
+                    </div>    
+                    <input type="hidden"  name="mainwp_branding_send_from_page" value="<?php echo $from_page;?>" />    
+            </form>
+    <?php } 
     }
 
     /**
