@@ -139,7 +139,7 @@ class MainWPChildBranding
         if (!empty($_POST['mainwp_branding_contact_message_content']) && !empty($email))
         {
             $mail = '<p>Support Email from: <a href="' . site_url() . '">' . site_url() . '</a></p>';
-            $mail .= '<p>Sent from WordPress page: ' . (!empty($_POST['from_page']) ? '<a href="' . $_POST['from_page'] . '">' . $_POST['from_page'] . '</a></p>' : "");
+            $mail .= '<p>Sent from WordPress page: ' . (!empty($_POST['mainwp_branding_send_from_page']) ? '<a href="' . $_POST['mainwp_branding_send_from_page'] . '">' . $_POST['mainwp_branding_send_from_page'] . '</a></p>' : "");
             $mail .= '<p>Admin email: ' . get_option('admin_email') . ' </p>';
             $mail .= '<p>Support Text:</p>';            
             $mail .= '<p>' . $content . '</p>';
