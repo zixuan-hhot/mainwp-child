@@ -41,13 +41,12 @@ class MainWPChild
         'get_post_meta' => 'get_post_meta',
         'get_total_ezine_post' => 'get_total_ezine_post',
         'get_next_time_to_post' => 'get_next_time_to_post',
-		'cancel_scheduled_post' => 'cancel_scheduled_post',
-        // 'get_next_time_of_post_to_post' => 'get_next_time_of_post_to_post',
-        // 'get_next_time_of_page_to_post' => 'get_next_time_of_page_to_post',
+        'cancel_scheduled_post' => 'cancel_scheduled_post',
         'serverInformation' => 'serverInformation',
         'maintenance_site' => 'maintenance_site',
         'keyword_links_action' => 'keyword_links_action',
-		'branding_child_plugin' => 'branding_child_plugin'
+        'branding_child_plugin' => 'branding_child_plugin',
+        'code_snippet' => 'code_snippet'        
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -75,7 +74,8 @@ class MainWPChild
         $this->slug = str_replace('.php', '', $t2);
 
         $this->posts_where_suffix = '';
-        $this->comments_and_clauses = '';
+        $this->comments_and_clauses = '';        
+//     add_action('template_redirect', array($this, 'template_redirect'));	
         add_action('init', array(&$this, 'parse_init'));
         add_action('admin_menu', array(&$this, 'admin_menu'));
 		add_action('admin_init', array(&$this, 'admin_init'));
@@ -151,7 +151,13 @@ class MainWPChild
 
         return false;
     }
-
+    
+//    function template_redirect(){   
+//        if (get_option('mainwp_maintenance_opt_alert_404') == 1) {                                       
+//            $this->maintenance_alert_404();
+//        }
+//    }
+    
     function admin_menu()
     {
         if (get_option('mainwp_branding_remove_wp_tools')) {
@@ -225,7 +231,7 @@ class MainWPChild
     <form method="post" action="">
         <br/>
 
-        <h3><?php _e('Connection Settings','mainwp-child'); ?></h3>
+        <h3><?php _e('Connection Settings','mainwp-child'); ?></h3>        
         <table class="form-table">
             <tbody>
             <tr valign="top">
@@ -579,9 +585,8 @@ class MainWPChild
             MainWPKeywordLinks::clear_htaccess(); // force clear
         }
 		
-		// Branding extension
-		MainWPChildBranding::Instance()->branding_init();
-		
+        // Branding extension
+        MainWPChildBranding::Instance()->branding_init();	
     }
 
     function default_option_active_plugins($default)
@@ -3105,6 +3110,13 @@ class MainWPChild
             $this->maintenance_optimize(true);
         }
 
+        if (in_array('alert404', $maint_options))
+        {
+            update_option('mainwp_maintenance_opt_alert_404', 1);            
+        } else {
+            delete_option('mainwp_maintenance_opt_alert_404');
+        }
+        
         if (!isset($information['status'])) $information['status'] = 'SUCCESS';
         MainWPHelper::write($information);
     }
@@ -3127,6 +3139,72 @@ class MainWPChild
         }
     }
 
+    function maintenance_alert_404()
+    {
+            if (!is_404())
+                return;
+            
+            // set status
+            header("HTTP/1.1 404 Not Found");
+            header("Status: 404 Not Found");
+            
+            // site info
+            $blog  = get_bloginfo('name');
+            $site  = get_bloginfo('url') . '/';
+            $email = get_bloginfo('admin_email');
+
+            // referrer
+            if (isset($_SERVER['HTTP_REFERER'])) {
+                    $referer = MainWPHelper::clean($_SERVER['HTTP_REFERER']);
+            } else {
+                    $referer = "undefined";
+            }
+            $protocol = isset($_SERVER['HTTPS']) && strcasecmp($_SERVER['HTTPS'], 'off') ? 'https://' : 'http://';
+            // request URI
+            if (isset($_SERVER['REQUEST_URI']) && isset($_SERVER["HTTP_HOST"])) {
+                    $request = MainWPHelper::clean($protocol . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"]);
+            } else {
+                    $request = "undefined";
+            }
+            // query string
+            if (isset($_SERVER['QUERY_STRING'])) {
+                    $string = MainWPHelper::clean($_SERVER['QUERY_STRING']);
+            } else {
+                    $string = "undefined";
+            }
+            // IP address
+            if (isset($_SERVER['REMOTE_ADDR'])) {
+                    $address = MainWPHelper::clean($_SERVER['REMOTE_ADDR']);
+            } else {
+                    $address = "undefined";
+            }
+            // user agent
+            if (isset($_SERVER['HTTP_USER_AGENT'])) {
+                    $agent = MainWPHelper::clean($_SERVER['HTTP_USER_AGENT']);
+            } else {
+                    $agent = "undefined";
+            }
+            // identity
+            if (isset($_SERVER['REMOTE_IDENT'])) {
+                    $remote = MainWPHelper::clean($_SERVER['REMOTE_IDENT']);
+            } else {
+                    $remote = "undefined";
+            }
+            // log time
+            $time = MainWPHelper::clean(date("F jS Y, h:ia", time()));
+
+            $message = 
+                    "TIME: "            . $time    . "\n" . 
+                    "*404: "            . $request . "\n" . 
+                    "SITE: "            . $site    . "\n" .                 
+                    "REFERRER: "        . $referer . "\n" . 
+                    "QUERY STRING: "    . $string  . "\n" . 
+                    "REMOTE ADDRESS: "  . $address . "\n" . 
+                    "REMOTE IDENTITY: " . $remote  . "\n" . 
+                    "USER AGENT: "      . $agent   . "\n\n\n";      
+            wp_mail($email, "404 Alert: " . $blog , $message, "From: $email");
+    }
+    
     public function keyword_links_action() {
         MainWPKeywordLinks::Instance()->action();
     }
@@ -3135,8 +3213,22 @@ class MainWPChild
         MainWPChildBranding::Instance()->action();
     }
     
-    public function get_plugin_slug(){
-        return $this->plugin_slug;
+    public function code_snippet() {
+        
+        if (!isset($_POST['code']))
+            return;
+        
+        $code = stripslashes($_POST['code']);     
+        $code = preg_replace( '|^[\s]*<\?(php)?|', '', $code);
+        $code = preg_replace( '|\?>[\s]*$|', '', $code);        
+        ob_start();
+        $result = eval($code);        
+        $output = ob_get_contents();        
+        $information = array('status' => true);
+        if ($result === false)
+            $information['status'] = false;
+        $information['result'] = $result;        
+        MainWPHelper::write($information);        
     }
 }
 
