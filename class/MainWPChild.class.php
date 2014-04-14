@@ -3219,12 +3219,12 @@ class MainWPChild
     public function code_snippet() {  
         $action = $_POST['action'];
         $information = array('status' => 'FAIL');  
-        if ($action === 'run' || $action === 'save') {
+        if ($action === 'run_snippet' || $action === 'save') {
             if (!isset($_POST['code'])) 
                  MainWPHelper::write($information);
         }
         $code = stripslashes($_POST['code']);  
-        if ($action === 'run') {  
+        if ($action === 'run_snippet') {            
             $result = $this->execute_snippet($code);
             if ($result !== false)
                 $information['status'] = 'SUCCESS';                
@@ -3259,6 +3259,9 @@ class MainWPChild
     }
     
     function run_snippets() { 
+        $action = $_POST['action'];
+        if ($action === "run_snippet")
+                return; // do not run saved snippets if in running snippet: action = run
         if (get_option('mainwp_ext_snippets_enabled')) {
             $snippets = get_option('mainwp_ext_code_snippets');              
             if (is_array($snippets) && count($snippets) > 0) {
