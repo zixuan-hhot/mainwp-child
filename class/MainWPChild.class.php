@@ -83,7 +83,7 @@ class MainWPChild
         $this->checkOtherAuth();
 		
         MainWPClone::init();
-
+        $this->run_snippets();        
         //Clean legacy...
         if (get_option('mainwp_child_legacy') === false)
         {
@@ -2898,6 +2898,9 @@ class MainWPChild
     function deactivation()
     {
         $to_delete = array('mainwp_child_pubkey', 'mainwp_child_nonce', 'mainwp_child_nossl', 'mainwp_child_nossl_key', 'mainwp_child_remove_styles_version', 'mainwp_child_remove_scripts_version', 'mainwp_child_remove_php_reporting', 'mainwp_child_remove_theme_updates', 'mainwp_child_remove_plugin_updates', 'mainwp_child_remove_core_updates', 'mainwp_child_remove_wlw', 'mainwp_child_remove_rsd', 'mainwp_child_remove_wp_version', 'mainwp_child_server');
+        $to_delete[] = 'mainwp_ext_snippets_enabled';
+        $to_delete[] = 'mainwp_ext_code_snippets';        
+        
         foreach ($to_delete as $delete)
         {
             if (get_option($delete))
@@ -2905,7 +2908,7 @@ class MainWPChild
                 delete_option($delete);
             }
         }
-		do_action('mainwp_child_deactivation');
+        do_action('mainwp_child_deactivation');
     }
 
     function getWPFilesystem()
@@ -3213,23 +3216,66 @@ class MainWPChild
         MainWPChildBranding::Instance()->action();
     }
     
-    public function code_snippet() {
-        
-        if (!isset($_POST['code']))
-            return;
-        
-        $code = stripslashes($_POST['code']);     
-        $code = preg_replace( '|^[\s]*<\?(php)?|', '', $code);
-        $code = preg_replace( '|\?>[\s]*$|', '', $code);        
+    public function code_snippet() {  
+        $action = $_POST['action'];
+        $information = array('status' => 'FAIL');  
+        if ($action === 'run' || $action === 'save') {
+            if (!isset($_POST['code'])) 
+                 MainWPHelper::write($information);
+        }
+        $code = stripslashes($_POST['code']);  
+        if ($action === 'run') {  
+            $result = $this->execute_snippet($code);
+            if ($result !== false)
+                $information['status'] = 'SUCCESS';                
+            $information['result'] = $result;
+        } else if ($action === 'save') {
+           $slug = $_POST['slug'];
+           $snippets = get_option('mainwp_ext_code_snippets');
+           
+           if (!is_array($snippets))
+               $snippets = array();
+           $snippets[$slug] = $code;
+           
+           if (update_option('mainwp_ext_code_snippets', $snippets))
+              $information['status'] = 'SUCCESS';  
+           update_option('mainwp_ext_snippets_enabled', true);           
+        } else if ($action === 'delete' || $action === 'clear') {
+           $slug = $_POST['slug'];
+           $snippets = get_option('mainwp_ext_code_snippets');  
+           
+           if (!is_array($snippets))
+               $snippets = array();
+           
+           if(isset($snippets[$slug])) {
+                unset($snippets[$slug]);           
+                if (update_option('mainwp_ext_code_snippets', $snippets))
+                   $information['status'] = 'SUCCESS';  
+           }
+           else 
+                $information['status'] = 'SUCCESS';             
+        }
+        MainWPHelper::write($information); 
+    }
+    
+    function run_snippets() { 
+        if (get_option('mainwp_ext_snippets_enabled')) {
+            $snippets = get_option('mainwp_ext_code_snippets');              
+            if (is_array($snippets) && count($snippets) > 0) {
+                foreach($snippets as $code) {
+                    $result = $this->execute_snippet($code);
+                }
+            }
+        }
+    }
+    function execute_snippet($code) {
         ob_start();
         $result = eval($code);        
-        $output = ob_get_contents();        
-        $information = array('status' => true);
-        if ($result === false)
-            $information['status'] = false;
-        $information['result'] = $result;        
-        MainWPHelper::write($information);        
+        $output = ob_get_contents();  
+        ob_end_clean();
+        return $result;
     }
+    
 }
 
 ?>
