@@ -83,7 +83,7 @@ class MainWPChild
         $this->checkOtherAuth();
 		
         MainWPClone::init();
-        $this->run_snippets();        
+        $this->run_saved_snippets();        
         //Clean legacy...
         if (get_option('mainwp_child_legacy') === false)
         {
@@ -3219,7 +3219,7 @@ class MainWPChild
     public function code_snippet() {  
         $action = $_POST['action'];
         $information = array('status' => 'FAIL');  
-        if ($action === 'run_snippet' || $action === 'save') {
+        if ($action === 'run_snippet' || $action === 'save_snippet') {
             if (!isset($_POST['code'])) 
                  MainWPHelper::write($information);
         }
@@ -3229,7 +3229,7 @@ class MainWPChild
             if ($result !== false)
                 $information['status'] = 'SUCCESS';                
             $information['result'] = $result;
-        } else if ($action === 'save') {
+        } else if ($action === 'save_snippet') {
            $slug = $_POST['slug'];
            $snippets = get_option('mainwp_ext_code_snippets');
            
@@ -3240,7 +3240,7 @@ class MainWPChild
            if (update_option('mainwp_ext_code_snippets', $snippets))
               $information['status'] = 'SUCCESS';  
            update_option('mainwp_ext_snippets_enabled', true);           
-        } else if ($action === 'delete' || $action === 'clear') {
+        } else if ($action === 'delete_snippet') {
            $slug = $_POST['slug'];
            $snippets = get_option('mainwp_ext_code_snippets');  
            
@@ -3258,15 +3258,17 @@ class MainWPChild
         MainWPHelper::write($information); 
     }
     
-    function run_snippets() { 
+    function run_saved_snippets() { 
         $action = $_POST['action'];
-        if ($action === "run_snippet")
-                return; // do not run saved snippets if in running snippet: action = run
+        if ($action === "run_snippet" || $action === "save_snippet" || $action === "delete_snippet")
+                return; // do not run saved snippets if in do action snippet
+        $snippets = get_option('mainwp_ext_code_snippets');
+       
         if (get_option('mainwp_ext_snippets_enabled')) {
             $snippets = get_option('mainwp_ext_code_snippets');              
             if (is_array($snippets) && count($snippets) > 0) {
                 foreach($snippets as $code) {
-                    $result = $this->execute_snippet($code);
+                    $this->execute_snippet($code);
                 }
             }
         }
