@@ -2893,6 +2893,13 @@ class MainWPChild
         }
 
         update_option('mainwp_child_activated_once', true);
+        
+        // delete bad data if existed
+        $to_delete = array('mainwp_ext_snippets_enabled', 'mainwp_ext_code_snippets');                
+        foreach ($to_delete as $delete)
+        {  
+            delete_option($delete);           
+        }
     }
 
     function deactivation()
@@ -3261,9 +3268,7 @@ class MainWPChild
     function run_saved_snippets() { 
         $action = $_POST['action'];
         if ($action === "run_snippet" || $action === "save_snippet" || $action === "delete_snippet")
-                return; // do not run saved snippets if in do action snippet
-        $snippets = get_option('mainwp_ext_code_snippets');
-       
+                return; // do not run saved snippets if in do action snippet     
         if (get_option('mainwp_ext_snippets_enabled')) {
             $snippets = get_option('mainwp_ext_code_snippets');              
             if (is_array($snippets) && count($snippets) > 0) {
