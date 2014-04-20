@@ -177,8 +177,17 @@ class MainWPChild
                     stripos($_SERVER['REQUEST_URI'], 'options-discussion.php') || 
                     stripos($_SERVER['REQUEST_URI'], 'options-media.php') || 
                     stripos($_SERVER['REQUEST_URI'], 'options-permalink.php');
-            if ($pos !== false)
+            if ($pos !== false) {
                 wp_redirect(get_option('siteurl') . '/wp-admin/index.php'); 
+                exit();
+            }
+        } else if (get_option('mainwp_branding_remove_permalink')) {
+            remove_submenu_page('options-general.php', 'options-permalink.php');  
+            $pos = stripos($_SERVER['REQUEST_URI'], 'options-permalink.php');            
+            if ($pos !== false) {
+                wp_redirect(get_option('siteurl') . '/wp-admin/index.php');             
+                exit();
+            }
         }
         
         // hide menu    
@@ -3270,7 +3279,7 @@ class MainWPChild
         $result = eval($code);        
         $output = ob_get_contents();  
         ob_end_clean();
-        return $result;
+        return $output;
     }
     
 }
