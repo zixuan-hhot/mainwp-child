@@ -3226,10 +3226,10 @@ class MainWPChild
         }
         $code = stripslashes($_POST['code']);  
         if ($action === 'run_snippet') {            
-            $result = $this->execute_snippet($code);
-            if ($result !== false)
+            $return = $this->execute_snippet($code);
+            if (is_array($return) && isset($return['result']) && $return['result'] !== false)
                 $information['status'] = 'SUCCESS';                
-            $information['result'] = $result;
+            $information['result'] = isset($return['output']) ? $return['output'] : "";
         } else if ($action === 'save_snippet') {
            $slug = $_POST['slug'];
            $snippets = get_option('mainwp_ext_code_snippets');
@@ -3279,7 +3279,8 @@ class MainWPChild
         $result = eval($code);        
         $output = ob_get_contents();  
         ob_end_clean();
-        return $output;
+        $return = array('output' => $output, 'result' => $result);
+        return $return;
     }
     
 }
