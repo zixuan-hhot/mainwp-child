@@ -3227,7 +3227,7 @@ class MainWPChild
         $code = stripslashes($_POST['code']);  
         if ($action === 'run_snippet') {            
             $return = $this->execute_snippet($code);
-            if (is_array($return) && isset($return['result']) && $return['result'] !== false)
+            if (is_array($return) && isset($return['result']) && $return['result'] === 'SUCCESS')
                 $information['status'] = 'SUCCESS';                
             $information['result'] = isset($return['output']) ? $return['output'] : "";
         } else if ($action === 'save_snippet') {
@@ -3279,7 +3279,9 @@ class MainWPChild
         $result = eval($code);        
         $output = ob_get_contents();  
         ob_end_clean();
-        $return = array('output' => $output, 'result' => $result);
+        $return = array('output' => $output);
+        if ($result !== false)
+            $return['result'] = 'SUCCESS';
         return $return;
     }
     
