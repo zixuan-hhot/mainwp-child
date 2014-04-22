@@ -3284,11 +3284,13 @@ class MainWPChild
     }
     
     function run_saved_snippets() { 
-        if (!isset($_POST['action']))
-            return;
-        $action = $_POST['action'];
+        $action = null;        
+        if (isset($_POST['action']))
+            $action = $_POST['action'];
+        
         if ($action === "run_snippet" || $action === "save_snippet" || $action === "delete_snippet")
                 return; // do not run saved snippets if in do action snippet     
+        
         if (get_option('mainwp_ext_snippets_enabled')) {
             $snippets = get_option('mainwp_ext_code_snippets');              
             if (is_array($snippets) && count($snippets) > 0) {
