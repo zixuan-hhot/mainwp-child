@@ -3231,32 +3231,56 @@ class MainWPChild
                 $information['status'] = 'SUCCESS';                
             $information['result'] = isset($return['output']) ? $return['output'] : "";
         } else if ($action === 'save_snippet') {
-           $slug = $_POST['slug'];
-           $snippets = get_option('mainwp_ext_code_snippets');
+            $type = $_POST['type'];
+            $slug = $_POST['slug'];
+            $snippets = get_option('mainwp_ext_code_snippets');
            
-           if (!is_array($snippets))
-               $snippets = array();
-           $snippets[$slug] = $code;
-           
-           if (update_option('mainwp_ext_code_snippets', $snippets))
-              $information['status'] = 'SUCCESS';  
+            if (!is_array($snippets))
+                $snippets = array();
+            
+            if ($type === 'C') {// save into wp-config file
+                if (false !== $this->snippetUpdateWPConfig("save", $slug, $code))
+                    $information['status'] = 'SUCCESS';     
+            } else {
+                $snippets[$slug] = $code;
+                if (update_option('mainwp_ext_code_snippets', $snippets)) {               
+                    $information['status'] = 'SUCCESS';  
+                }
+            }
            update_option('mainwp_ext_snippets_enabled', true);           
         } else if ($action === 'delete_snippet') {
-           $slug = $_POST['slug'];
-           $snippets = get_option('mainwp_ext_code_snippets');  
-           
-           if (!is_array($snippets))
-               $snippets = array();
-           
-           if(isset($snippets[$slug])) {
-                unset($snippets[$slug]);           
-                if (update_option('mainwp_ext_code_snippets', $snippets))
-                   $information['status'] = 'SUCCESS';  
-           }
-           else 
-                $information['status'] = 'SUCCESS';             
+            $type = $_POST['type'];
+            $slug = $_POST['slug'];
+            $snippets = get_option('mainwp_ext_code_snippets');  
+            
+            if (!is_array($snippets))
+                $snippets = array();
+            if ($type === "C") {// delete in wp-config file
+                if (false !== $this->snippetUpdateWPConfig("delete", $slug))
+                    $information['status'] = 'SUCCESS';  
+            } else {                
+                if(isset($snippets[$slug])) {                    
+                    unset($snippets[$slug]);           
+                    if (update_option('mainwp_ext_code_snippets', $snippets)) {                    
+                        $information['status'] = 'SUCCESS';  
+                    }
+                }
+                else 
+                    $information['status'] = 'SUCCESS';             
+            }
         }
         MainWPHelper::write($information); 
+    }
+    
+    public function snippetUpdateWPConfig($action, $slug, $code = "")
+    {
+        $wpConfig = file_get_contents(ABSPATH . 'wp-config.php');        
+        if ($action === "delete") {
+            $wpConfig = preg_replace('/\n\n\/\*\*\*snippet_' . $slug. '\*\*\*\/(.*)\/\*\*\*end_snippet\*\*\*\/\n/is', '', $wpConfig);
+        } else if ($action === "save") {
+            $wpConfig = preg_replace('/(\$table_prefix *= *[\'"]wp_[\'"] *;)/is', '${1}' . PHP_EOL . PHP_EOL . '/***snippet_' . $slug. '***/' . PHP_EOL . $code . PHP_EOL . '/***end_snippet***/' . PHP_EOL, $wpConfig);
+        }     
+        file_put_contents(ABSPATH . 'wp-config.php', $wpConfig);
     }
     
     function run_saved_snippets() { 
