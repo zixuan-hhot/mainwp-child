@@ -1,5 +1,8 @@
 <?php
 
+ini_set('display_errors', false);
+error_reporting(0);
+
 define('MAINWP_CHILD_NR_OF_COMMENTS', 50);
 define('MAINWP_CHILD_NR_OF_PAGES', 50);
 
@@ -75,8 +78,8 @@ class MainWPChild
         $this->slug = str_replace('.php', '', $t2);
 
         $this->posts_where_suffix = '';
-        $this->comments_and_clauses = '';          
-        add_action('template_redirect', array($this, 'template_redirect'));        
+        $this->comments_and_clauses = '';
+        add_action('template_redirect', array($this, 'template_redirect'));
         add_action('init', array(&$this, 'parse_init'));
         add_action('admin_menu', array(&$this, 'admin_menu'));
         add_action('admin_init', array(&$this, 'admin_init'));
@@ -106,7 +109,7 @@ class MainWPChild
     {
         //Admin Notice...
         if (is_plugin_active('mainwp-child/mainwp-child.php')) {
-            if (!get_option('mainwp_child_pubkey')) {                                
+            if (!get_option('mainwp_child_pubkey')) {
                 $child_name = ($this->branding_robust === "MainWP") ? "MainWP Child" : $this->branding_robust;
                 echo '<div class="error" style="text-align: center;"><p style="color: red; font-size: 16px; font-weight: bold;">Attention!</p>
                       <p>Please add this site to your ' . $this->branding_robust . ' Dashboard now or deactivate the ' . $child_name . ' plugin until you are ready to do so to avoid security issues.</p></div>';
@@ -157,12 +160,12 @@ class MainWPChild
         return false;
     }
     
-    function template_redirect(){             
-        if (get_option('mainwp_maintenance_opt_alert_404') == 1) {                                       
+    function template_redirect(){
+        if (get_option('mainwp_maintenance_opt_alert_404') == 1) {
             $this->maintenance_alert_404();
         }
     }
-    
+
     function admin_menu()
     {
         if (get_option('mainwp_branding_remove_wp_tools')) {
@@ -506,7 +509,7 @@ class MainWPChild
          */
         MainWPSecurity::fixAll();
 		
-        if (isset($_GET['test']))
+        if (isset($_GET['mainwptest']))
         {
 //            error_reporting(E_ALL);
 //            ini_set('display_errors', TRUE);
@@ -1428,7 +1431,7 @@ class MainWPChild
                 $newExcludes[] = rtrim($exclude, '/');
             }
 
-            $res = MainWPBackup::get()->createFullBackup($newExcludes, '', false, false, $file_descriptors);
+            $res = MainWPBackup::get()->createFullBackup($newExcludes, '', false, false, $file_descriptors, (isset($_POST['file']) ? $_POST['file'] : false));
             if (!$res)
             {
                 $information['full'] = false;
@@ -3034,6 +3037,14 @@ class MainWPChild
         MainWPChildServerInformation::renderCron();
         $output['cron'] = @ob_get_contents();
         @ob_end_clean();
+        @ob_start();
+        MainWPChildServerInformation::renderErrorLogPage();
+        $output['error'] = @ob_get_contents();
+        @ob_end_clean();
+        @ob_start();
+        MainWPChildServerInformation::renderWPConfig();
+        $output['wpconfig'] = @ob_get_contents();
+        @ob_end_clean();
 
         MainWPHelper::write($output);
     }
@@ -3043,18 +3054,18 @@ class MainWPChild
         global $wpdb;
         $information = array();
         if (isset($_POST['action'])) {
-            if ($_POST['action'] === 'save_settings') {                        
+            if ($_POST['action'] === 'save_settings') {
 
                 if (isset($_POST['enable_alert']) && $_POST['enable_alert'] == 1)
                 {
-                    update_option('mainwp_maintenance_opt_alert_404', 1);            
+                    update_option('mainwp_maintenance_opt_alert_404', 1);
                 } else {
                     delete_option('mainwp_maintenance_opt_alert_404');
                 }
 
                 if (isset($_POST['email']) && !empty($_POST['email']))
                 {
-                    update_option('mainwp_maintenance_opt_alert_404_email', $_POST['email']);            
+                    update_option('mainwp_maintenance_opt_alert_404_email', $_POST['email']);
                 } else {
                     delete_option('mainwp_maintenance_opt_alert_404_email');
                 }
@@ -3062,14 +3073,14 @@ class MainWPChild
                 MainWPHelper::write($information);
                 return;
             } else if ($_POST['action'] === 'clear_settings') {
-                delete_option('mainwp_maintenance_opt_alert_404');  
+                delete_option('mainwp_maintenance_opt_alert_404');
                 delete_option('mainwp_maintenance_opt_alert_404_email');
                 $information['result'] = 'SUCCESS';
                 MainWPHelper::write($information);
             }
             MainWPHelper::write($information);
         }
-        
+
         $maint_options = $_POST['options'];
         if (!is_array($maint_options))
         {
@@ -3171,14 +3182,14 @@ class MainWPChild
     }
 
     function maintenance_alert_404()
-    {        
-        if (!is_404()) {            
+    {
+        if (!is_404()) {
             return;
-        } 
-        $email = get_option('mainwp_maintenance_opt_alert_404_email');            
+        }
+        $email = get_option('mainwp_maintenance_opt_alert_404_email');
 
         if(!preg_match("/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/is", $email))
-          return; 
+          return;
 
         // set status
         header("HTTP/1.1 404 Not Found");
@@ -3229,15 +3240,15 @@ class MainWPChild
         // log time
         $time = MainWPHelper::clean(date("F jS Y, h:ia", time()));
 
-        $message = 
-                "TIME: "            . $time    . "\n" . 
-                "*404: "            . $request . "\n" . 
-                "SITE: "            . $site    . "\n" .                 
-                "REFERRER: "        . $referer . "\n" . 
-                "QUERY STRING: "    . $string  . "\n" . 
-                "REMOTE ADDRESS: "  . $address . "\n" . 
-                "REMOTE IDENTITY: " . $remote  . "\n" . 
-                "USER AGENT: "      . $agent   . "\n\n\n";      
+        $message =
+                "TIME: "            . $time    . "\n" .
+                "*404: "            . $request . "\n" .
+                "SITE: "            . $site    . "\n" .
+                "REFERRER: "        . $referer . "\n" .
+                "QUERY STRING: "    . $string  . "\n" .
+                "REMOTE ADDRESS: "  . $address . "\n" .
+                "REMOTE IDENTITY: " . $remote  . "\n" .
+                "USER AGENT: "      . $agent   . "\n\n\n";
         wp_mail($email, "404 Alert: " . $blog , $message, "From: $from_email");
     }
     
