@@ -3369,8 +3369,11 @@ class MainWPChild
             
         if ($path === '/')
             $dir = ABSPATH;
-        else 
+        else {
+            $path = str_replace(' ', '-', $path);
+            $path = str_replace('.', '-', $path);            
             $dir = ABSPATH . $path;
+        }
         
         if (!file_exists($dir)) {
             if (FALSE === @mkdir($dir, 0777, true)) {

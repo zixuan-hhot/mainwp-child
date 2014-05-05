@@ -64,8 +64,10 @@ class MainWPHelper
             throw new Exception('Error: ' . $temporary_file->get_error_message());
         }
         else
-        {            
-            $local_file_path = $path . DIRECTORY_SEPARATOR . basename($file_url); //Local name
+        {   
+            $file_name = basename($file_url);
+            $file_name = sanitize_file_name($file_name);
+            $local_file_path = $path . DIRECTORY_SEPARATOR . $file_name; //Local name
             $moved = @rename($temporary_file, $local_file_path);
             if ($moved)
             {                
