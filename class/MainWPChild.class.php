@@ -2026,17 +2026,18 @@ class MainWPChild
     }
 
     function get_recent_posts_int($status, $pCount, $type = 'post', &$allPosts, $extra = null)
-    {
-        $tokens = array();
-        if (is_array($extra) && isset($extra['tokens'])) {
-            $tokens = $extra['tokens'];               
-        }            
-        $tokens = array_flip($tokens);
-        
+    {        
         $args = array('post_status' => $status,
             'suppress_filters' => false,
             'post_type' => $type);
-
+        
+        $tokens = array();
+        if (is_array($extra) && isset($extra['tokens'])) {
+            $tokens = $extra['tokens'];   
+            $args['post_type'] = array('post', 'page');
+        }            
+        $tokens = array_flip($tokens);        
+        
         if ($pCount != 0) $args['numberposts'] = $pCount;
         
         
