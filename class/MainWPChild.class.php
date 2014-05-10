@@ -2008,31 +2008,38 @@ class MainWPChild
         return $newThemeUpdates;
     }
 
-    function get_recent_posts($pAllowedStatuses, $pCount, $type = 'post')
+    function get_recent_posts($pAllowedStatuses, $pCount, $type = 'post', $extra = null)
     {
         $allPosts = array();
         if ($pAllowedStatuses != null)
         {
             foreach ($pAllowedStatuses as $status)
             {
-                $this->get_recent_posts_int($status, $pCount, $type, $allPosts);
+                $this->get_recent_posts_int($status, $pCount, $type, $allPosts, $extra);
             }
         }
         else
         {
-            $this->get_recent_posts_int('any', $pCount, $type, $allPosts);
+            $this->get_recent_posts_int('any', $pCount, $type, $allPosts, $extra);
         }
         return $allPosts;
     }
 
-    function get_recent_posts_int($status, $pCount, $type = 'post', &$allPosts)
+    function get_recent_posts_int($status, $pCount, $type = 'post', &$allPosts, $extra = null)
     {
+        $tokens = array();
+        if (is_array($extra) && isset($extra['tokens'])) {
+            $tokens = $extra['tokens'];               
+        }            
+        $tokens = array_flip($tokens);
+        
         $args = array('post_status' => $status,
             'suppress_filters' => false,
             'post_type' => $type);
 
         if ($pCount != 0) $args['numberposts'] = $pCount;
-
+        
+        
         $posts = get_posts($args);
         if (is_array($posts))
         {
@@ -2055,7 +2062,7 @@ class MainWPChild
                     $categories .= $cat->name;
                 }
                 $outPost['categories'] = $categories;
-
+                
                 $tagObjects = get_the_tags($post->ID);
                 $tags = "";
                 if (is_array($tagObjects))
@@ -2066,7 +2073,16 @@ class MainWPChild
                         $tags .= $tag->name;
                     }
                 }
-                $outPost['tags'] = $tags;
+                $outPost['tags'] = $tags; 
+                
+                if (is_array($tokens)) {
+                    if (isset($tokens["[post.url]"]))
+                        $outPost["[post.url]"] = get_permalink( $post->ID );                       
+                    if (isset($tokens["[post.website.url]"]))
+                        $outPost["[post.website.url]"] = get_site_url(); 
+                    if (isset($tokens["[post.website.name]"]))
+                        $outPost["[post.website.name]"] = get_bloginfo('name');                    
+                }
                 $allPosts[] = $outPost;
             }
         }
@@ -2416,8 +2432,13 @@ class MainWPChild
         {
             $maxPages = 99999;
         }
-
-        $rslt = $this->get_recent_posts(explode(',', $_POST['status']), $maxPages, $type);
+        
+        $extra = array();
+        if (isset($_POST['extract_tokens'])) {
+            $extra['tokens'] = unserialize(base64_decode($_POST['extract_tokens']));            
+        }
+        
+        $rslt = $this->get_recent_posts(explode(',', $_POST['status']), $maxPages, $type, $extra);
         $this->posts_where_suffix = '';
 
         MainWPHelper::write($rslt);
