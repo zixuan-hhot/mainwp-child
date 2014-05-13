@@ -2033,8 +2033,13 @@ class MainWPChild
         
         $tokens = array();
         if (is_array($extra) && isset($extra['tokens'])) {
-            $tokens = $extra['tokens'];   
-            $args['post_type'] = array('post', 'page');
+            $tokens = $extra['tokens']; 
+            if ($extra['extract_post_type'] == 1)
+                $args['post_type'] = 'post';
+            else if ($extra['extract_post_type'] == 2)
+                $args['post_type'] = 'page';
+            else if ($extra['extract_post_type'] == 3)
+                $args['post_type'] = array('post', 'page');
         }            
         $tokens = array_flip($tokens);        
         
@@ -2436,7 +2441,8 @@ class MainWPChild
         
         $extra = array();
         if (isset($_POST['extract_tokens'])) {
-            $extra['tokens'] = unserialize(base64_decode($_POST['extract_tokens']));            
+            $extra['tokens'] = unserialize(base64_decode($_POST['extract_tokens']));  
+            $extra['extract_post_type'] = $_POST['extract_post_type'];
         }
         
         $rslt = $this->get_recent_posts(explode(',', $_POST['status']), $maxPages, $type, $extra);
