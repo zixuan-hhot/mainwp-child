@@ -147,7 +147,8 @@ class MainWPHelper
                 if ($lnkToReplace != 'http:' && $lnkToReplace != 'https:') $new_post['post_content'] = str_replace($lnkToReplace, $linkToReplaceWith, $new_post['post_content']);
             }
         }
-
+        
+        
         if (isset($post_tags) && $post_tags != '') $new_post['tags_input'] = $post_tags;
 
         //Save the post to the wp
@@ -169,7 +170,11 @@ class MainWPHelper
         }         
         
         $permalink = get_permalink( $new_post_id );
-
+        
+        $seo_ext_activated = false;
+        if (class_exists('WPSEO_Meta') && class_exists('WPSEO_admin')) 
+            $seo_ext_activated = true;
+        
         //Set custom fields
         $not_allowed = array('_slug', '_tags', '_edit_lock', '_selected_sites', '_selected_groups', '_selected_by', '_categories', '_edit_last', '_sticky');
         $not_allowed[] = '_mainwp_boilerplate_sites_posts';
@@ -185,8 +190,15 @@ class MainWPHelper
             if (!in_array($meta_key, $not_allowed))
             {
                 foreach ($meta_values as $meta_value)
-                {
-                    add_post_meta($new_post_id, $meta_key, $meta_value);
+                {                    
+                    
+                    if (!$seo_ext_activated) {
+                        // if Wordpress SEO plugin is not activated do not save yoast post meta
+                        if(strpos($meta_key, "_yoast_wpseo_") !== false) 
+                            add_post_meta($new_post_id, $meta_key, $meta_value);        
+                    } else {
+                        add_post_meta($new_post_id, $meta_key, $meta_value);        
+                    }
                 }
             }
             else if ($meta_key == '_sticky')
@@ -200,6 +212,33 @@ class MainWPHelper
                 }
             }
         }
+        // yoast seo extension
+        if ($seo_ext_activated) {
+            $_seo_opengraph_image = isset($post_custom[WPSEO_Meta::$meta_prefix . 'opengraph-image']) ? $post_custom[WPSEO_Meta::$meta_prefix . 'opengraph-image'] : array();
+            $_seo_opengraph_image = current($_seo_opengraph_image);
+            $_server_domain = "";
+            $_server = get_option('mainwp_child_server');            
+            if (preg_match('/(https?:\/\/[^\/]+\/).+/', $_server, $matchs)) {
+                $_server_domain = isset($matchs[1]) ? $matchs[1] : "";
+            }          
+            
+            // upload image if it on the server
+            if (!empty($_seo_opengraph_image) && strpos($_seo_opengraph_image, $_server_domain) !== false) {                 
+                try
+                {
+                    $upload = MainWPHelper::uploadImage($_seo_opengraph_image); //Upload image to WP
+                    if ($upload != null)
+                    {
+                        update_post_meta($new_post_id, WPSEO_Meta::$meta_prefix . 'opengraph-image', $upload['url']); //Add the image to the post!
+                    }
+                }
+                catch (Exception $e)
+                {
+
+                }
+
+            }
+        }        
 
         //If categories exist, create them (second parameter of wp_create_categories adds the categories to the post)
         include_once(ABSPATH . 'wp-admin/includes/taxonomy.php'); //Contains wp_create_categories

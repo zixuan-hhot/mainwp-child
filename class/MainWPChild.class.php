@@ -50,7 +50,8 @@ class MainWPChild
         'keyword_links_action' => 'keyword_links_action',
         'branding_child_plugin' => 'branding_child_plugin',
         'code_snippet' => 'code_snippet',
-        'uploader_action' => 'uploader_action'
+        'uploader_action' => 'uploader_action',
+        'wordpress_seo' => 'wordpress_seo'
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -77,7 +78,7 @@ class MainWPChild
         $this->plugin_slug = plugin_basename($plugin_file);
         list ($t1, $t2) = explode('/', $this->plugin_slug);
         $this->slug = str_replace('.php', '', $t2);
-
+        
         $this->posts_where_suffix = '';
         $this->comments_and_clauses = '';
         add_action('template_redirect', array($this, 'template_redirect'));
@@ -3425,6 +3426,10 @@ class MainWPChild
         } 
         MainWPHelper::write($information);
     }    
+    
+    function wordpress_seo() {        
+        MainWPWordpressSEO::Instance()->action();                
+    }
 }
 
 ?>
