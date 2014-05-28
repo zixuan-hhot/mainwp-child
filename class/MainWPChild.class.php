@@ -51,7 +51,8 @@ class MainWPChild
         'branding_child_plugin' => 'branding_child_plugin',
         'code_snippet' => 'code_snippet',
         'uploader_action' => 'uploader_action',
-        'wordpress_seo' => 'wordpress_seo'
+        'wordpress_seo' => 'wordpress_seo',
+        'client_report' => 'client_report'        
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -3430,6 +3431,11 @@ class MainWPChild
     function wordpress_seo() {        
         MainWPWordpressSEO::Instance()->action();                
     }
+    
+    function client_report() {        
+        MainWPClientReport::Instance()->action();                
+    }
+    
 }
 
 ?>
