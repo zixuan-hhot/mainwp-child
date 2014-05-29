@@ -80,13 +80,34 @@ class MainWPClientReport
         if (!is_array($records)) 
             $records = array();
         //return $records;
-        $token_values = array();
-        foreach ($records as $record) {
-            $name = "[" . $record->context . "." . $record->action . "]";            
-            if (in_array($name, $stream_tokens)) {
-                $token_values[$name][] = $record->summary;
-            }
+        $allowed_data = array(
+            'date',
+            'name',
+            'count'            
+            );
+        $token_values = array();        
+        foreach($stream_tokens as $token) {
+            $str_tmp = str_replace(array('[', ']'), "", $token);
+            $array_tmp = explode(".", $str_tmp);            
+            if (is_array($array_tmp)) {
+                $context = $action = $data = "";
+                if (count($array_tmp) == 2) {
+                    list($context, $action) = $array_tmp;  
+                } else if (count($array_tmp) == 3) {
+                    list($context, $action, $data) = $array_tmp;  
+                }
+                foreach ($records as $record) {                
+                    if ($context == $record->context && $action == $record->action) {
+                        if (empty($data)) {
+                            $token_values[$token][] = $record->summary;
+                        } else if ($data == "date") {
+                            $token_values[$token][] = $record->created;
+                        }
+                    }               
+                }
+            }            
         }
+                
         $information = array('token_values' => $token_values);    
         return $information;
     }
