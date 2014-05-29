@@ -55,6 +55,11 @@ class MainWPClientReport
                 'ip',
         );
         
+        $section = "";
+        if (isset($_POST['section'])) {
+          $section = $_POST['section'];  
+        }
+        
         $stream_tokens = array();
         if (isset($_POST['stream_tokens'])) {
             $stream_tokens = unserialize(base64_decode($_POST['stream_tokens']));            
@@ -85,6 +90,10 @@ class MainWPClientReport
             'name',
             'count'            
             );
+        global $wpdb;
+//        return $section;
+//        $meta = $wpdb->get_row("SELECT * FROM " . $wpdb->prefix . "stream_meta WHERE `record_id` = 1");
+//        return $meta->meta_value;
         $token_values = array();        
         foreach($stream_tokens as $token) {
             $str_tmp = str_replace(array('[', ']'), "", $token);
@@ -96,15 +105,15 @@ class MainWPClientReport
                 } else if (count($array_tmp) == 3) {
                     list($context, $action, $data) = $array_tmp;  
                 }
+                $context .= "s";    
+                
                 foreach ($records as $record) {                
-                    if ($context == $record->context && $action == $record->action) {
-                        if (empty($data)) {
-                            $token_values[$token][] = $record->summary;
-                        } else if ($data == "date") {
-                            $token_values[$token][] = $record->created;
-                        }
+                    if ($context == $record->context && $action == "name" && $section == $record->action) {
+                        $meta = $wpdb->get_row("SELECT * FROM " . $wpdb->prefix . "stream_meta WHERE `record_id` = " . $record->ID . " AND `meta_key`  = 'name'");
+                        $token_values[$token][] = $meta->meta_value;                       
                     }               
                 }
+                
             }            
         }
                 
