@@ -85,10 +85,12 @@ class MainWPClientReport
         if (isset($args['date_to']))
             $args['date_to'] = date("Y-m-d H:i:s", $args['date_to']);
         
+        $args['records_per_page'] = -1;
+        
         $records = wp_stream_query( $args );
         if (!is_array($records)) 
             $records = array();
-        
+        //return $records;
         $other_tokens_data = $this->get_other_tokens_data($records, $other_tokens);
         
         $sections_data = array();        
@@ -190,6 +192,8 @@ class MainWPClientReport
                         list($data) = $array_tmp;  
                     } else if (count($array_tmp) == 2) {
                         list($str1, $data) = $array_tmp;                        
+                    } else if (count($array_tmp) == 3) {
+                        list($str1, $str2, $data) = $array_tmp;                        
                     }    
                     
                     switch ($data) {
