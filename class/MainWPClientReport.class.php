@@ -167,7 +167,10 @@ class MainWPClientReport
             'oldversion',
             'currentversion',
             'date',            
-            'count'          
+            'count',
+            'author',
+            'old.version',
+            'current.version'
         );
         
         $context = $action = "";        
@@ -194,18 +197,29 @@ class MainWPClientReport
                         list($str1, $data) = $array_tmp;                        
                     } else if (count($array_tmp) == 3) {
                         list($str1, $str2, $data) = $array_tmp;                        
-                    }    
+                    }   
+                    
+                    if ($data == "version") {
+                        if ($str2 == "old")
+                            $data = "old_version";
+                    }
                     
                     switch ($data) {
                         case "date":
                             $token_values[$token] = $record->created;                            
                             break;
                         case "name":   
+                        case "version":  
+                        case "old_version":
                             $token_values[$token] = $this->get_stream_meta_data($record->ID, $data);                                                  
                             break;
                         case "title":   
                             $token_values[$token] = $this->get_stream_meta_data($record->ID, $data, $context);                                                                                 
                             break;
+                        case "author":   
+                            $data = "author_meta";
+                            $token_values[$token] = $this->get_stream_meta_data($record->ID, $data, $context);                                                                                 
+                            break;                        
                         default:   
                             $token_values[$token] = $token;                                                                                 
                             break;
@@ -222,11 +236,15 @@ class MainWPClientReport
     }
     
     function get_stream_meta_data($record_id, $data, $context = "") {        
-        if (($context == "post" || $context == "page") && $data == "title") {
-            $meta_key = "post_title";
-        } else {
+        if ($context == "post" || $context == "page") {
+            if ($data == "title") 
+                $meta_key = "post_title";
+            else 
+                $meta_key = $data;
+        } else {            
             $meta_key = $data;
         }
+        
         global $wpdb;
         
         if (class_exists('WP_Stream_Install'))
@@ -237,9 +255,16 @@ class MainWPClientReport
 	$sql    = "SELECT meta_value FROM {$prefix}stream_meta WHERE record_id = " . $record_id . " AND meta_key = '" . $meta_key . "'";
 	$meta   = $wpdb->get_row( $sql );
         
-        if ($meta)
-            return $meta->meta_value;
-        return "";            
+        $value = "";
+        if ($meta) {
+            $value = $meta->meta_value;
+            if ($meta_key == "author_meta") {
+                $value = unserialize($value);
+                $value = $value['display_name'];
+            }            
+        }
+        
+        return $value;            
     }
     
 }
