@@ -112,7 +112,13 @@ class MainWPClientReport
             "session" => "sessions",
             "setting" => "settings",
             "setting" => "settings",
-            "theme" => "themes"            
+            "theme" => "themes",
+            "posts" => "post",
+            "pages" => "page",
+        );
+        
+        $convert_action_name = array(
+            "restored" => "untrashed"
         );
         
         $allowed_data = array(                             
@@ -131,9 +137,10 @@ class MainWPClientReport
                        list($context, $action, $data) = $array_tmp;                        
                    }       
 
-                   $context = isset($convert_context_name[$context]) ? $convert_context_name[$context] : $context;
-
-                   switch ($data) {                      
+                    $context = isset($convert_context_name[$context]) ? $convert_context_name[$context] : $context;
+                    $action = isset($convert_action_name[$action]) ? $convert_action_name[$action] : $action;
+                    
+                    switch ($data) {                      
                        case "count": 
                            $count = 0;
                            foreach ($records as $record) {                
@@ -151,15 +158,21 @@ class MainWPClientReport
     
     function get_section_loop_data($records, $tokens, $section) {
         
-//        $convert_context_name = array(
-//            "comment" => "comments",
-//            "plugin" => "plugins",
-//            "profile" => "profiles",
-//            "session" => "sessions",
-//            "setting" => "settings",
-//            "setting" => "settings",
-//            "theme" => "themes"            
-//        );
+        $convert_context_name = array(
+            "comment" => "comments",
+            "plugin" => "plugins",
+            "profile" => "profiles",
+            "session" => "sessions",
+            "setting" => "settings",
+            "setting" => "settings",
+            "theme" => "themes",            
+            "posts" => "post",
+            "pages" => "page",
+        );
+        
+        $convert_action_name = array(
+            "restored" => "untrashed"
+        );
         
         $allowed_data = array(            
             'name',
@@ -175,12 +188,13 @@ class MainWPClientReport
         
         $context = $action = "";        
         $str_tmp = str_replace(array('[', ']'), "", $section);
-        $array_tmp = explode(".", $str_tmp);
-        
+        $array_tmp = explode(".", $str_tmp);        
         if (is_array($array_tmp)) 
             list($str1, $context, $action) = $array_tmp;
-
         
+        $context = isset($convert_context_name[$context]) ? $convert_context_name[$context] : $context;
+        $action = isset($convert_action_name[$action]) ? $convert_action_name[$action] : $action;
+
         $loops = array();
         $loop_count = 0;
         
