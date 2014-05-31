@@ -147,23 +147,31 @@ class MainWPClientReport
                     switch ($data) {                      
                        case "count": 
                            $count = 0;
-                           foreach ($records as $record) {     
-                                if ($action != $record->action)
-                                    continue;
+                           foreach ($records as $record) {    
+                                if ($context == "themes" && $action == "edited") {
+                                    if ($record->action !== "updated" || $record->connector !== "editor")
+                                        continue;                                    
+                                } if ($context == "users" && $action == "updated") {
+                                    if ($record->context !== "profiles" || $record->connector !== "users")
+                                        continue;                                    
+                                } else { 
+                                    if ($action != $record->action)
+                                        continue;
 
-                                if ($context == "comments" && ($record->context != "page" || $record->context != "post"))
-                                    continue;
-                                else if ($context == "media" && $record->connector != "media")
-                                    continue;
-                                else if ($context == "widgets" && $record->connector != "widgets")
-                                    continue; 
-                                else if ($context == "menus" && $record->connector != "menus")
-                                    continue; 
-                                
-                                if ($context == "comments" && $context == "media" && 
-                                    $context == "widgets" && $context == "menus" &&
-                                    $record->context != $context)
-                                    continue;
+                                    if ($context == "comments" && ($record->context != "page" || $record->context != "post"))
+                                        continue;
+                                    else if ($context == "media" && $record->connector != "media")
+                                        continue;
+                                    else if ($context == "widgets" && $record->connector != "widgets")
+                                        continue; 
+                                    else if ($context == "menus" && $record->connector != "menus")
+                                        continue; 
+
+                                    if ($context !== "comments" && $context !== "media" && 
+                                        $context !== "widgets" && $context !== "menus" &&
+                                        $record->context != $context)
+                                        continue;
+                                }
                                 
                                 $count++;
                            }     
@@ -188,7 +196,7 @@ class MainWPClientReport
             "posts" => "post",
             "pages" => "page",
             "widget" => "widgets",
-            "menu" => "menus"
+            "menu" => "menus",
         );
         
         $convert_action_name = array(
@@ -220,23 +228,38 @@ class MainWPClientReport
         $loops = array();
         $loop_count = 0;
         
-        foreach ($records as $record) {              
-            if ($action != $record->action)
-                continue;        
-             
-            if ($context == "comments" && ($record->context != "page" || $record->context != "post"))
-                continue;
-            else if ($context == "media" && $record->connector != "media")
-                continue;
-            else if ($context == "widgets" && $record->connector != "widgets")
-                continue;      
-            else if ($context == "menus" && $record->connector != "menus")
-                continue;      
-            
-            if ($context == "comments" && $context == "media" && 
-                $context == "widgets" && $context == "menus" && 
-                $record->context != $context)
-                continue;            
+        foreach ($records as $record) {     
+            $theme_edited = $users_updated = false;            
+            if ($context == "themes" && $action == "edited") {
+                if ($record->action !== "updated" || $record->connector !== "editor")
+                    continue;
+                else 
+                    $theme_edited = true; 
+            } if ($context == "users" && $action == "updated") {
+                if ($record->context !== "profiles" || $record->connector !== "users")
+                    continue;
+                else 
+                    $users_updated = true; 
+            } else {            
+                if ($action !== $record->action)
+                    continue;        
+
+                if ($context === "comments" && ($record->context !== "page" || $record->context !== "post"))
+                    continue;
+                else if ($context === "media" && $record->connector !== "media")
+                    continue;
+                else if ($context === "widgets" && $record->connector !== "widgets")
+                    continue;      
+                else if ($context === "menus" && $record->connector !== "menus")
+                    continue;
+                else if ($context === "themes" && $record->connector !== "menus")
+                    continue;                            
+                
+                if ($context !== "comments" && $context !== "media" && 
+                    $context !== "widgets" && $context !== "menus" &&                     
+                    $record->context !== $context)
+                    continue;   
+            }
             
             $token_values = array();
             
@@ -259,10 +282,11 @@ class MainWPClientReport
                     if ($data == "version") {
                         if ($str2 == "old")
                             $data = "old_version";
-                    } else if ($data == "role") {
-                        $data = "roles";
-                    }
+                    }                
                 }
+                
+                if ($data == "role") 
+                    $data = "roles";                    
 
                 switch ($data) {
                     case "date":
@@ -276,8 +300,25 @@ class MainWPClientReport
                     case "version":  
                     case "old_version":
                     case "display_name":                            
-                    case "roles":
-                        $token_values[$token] = $this->get_stream_meta_data($record->ID, $data);                                                  
+                    case "roles":            
+                        if ($data == "name") {
+                            if ($theme_edited)
+                                $data = "theme_name";
+                            else if ($users_updated) {
+                                $data = "display_name";
+                            }
+                        }                         
+                        if ($data == "roles" && $users_updated) {
+                            $user_info = get_userdata($record->object_id);
+                            if ( !( is_object( $user_info ) && is_a( $user_info, 'WP_User' ) ) ) {                                
+                                $roles = "";
+                            } else {
+                                $roles = implode(", ", $user_info->roles); 
+                            }                                
+                            $token_values[$token] = $roles;                                                                              
+                        } else 
+                            $token_values[$token] = $this->get_stream_meta_data($record->ID, $data);                                                  
+                        
                         break;
                     case "title":  
                         if ($context == "page" || $context == "post" || $context == "comments")
