@@ -115,10 +115,14 @@ class MainWPClientReport
             "theme" => "themes",
             "posts" => "post",
             "pages" => "page",
+            "user" => "users",
+            "widget" => "widgets",
+            "menu" => "menus"
         );
         
         $convert_action_name = array(
-            "restored" => "untrashed"
+            "restored" => "untrashed",
+            "spam" => "spammed"
         );
         
         $allowed_data = array(                             
@@ -139,14 +143,29 @@ class MainWPClientReport
 
                     $context = isset($convert_context_name[$context]) ? $convert_context_name[$context] : $context;
                     $action = isset($convert_action_name[$action]) ? $convert_action_name[$action] : $action;
-                    
+
                     switch ($data) {                      
                        case "count": 
                            $count = 0;
-                           foreach ($records as $record) {                
-                               if ($context == $record->context && $action == $record->action) {
-                                   $count++;
-                               }               
+                           foreach ($records as $record) {     
+                                if ($action != $record->action)
+                                    continue;
+
+                                if ($context == "comments" && ($record->context != "page" || $record->context != "post"))
+                                    continue;
+                                else if ($context == "media" && $record->connector != "media")
+                                    continue;
+                                else if ($context == "widgets" && $record->connector != "widgets")
+                                    continue; 
+                                else if ($context == "menus" && $record->connector != "menus")
+                                    continue; 
+                                
+                                if ($context == "comments" && $context == "media" && 
+                                    $context == "widgets" && $context == "menus" &&
+                                    $record->context != $context)
+                                    continue;
+                                
+                                $count++;
                            }     
                            $token_values[$token] = $count;                         
                            break;                
@@ -168,13 +187,16 @@ class MainWPClientReport
             "theme" => "themes",            
             "posts" => "post",
             "pages" => "page",
+            "widget" => "widgets",
+            "menu" => "menus"
         );
         
         $convert_action_name = array(
-            "restored" => "untrashed"
+            "restored" => "untrashed",
+            "spam" => "spammed",            
         );
         
-        $allowed_data = array(            
+        $some_allowed_data = array(            
             'name',
             'title',
             'oldversion',
@@ -194,70 +216,99 @@ class MainWPClientReport
         
         $context = isset($convert_context_name[$context]) ? $convert_context_name[$context] : $context;
         $action = isset($convert_action_name[$action]) ? $convert_action_name[$action] : $action;
-
+            
         $loops = array();
         $loop_count = 0;
         
-        foreach ($records as $record) {  
+        foreach ($records as $record) {              
+            if ($action != $record->action)
+                continue;        
+             
+            if ($context == "comments" && ($record->context != "page" || $record->context != "post"))
+                continue;
+            else if ($context == "media" && $record->connector != "media")
+                continue;
+            else if ($context == "widgets" && $record->connector != "widgets")
+                continue;      
+            else if ($context == "menus" && $record->connector != "menus")
+                continue;      
+            
+            if ($context == "comments" && $context == "media" && 
+                $context == "widgets" && $context == "menus" && 
+                $record->context != $context)
+                continue;            
+            
             $token_values = array();
-            if ($context == $record->context && $action == $record->action) {                
-                foreach ($tokens as $token) {
-                    $data = "";
-                    $str_tmp = str_replace(array('[', ']'), "", $token);
-                    $array_tmp = explode(".", $str_tmp);                                         
+            
+            foreach ($tokens as $token) {
+                $data = "";
+                $token_name = str_replace(array('[', ']'), "", $token);
+                $array_tmp = explode(".", $token_name);                                         
+
+                if ($token_name == "user.name") {
+                    $data = "display_name";
+                } else {
                     if (count($array_tmp) == 1) {
                         list($data) = $array_tmp;  
                     } else if (count($array_tmp) == 2) {
                         list($str1, $data) = $array_tmp;                        
                     } else if (count($array_tmp) == 3) {
                         list($str1, $str2, $data) = $array_tmp;                        
-                    }   
+                    } 
                     
                     if ($data == "version") {
                         if ($str2 == "old")
                             $data = "old_version";
+                    } else if ($data == "role") {
+                        $data = "roles";
                     }
-                    
-                    switch ($data) {
-                        case "date":
-                            $token_values[$token] = $record->created;                            
-                            break;
-                        case "name":   
-                        case "version":  
-                        case "old_version":
-                            $token_values[$token] = $this->get_stream_meta_data($record->ID, $data);                                                  
-                            break;
-                        case "title":   
-                            $token_values[$token] = $this->get_stream_meta_data($record->ID, $data, $context);                                                                                 
-                            break;
-                        case "author":   
-                            $data = "author_meta";
-                            $token_values[$token] = $this->get_stream_meta_data($record->ID, $data, $context);                                                                                 
-                            break;                        
-                        default:   
-                            $token_values[$token] = $token;                                                                                 
-                            break;
-                    }                                
                 }
-            }
+
+                switch ($data) {
+                    case "date":
+                        $token_values[$token] = $record->created;                            
+                        break;
+                    case "area":                        
+                        $data = "sidebar_name";  
+                        $token_values[$token] = $this->get_stream_meta_data($record->ID, $data);                      
+                        break;
+                    case "name":   
+                    case "version":  
+                    case "old_version":
+                    case "display_name":                            
+                    case "roles":
+                        $token_values[$token] = $this->get_stream_meta_data($record->ID, $data);                                                  
+                        break;
+                    case "title":  
+                        if ($context == "page" || $context == "post" || $context == "comments")
+                            $data = "post_title";      
+                        else if ($record->connector == "menus") {
+                            $data = "name";      
+                        }
+                        $token_values[$token] = $this->get_stream_meta_data($record->ID, $data);                                                                                 
+                        break;
+                    case "author":   
+                        $data = "author_meta";
+                        $token_values[$token] = $this->get_stream_meta_data($record->ID, $data);                                                                                 
+                        break;                        
+                    default:   
+                        $token_values[$token] = $token;                                                                                 
+                        break;
+                }                                
+            
+            } // foreach $tokens
             
             if (!empty($token_values)) {
                 $loops[$loop_count] = $token_values;
                 $loop_count++;
             }
-        }
+        } // foreach $records
         return $loops;
     }
     
-    function get_stream_meta_data($record_id, $data, $context = "") {        
-        if ($context == "post" || $context == "page") {
-            if ($data == "title") 
-                $meta_key = "post_title";
-            else 
-                $meta_key = $data;
-        } else {            
-            $meta_key = $data;
-        }
+    function get_stream_meta_data($record_id, $data) {                 
+        
+        $meta_key = $data;
         
         global $wpdb;
         
