@@ -128,6 +128,7 @@ class MainWPClientReport
         $allowed_data = array(                             
             'count'          
         );
+        
         $token_values = array();
         foreach ($tokens as $token) {
                $str_tmp = str_replace(array('[', ']'), "", $token);
@@ -158,7 +159,7 @@ class MainWPClientReport
                                     if ($action != $record->action)
                                         continue;
 
-                                    if ($context == "comments" && ($record->context != "page" || $record->context != "post"))
+                                    if ($context == "comments" && $record->context != "page" && $record->context != "post")
                                         continue;
                                     else if ($context == "media" && $record->connector != "media")
                                         continue;
@@ -244,7 +245,7 @@ class MainWPClientReport
                 if ($action !== $record->action)
                     continue;        
 
-                if ($context === "comments" && ($record->context !== "page" || $record->context !== "post"))
+                if ($context === "comments" && $record->context !== "page" && $record->context !== "post")
                     continue;
                 else if ($context === "media" && $record->connector !== "media")
                     continue;
