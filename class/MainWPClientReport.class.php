@@ -91,11 +91,40 @@ class MainWPClientReport
         if (!is_array($records)) 
             $records = array();
         //return $records;
-        $other_tokens_data = $this->get_other_tokens_data($records, $other_tokens);
+        //$other_tokens_data = $this->get_other_tokens_data($records, $other_tokens);
+         
+        if (isset($other_tokens['header']) && is_array($other_tokens['header'])) {
+             $other_tokens_data['header'] = $this->get_other_tokens_data($records, $other_tokens['header']);
+        }
         
-        $sections_data = array();        
-        foreach($sections as $sec => $tokens) {
-            $sections_data[$sec] = $this->get_section_loop_data($records, $tokens, $sec);
+        if (isset($other_tokens['body']) && is_array($other_tokens['body'])) {
+             $other_tokens_data['body'] = $this->get_other_tokens_data($records, $other_tokens['body']);
+        }
+        
+        if (isset($other_tokens['footer']) && is_array($other_tokens['footer'])) {
+             $other_tokens_data['footer'] = $this->get_other_tokens_data($records, $other_tokens['footer']);
+        }
+         
+        $sections_data = array();    
+        
+//        foreach($sections as $sec => $tokens) {
+//            $sections_data[$sec] = $this->get_section_loop_data($records, $tokens, $sec);
+//        }
+        
+        if (isset($sections['header']) && is_array($sections['header'])) {
+            foreach($sections['header'] as $sec => $tokens) {
+                $sections_data['header'][$sec] = $this->get_section_loop_data($records, $tokens, $sec);
+            }
+        }
+        if (isset($sections['body']) && is_array($sections['body'])) {
+            foreach($sections['body'] as $sec => $tokens) {
+                $sections_data['body'][$sec] = $this->get_section_loop_data($records, $tokens, $sec);
+            }
+        }
+        if (isset($sections['footer']) && is_array($sections['footer'])) {
+            foreach($sections['footer'] as $sec => $tokens) {
+                $sections_data['footer'][$sec] = $this->get_section_loop_data($records, $tokens, $sec);
+            }
         }
             
         $information = array('other_tokens_data' => $other_tokens_data,
