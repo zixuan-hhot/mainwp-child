@@ -615,7 +615,8 @@ class MainWPChild
         }
 		
         // Branding extension
-        MainWPChildBranding::Instance()->branding_init();	
+        MainWPChildBranding::Instance()->branding_init();
+        MainWPClientReport::Instance()->creport_init();
     }
 
     function default_option_active_plugins($default)

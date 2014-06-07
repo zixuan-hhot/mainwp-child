@@ -31,7 +31,10 @@ class MainWPClientReport
             switch ($_POST['mwp_action']) {
                 case "get_stream":
                     $information = $this->get_stream();
-                break;                
+                break; 
+                case "set_showhide":
+                    $information = $this->set_showhide();
+                break;
             }        
         }
         MainWPHelper::write($information);
@@ -403,5 +406,39 @@ class MainWPClientReport
         return $value;            
     }
     
+    function set_showhide() {
+        MainWPHelper::update_option('mainwp_creport_ext_branding_enabled', "Y");        
+        $hide = isset($_POST['showhide']) && ($_POST['showhide'] === "hide") ? 'hide' : "";
+        MainWPHelper::update_option('mainwp_creport_branding_stream_hide', $hide);        
+        $information['result'] = 'SUCCESS';
+        return $information;
+    }
+    
+    public function creport_init()
+    {  
+        if (get_option('mainwp_creport_ext_branding_enabled') !== "Y")
+            return;  
+        
+        if (get_option('mainwp_creport_branding_stream_hide') === "hide")
+        {
+            add_filter('all_plugins', array($this, 'creport_branding_plugin'));   
+            add_action( 'admin_menu', array($this, 'creport_remove_menu'));
+        }
+    }    
+    
+    
+    public function creport_branding_plugin($plugins) {
+        foreach ($plugins as $key => $value)
+        {
+            $plugin_slug = basename($key, '.php');
+            if ($plugin_slug == 'stream')
+                unset($plugins[$key]);
+        }
+        return $plugins;       
+    }
+    
+    public function creport_remove_menu() {
+        remove_menu_page('wp_stream');  
+    }    
 }
 
