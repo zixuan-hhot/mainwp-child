@@ -285,8 +285,8 @@ class MainWPClientReport
                     continue;      
                 else if ($context === "menus" && $record->connector !== "menus")
                     continue;
-                else if ($context === "themes" && $record->connector !== "menus")
-                    continue;                            
+//                else if ($context === "themes" && $record->connector !== "themes")
+//                    continue;                            
                 
                 if ($context !== "comments" && $context !== "media" && 
                     $context !== "widgets" && $context !== "menus" &&                     
