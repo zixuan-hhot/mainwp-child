@@ -61,10 +61,12 @@ class MainWPClientReport
         $sections = isset($_POST['sections']) ? unserialize(base64_decode($_POST['sections'])) : array();
         if (!is_array($sections))
             $sections = array();
+        //return $sections;
         
         $other_tokens = isset($_POST['other_tokens']) ? unserialize(base64_decode($_POST['other_tokens'])) : array();
-        if (!is_array($tokens))
-            $tokens = array();
+        if (!is_array($other_tokens))
+            $other_tokens = array();
+        //return $other_tokens;
         
         unset($_POST['sections']);
         unset($_POST['other_tokens']);
@@ -109,10 +111,6 @@ class MainWPClientReport
         }
          
         $sections_data = array();    
-        
-//        foreach($sections as $sec => $tokens) {
-//            $sections_data[$sec] = $this->get_section_loop_data($records, $tokens, $sec);
-//        }
         
         if (isset($sections['header']) && is_array($sections['header'])) {
             foreach($sections['header'] as $sec => $tokens) {
@@ -162,6 +160,10 @@ class MainWPClientReport
         );
         
         $token_values = array();
+        
+        if (!is_array($tokens))
+            $tokens = array();
+        
         foreach ($tokens as $token) {
                $str_tmp = str_replace(array('[', ']'), "", $token);
                $array_tmp = explode(".", $str_tmp);  
@@ -184,7 +186,7 @@ class MainWPClientReport
                                 if ($context == "themes" && $action == "edited") {
                                     if ($record->action !== "updated" || $record->connector !== "editor")
                                         continue;                                    
-                                } if ($context == "users" && $action == "updated") {
+                                } else if ($context == "users" && $action == "updated") {
                                     if ($record->context !== "profiles" || $record->connector !== "users")
                                         continue;                                    
                                 } else { 
@@ -267,8 +269,8 @@ class MainWPClientReport
                 if ($record->action !== "updated" || $record->connector !== "editor")
                     continue;
                 else 
-                    $theme_edited = true; 
-            } if ($context == "users" && $action == "updated") {
+                    $theme_edited = true;                    
+            } else if ($context == "users" && $action == "updated") {
                 if ($record->context !== "profiles" || $record->connector !== "users")
                     continue;
                 else 
@@ -319,8 +321,8 @@ class MainWPClientReport
                 }
                 
                 if ($data == "role") 
-                    $data = "roles";                    
-
+                    $data = "roles";    
+                                
                 switch ($data) {
                     case "date":
                         $token_values[$token] = $record->created;                            
@@ -340,7 +342,7 @@ class MainWPClientReport
                             else if ($users_updated) {
                                 $data = "display_name";
                             }
-                        }                         
+                        }
                         if ($data == "roles" && $users_updated) {
                             $user_info = get_userdata($record->object_id);
                             if ( !( is_object( $user_info ) && is_a( $user_info, 'WP_User' ) ) ) {                                
@@ -349,9 +351,9 @@ class MainWPClientReport
                                 $roles = implode(", ", $user_info->roles); 
                             }                                
                             $token_values[$token] = $roles;                                                                              
-                        } else 
-                            $token_values[$token] = $this->get_stream_meta_data($record->ID, $data);                                                  
-                        
+                        } else {                            
+                            $token_values[$token] = $this->get_stream_meta_data($record->ID, $data);
+                        }
                         break;
                     case "title":  
                         if ($context == "page" || $context == "post" || $context == "comments")
@@ -395,7 +397,7 @@ class MainWPClientReport
 	$meta   = $wpdb->get_row( $sql );
         
         $value = "";
-        if ($meta) {
+        if (!empty($meta)) {
             $value = $meta->meta_value;
             if ($meta_key == "author_meta") {
                 $value = unserialize($value);
