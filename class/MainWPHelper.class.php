@@ -185,7 +185,8 @@ class MainWPHelper
         $not_allowed[] = '_ezine_post_grab_image_placement';
         $not_allowed[] = '_ezine_post_template_id';
         
-        $not_allowed[] = '_saved_as_draft';
+        $not_allowed[] = '_mainwp_post_plus'; 
+        $not_allowed[] = '_saved_as_draft';               
         $not_allowed[] = '_saved_draft_categories';
         $not_allowed[] = '_saved_draft_tags';
         $not_allowed[] = '_saved_draft_random_privelege';
@@ -279,7 +280,7 @@ class MainWPHelper
         }
         
         // post plus extension process
-        $post_plus = isset($post_custom['_saved_as_draft']) ? true : false;
+        $post_plus = isset($post_custom['_mainwp_post_plus']) ? true : false;
         if ($post_plus) {
             $random_privelege = isset($post_custom['_saved_draft_random_privelege']) ? $post_custom['_saved_draft_random_privelege'] : null;            
             $random_privelege = is_array($random_privelege) ? current($random_privelege) : null;
