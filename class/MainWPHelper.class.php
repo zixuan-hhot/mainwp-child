@@ -106,13 +106,13 @@ class MainWPHelper
         }
         else 
         {
-			if (isset($new_post['post_date_gmt']) && !empty($new_post['post_date_gmt'])) {
-				$post_date_timestamp = strtotime($new_post['post_date_gmt']) + get_option('gmt_offset') * 60 * 60;
-				$new_post['post_date'] = date('Y-m-d H:i:s', $post_date_timestamp);
-				$new_post['post_status'] = ($post_date_timestamp <= current_time('timestamp')) ? 'publish' : 'future';
-			} else {
-				$new_post['post_status'] = 'publish';
-			}
+            if (isset($new_post['post_date_gmt']) && !empty($new_post['post_date_gmt'])) {
+                    $post_date_timestamp = strtotime($new_post['post_date_gmt']) + get_option('gmt_offset') * 60 * 60;
+                    $new_post['post_date'] = date('Y-m-d H:i:s', $post_date_timestamp);
+                    $new_post['post_status'] = ($post_date_timestamp <= current_time('timestamp')) ? 'publish' : 'future';
+            } else {
+                    $new_post['post_status'] = 'publish';
+            }
             $foundMatches = 0;
         }    
                 
@@ -150,7 +150,7 @@ class MainWPHelper
         
         
         if (isset($post_tags) && $post_tags != '') $new_post['tags_input'] = $post_tags;
-
+                
         //Save the post to the wp
         remove_filter('content_save_pre', 'wp_filter_post_kses');  // to fix brake scripts or html
         $new_post_id = wp_insert_post($new_post, $wp_error);
@@ -178,12 +178,21 @@ class MainWPHelper
         //Set custom fields
         $not_allowed = array('_slug', '_tags', '_edit_lock', '_selected_sites', '_selected_groups', '_selected_by', '_categories', '_edit_last', '_sticky');
         $not_allowed[] = '_mainwp_boilerplate_sites_posts';
-		$not_allowed[] = '_ezine_post_keyword';
-		$not_allowed[] = '_ezine_post_display_sig';
-		$not_allowed[] = '_ezine_post_remove_link';
-		$not_allowed[] = '_ezine_post_grab_image';
-		$not_allowed[] = '_ezine_post_grab_image_placement';
-		$not_allowed[] = '_ezine_post_template_id';
+        $not_allowed[] = '_ezine_post_keyword';
+        $not_allowed[] = '_ezine_post_display_sig';
+        $not_allowed[] = '_ezine_post_remove_link';
+        $not_allowed[] = '_ezine_post_grab_image';
+        $not_allowed[] = '_ezine_post_grab_image_placement';
+        $not_allowed[] = '_ezine_post_template_id';
+        
+        $not_allowed[] = '_saved_as_draft';
+        $not_allowed[] = '_saved_draft_categories';
+        $not_allowed[] = '_saved_draft_tags';
+        $not_allowed[] = '_saved_draft_random_privelege';
+        $not_allowed[] = '_saved_draft_random_category';
+        $not_allowed[] = '_saved_draft_random_publish_date';
+        $not_allowed[] = '_saved_draft_publish_date_from';
+        $not_allowed[] = '_saved_draft_publish_date_to';        
 
         foreach ($post_custom as $meta_key => $meta_values)
         {
@@ -268,6 +277,66 @@ class MainWPHelper
                 
             }
         }
+        
+        // post plus extension process
+        $post_plus = isset($post_custom['_saved_as_draft']) ? true : false;
+        if ($post_plus) {
+            $random_privelege = isset($post_custom['_saved_draft_random_privelege']) ? $post_custom['_saved_draft_random_privelege'] : null;            
+            if (is_array($random_privelege) && count($random_privelege) > 0) {
+                $random_post_authors = array();
+                foreach($random_privelege as $role) {
+                    $users = get_users(array('role' => $role));
+                    foreach($users as $user) {
+                        $random_post_authors[] = $user->ID;
+                    }
+                }                
+                if (count($random_post_authors) > 0) {
+                    shuffles($random_post_authors);
+                    $key = array_rand($random_post_authors);
+                    wp_update_post(array('ID' => $new_post_id, 'post_author' => $random_post_authors[$key]));
+                }                       
+            }
+            
+            $random_category = isset($post_custom['_saved_draft_random_category']) ? $post_custom['_saved_draft_random_category'] : false;            
+            if ($random_category) {
+                $cats = get_categories(array('type' => 'post'));
+                $random_cats = array();
+                if (is_array($cats)) {
+                    foreach($cats as $cat) {
+                        $random_cats[] = $cat->term_id;                       
+                    }
+                }
+                if (count($random_cats) > 0) {
+                    shuffles($random_cats);
+                    $key = array_rand($random_cats);                    
+                    wp_set_post_categories($new_post_id, array($random_cats[$key]), true); 
+                }
+            }
+            $random_publish_date = isset($post_custom['_saved_draft_random_publish_date']) ? $post_custom['_saved_draft_random_publish_date'] : false; 
+            if ($random_publish_date) {
+                $random_date_from = isset($post_custom['_saved_draft_publish_date_from']) ? $post_custom['_saved_draft_publish_date_from'] : 0;
+                $random_date_to = isset($post_custom['_saved_draft_publish_date_to']) ? $post_custom['_saved_draft_publish_date_to'] : 0;
+                $now = current_time('timestamp');
+                if (empty($random_date_from))
+                    $random_date_from = $now;
+                if (empty($random_date_to))
+                    $random_date_to = $now;
+                if ($random_date_from  == $random_date_to)
+                    $random_date_to = $now + 7 * 24 * 3600;
+                
+                if ($random_date_from > $random_date_to) {
+                    $tmp = $random_date_from;
+                    $random_date_from = $random_date_to;
+                    $random_date_to = $tmp;
+                }
+                
+                $random_post_date_timestamp = rand($random_date_from, $random_date_to);
+                $post_status = ($random_post_date_timestamp <= current_time('timestamp')) ? 'publish' : 'future';                
+                wp_update_post(array('ID' => $new_post_id, 'post_date' => date('Y-m-d H:i:s', $random_post_date_timestamp), 'post_status' => $post_status));
+            }
+        }
+        // end of post plus
+        
         $ret['success'] = true;
         $ret['link'] = $permalink;
         $ret['added_id'] = $new_post_id;        
