@@ -96,12 +96,13 @@ class MainWPHelper
         $ezine_post = !empty($post_custom['_ezine_post_article_source']) ? true : false;
         $terms = $new_post['_ezin_post_category'];
         unset($new_post['_ezin_post_category']);
+        $post_plus = isset($post_custom['_mainwp_post_plus']) ? true : false;
         
         $wp_error = null;
 
         //Search for all the images added to the new post
         //some images have a href tag to click to navigate to the image.. we need to replace this too
-        if (!$ezine_post) {
+        if (!$ezine_post || $post_plus) {
             $foundMatches = preg_match_all('/(<a[^>]+href=\"(.*?)\"[^>]*>)?(<img[^>\/]*src=\"((.*?)(png|gif|jpg|jpeg))\")/ix', $new_post['post_content'], $matches, PREG_SET_ORDER);
         }
         else 
@@ -279,8 +280,7 @@ class MainWPHelper
             }
         }
         
-        // post plus extension process
-        $post_plus = isset($post_custom['_mainwp_post_plus']) ? true : false;
+        // post plus extension process        
         if ($post_plus) {
             $random_privelege = isset($post_custom['_saved_draft_random_privelege']) ? $post_custom['_saved_draft_random_privelege'] : null;            
             $random_privelege = is_array($random_privelege) ? current($random_privelege) : null;
