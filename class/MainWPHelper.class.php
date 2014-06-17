@@ -301,16 +301,16 @@ class MainWPHelper
                 }                       
             }
             
-            $random_category = isset($post_custom['_saved_draft_random_category']) ? $post_custom['_saved_draft_random_category'] : false;                        
+            $random_category = isset($post_custom['_saved_draft_random_category']) ? $post_custom['_saved_draft_random_category'] : false;                                    
             $random_category = is_array($random_category) ? current($random_category) : null;
-            if (!empty($random_category)) {                
-                $cats = get_categories(array('type' => 'post'));
+            if (!empty($random_category)) {                                
+                $cats = get_categories(array('type' => 'post', "hide_empty" => 0));
                 $random_cats = array();
                 if (is_array($cats)) {
                     foreach($cats as $cat) {
                         $random_cats[] = $cat->term_id;                       
                     }
-                }
+                }                
                 if (count($random_cats) > 0) {
                     shuffle($random_cats);
                     $key = array_rand($random_cats);                    
