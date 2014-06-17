@@ -160,7 +160,7 @@ class MainWPHelper
         {
             return $wp_error->get_error_message();
         }
-        if ($new_post_id == 0)
+        if (empty($new_post_id))
         {
             return 'Undefined error';
         }
@@ -302,6 +302,7 @@ class MainWPHelper
             }
             
             $random_category = isset($post_custom['_saved_draft_random_category']) ? $post_custom['_saved_draft_random_category'] : false;                        
+            $random_category = is_array($random_category) ? current($random_category) : null;
             if (!empty($random_category)) {                
                 $cats = get_categories(array('type' => 'post'));
                 $random_cats = array();
@@ -318,6 +319,7 @@ class MainWPHelper
             }
             
             $random_publish_date = isset($post_custom['_saved_draft_random_publish_date']) ? $post_custom['_saved_draft_random_publish_date'] : false; 
+            $random_publish_date = is_array($random_publish_date) ? current($random_publish_date) : null;
             if (!empty($random_publish_date)) {
                 $random_date_from = isset($post_custom['_saved_draft_publish_date_from']) ? $post_custom['_saved_draft_publish_date_from'] : 0;
                 $random_date_from = is_array($random_date_from) ? current($random_date_from) : 0;            
