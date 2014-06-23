@@ -46,7 +46,8 @@ class MainWPChildPagespeed
         if (get_option('mainwp_pagespeed_hide_plugin') === "hide")
         {
             add_filter('all_plugins', array($this, 'hide_plugin'));   
-            add_action('admin_menu', array($this, 'hide_menu'), 999);
+            //add_action('admin_menu', array($this, 'hide_menu'), 999);
+            add_filter('update_footer', array(&$this, 'update_footer'), 15);   
         }
     }        
     
@@ -60,17 +61,29 @@ class MainWPChildPagespeed
         return $plugins;       
     }
     
-    public function hide_menu() {
-        global $submenu;     
-        if (isset($submenu['tools.php'])) {
-            foreach($submenu['tools.php'] as $key => $menu) {
-                if ($menu[2] == 'google-pagespeed-insights') {
-                    unset($submenu['tools.php'][$key]);
-                    break;
-                }
-            }
-        }
-    }    
+//    public function hide_menu() {
+//        global $submenu;     
+//        if (isset($submenu['tools.php'])) {
+//            foreach($submenu['tools.php'] as $key => $menu) {
+//                if ($menu[2] == 'google-pagespeed-insights') {
+//                    unset($submenu['tools.php'][$key]);
+//                    break;
+//                }
+//            }
+//        }
+//    }   
+    
+      function update_footer($text){                
+        ?>
+           <script>
+                jQuery(document).ready(function(){
+                    jQuery('#menu-tools a[href="tools.php?page=google-pagespeed-insights"]').closest('li').remove();
+                });        
+            </script>
+        <?php        
+        return $text;
+    }
+    
     
      function set_showhide() {
         MainWPHelper::update_option('mainwp_pagespeed_ext_enabled', "Y");        
@@ -88,7 +101,7 @@ class MainWPChildPagespeed
         if (is_array($settings)) {
             $current_values = get_option('gpagespeedi_options');
             
-            if (isset($settings['api_key']))                
+            if (isset($settings['api_key']) && !empty($settings['api_key']))                
                 $current_values['google_developer_key'] = $settings['api_key'];
             
             if (isset($settings['response_language']))                
@@ -155,13 +168,15 @@ class MainWPChildPagespeed
     function sync_data() {
         $current_values = get_option('gpagespeedi_options');
         $information = array();
-        $data = array('bad_api_key' => $current_values['bad_api_key']);        
-        $data['average_score'] = self::cal_average_score();
+        $result = self::cal_pagespeed_data();
+        $data = array('bad_api_key' => $current_values['bad_api_key']);                
+        $data['average_score'] = $result['average_score'];
+        $data['total_pages'] = $result['total_pages'];
         $information['data'] = $data;
         return $information;
     }
     
-    static function cal_average_score() {
+    static function cal_pagespeed_data() {
         global $wpdb;
         
         if ( !defined('GPI_DIRECTORY') )
@@ -232,7 +247,8 @@ class MainWPChildPagespeed
             $average_score = number_format($total_scores / $total_pages);
         }
         
-        return $average_score;
+        return array('average_score' => $average_score, 
+                        'total_pages' => $total_pages);
     }
 }
 
