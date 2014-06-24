@@ -155,7 +155,10 @@ class MainWPChildPagespeed
         return $information;
     }
     
-    function sync_data($strategy) {
+    function sync_data($strategy = "") {
+        if (empty($strategy))
+            $strategy = "both";
+        
         $information = array();
         $current_values = get_option('gpagespeedi_options');
         $bad_key = ($current_values['bad_api_key'] || empty($current_values['google_developer_key']));
