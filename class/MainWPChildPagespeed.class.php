@@ -94,12 +94,15 @@ class MainWPChildPagespeed
     }
     
     function save_settings() {
-        MainWPHelper::update_option('mainwp_pagespeed_ext_enabled', "Y");        
+        MainWPHelper::update_option('mainwp_pagespeed_ext_enabled', "Y");  
+        $current_values = get_option('gpagespeedi_options');
+        if (is_array($current_values) && $current_values['last_run_finished'] == false)
+            return array('result' => 'RUNNING');
+        
         $settings = $_POST['settings'];
         $settings = unserialize(base64_decode($settings));
-
-        if (is_array($settings)) {
-            $current_values = get_option('gpagespeedi_options');
+        
+        if (is_array($settings)) {            
             
             if (isset($settings['api_key']) && !empty($settings['api_key']))                
                 $current_values['google_developer_key'] = $settings['api_key'];
@@ -107,8 +110,8 @@ class MainWPChildPagespeed
             if (isset($settings['response_language']))                
                 $current_values['response_language'] = $settings['response_language'];
             
-            if (isset($settings['report_type']))                
-                $current_values['strategy'] = $settings['report_type'];
+            if (isset($_POST['strategy']))                
+                $current_values['strategy'] = $_POST['strategy'];
                         
             if (isset($settings['max_execution_time']))                
                 $current_values['max_execution_time'] = $settings['max_execution_time'];
@@ -143,40 +146,39 @@ class MainWPChildPagespeed
                 $information['result'] = 'SUCCESS';
             else 
                 $information['result'] = 'NOTCHANGE';           
-        }        
-        $sync_data = $this->sync_data();        
+        }   
+        
+        $strategy = $current_values['strategy'];
+        
+        $sync_data = $this->sync_data($strategy);        
         $information['data'] = $sync_data['data'];        
         return $information;
     }
     
-    function delete_data($what) {
-        global $wpdb;
-        $gpi_page_stats = $wpdb->prefix . 'gpi_page_stats';
-        $gpi_page_reports = $wpdb->prefix . 'gpi_page_reports';
-        $gpi_page_blacklist = $wpdb->prefix . 'gpi_page_blacklist';
-
-        if($what == 'purge_reports') {
-            $wpdb->query("TRUNCATE TABLE $gpi_page_stats");
-            $wpdb->query("TRUNCATE TABLE $gpi_page_reports");
-        } elseif($what == 'purge_everything') {
-            $wpdb->query("TRUNCATE TABLE $gpi_page_stats");
-            $wpdb->query("TRUNCATE TABLE $gpi_page_reports");
-            $wpdb->query("TRUNCATE TABLE $gpi_page_blacklist");
-        }
-    }   
-    
-    function sync_data() {
-        $current_values = get_option('gpagespeedi_options');
+    function sync_data($strategy) {
         $information = array();
-        $result = self::cal_pagespeed_data();
-        $data = array('bad_api_key' => $current_values['bad_api_key']);                
-        $data['average_score'] = $result['average_score'];
-        $data['total_pages'] = $result['total_pages'];
+        $current_values = get_option('gpagespeedi_options');
+        $bad_key = ($current_values['bad_api_key'] || empty($current_values['google_developer_key']));
+        $data = array('bad_api_key' => $bad_key );   
+        
+        if ($strategy == "both" || $strategy == "desktop") {
+            $result = self::cal_pagespeed_data('desktop');
+            $data['desktop_score'] = $result['average_score'];
+            $data['desktop_total_pages'] = $result['total_pages'];
+            $data['desktop_last_modified'] = $result['last_modified'];
+        }
+        if ($strategy == "both" || $strategy == "mobile") {
+            $result = self::cal_pagespeed_data('mobile');
+            $data['mobile_score'] = $result['average_score'];
+            $data['mobile_total_pages'] = $result['total_pages'];
+            $data['mobile_last_modified'] = $result['last_modified'];
+        }
+        
         $information['data'] = $data;
         return $information;
     }
     
-    static function cal_pagespeed_data() {
+    static function cal_pagespeed_data($strategy) {
         global $wpdb;
         
         if ( !defined('GPI_DIRECTORY') )
@@ -186,7 +188,6 @@ class MainWPChildPagespeed
         
         $options = get_option('gpagespeedi_options');
         
-        $strategy = ( isset($options['strategy']) ) ? $options['strategy'] : 'desktop';
         $score_column = $strategy . '_score';
         $page_stats_column = $strategy . '_page_stats';        
         require_once( ABSPATH . 'wp-admin/includes/template.php' );
@@ -247,8 +248,59 @@ class MainWPChildPagespeed
             $average_score = number_format($total_scores / $total_pages);
         }
         
-        return array('average_score' => $average_score, 
-                        'total_pages' => $total_pages);
+        // Not Null check for Report List scores
+        switch($strategy) {
+
+//            case 'both':
+//                $nullcheck = 'desktop_score IS NOT NULL AND mobile_score IS NOT NULL';
+//                break;
+
+            case 'mobile':
+                $nullcheck = 'mobile_score IS NOT NULL';
+                $_select = " max(mobile_last_modified) as last_modified ";
+                break;
+
+            case 'desktop':
+                $nullcheck = 'desktop_score IS NOT NULL';
+                $_select = " max(desktop_last_modified) as last_modified ";
+                break;
+
+        }
+
+        // Get our Data
+        if(!is_null($reports_typestocheck)) {
+            $gpi_page_stats = $wpdb->prefix . 'gpi_page_stats';          
+            $data = $wpdb->get_results(
+                        $wpdb->prepare(
+                            "SELECT $_select
+                            FROM $gpi_page_stats
+                            WHERE ($reports_typestocheck[0])
+                            AND $nullcheck",
+                            $reports_typestocheck[1]
+                        ),
+                        ARRAY_A 
+                    );
+        }
+        
+        return array('last_modified' => isset($data['last_modified']) ? $data['last_modified'] : 0, 
+                    'average_score' => $average_score,
+                    'total_pages' => $total_pages);
     }
+    
+    function delete_data($what) {
+        global $wpdb;
+        $gpi_page_stats = $wpdb->prefix . 'gpi_page_stats';
+        $gpi_page_reports = $wpdb->prefix . 'gpi_page_reports';
+        $gpi_page_blacklist = $wpdb->prefix . 'gpi_page_blacklist';
+
+        if($what == 'purge_reports') {
+            $wpdb->query("TRUNCATE TABLE $gpi_page_stats");
+            $wpdb->query("TRUNCATE TABLE $gpi_page_reports");
+        } elseif($what == 'purge_everything') {
+            $wpdb->query("TRUNCATE TABLE $gpi_page_stats");
+            $wpdb->query("TRUNCATE TABLE $gpi_page_reports");
+            $wpdb->query("TRUNCATE TABLE $gpi_page_blacklist");
+        }
+    }  
 }
 
