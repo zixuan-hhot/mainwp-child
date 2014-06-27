@@ -128,6 +128,7 @@ class MainWPChildWooCommerceStatus
         $outofstock_count = absint( $wpdb->get_var( "SELECT COUNT( DISTINCT posts.ID ) {$query_from};" ) );
                          
 	$data = array('sales' => $sales,
+                'formated_sales' => wc_price( $sales ),
                 'top_seller' => $top_seller,  
                 'onhold' => $on_hold_count,  
                 'awaiting' => $processing_count,  
