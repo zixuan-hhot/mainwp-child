@@ -57,7 +57,8 @@ class MainWPChild
         'client_report' => 'client_report',
         'createBackupPoll' => 'backupPoll',
         'page_speed' => 'page_speed',
-        'woo_com_status' => 'woo_com_status'
+        'woo_com_status' => 'woo_com_status',
+        'heatmaps' => 'heatmaps'   
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -344,7 +345,9 @@ class MainWPChild
             $snPluginDir = basename($this->plugin_dir);
 
             $rules = null;
-            if (get_option('heatMapEnabled') !== '0')
+            if ((get_option('heatMapsIndividualOverrideSetting') != '1' && get_option('heatMapEnabled') !== '0') || 
+                (get_option('heatMapsIndividualOverrideSetting') == '1' && get_option('heatMapsIndividualDisable') != '1')
+                )
             {
                 //Heatmap enabled
                 //Make the plugin invisible, except heatmap
@@ -538,9 +541,12 @@ class MainWPChild
 
         remove_action('admin_init', 'send_frame_options_header');
         remove_action('login_init', 'send_frame_options_header');
-
+        
         // Call Heatmap
-        if (get_option('heatMapEnabled') !== '0') new MainWPHeatmapTracker();
+        if ((get_option('heatMapsIndividualOverrideSetting') != '1' && get_option('heatMapEnabled') !== '0') || 
+            (get_option('heatMapsIndividualOverrideSetting') == '1' && get_option('heatMapsIndividualDisable') != '1')
+            )
+             new MainWPHeatmapTracker();
 
         /**
          * Security
@@ -1788,7 +1794,7 @@ class MainWPChild
             if ($_POST['heatMap'] == '1')
             {
                 if (get_option('heatMapEnabled') != '1') $update_htaccess = true;
-                MainWPHelper::update_option('heatMapEnabled', '1');
+                MainWPHelper::update_option('heatMapEnabled', '1');                
             }
             else
             {
@@ -3542,7 +3548,22 @@ class MainWPChild
         MainWPChildWooCommerceStatus::Instance()->action();                
     }
     
-    
+    function heatmaps() {         
+        $need_update = true;        
+        if (isset($_POST['heatMapsOverride']))
+        {
+            $override = $_POST['heatMapsOverride'] ? '1' : '0';
+            $disable = $_POST['heatMapsDisable'] ? '1' : '0';
+            if ($override == get_option('heatMapsIndividualOverrideSetting') && $disable == get_option('heatMapsIndividualDisable')) {
+                $need_update = false;  
+            } 
+            if ($need_update) { 
+                MainWPHelper::update_option('heatMapsIndividualOverrideSetting', $override);             
+                MainWPHelper::update_option('heatMapsIndividualDisable', $disable);            
+                $this->update_htaccess(true);
+            }
+        }             
+    }    
 }
 
 ?>
