@@ -3080,6 +3080,8 @@ class MainWPChild
 
     function getTotalFileSize($directory = WP_CONTENT_DIR)
     {
+        try
+        {
         if (MainWPHelper::function_exists('popen'))
         {
             $uploadDir = MainWPHelper::getMainWPDir();
@@ -3156,6 +3158,11 @@ class MainWPChild
         }
 
         return dirsize($directory);
+    }
+        catch (Exception $e)
+        {
+            return 0;
+        }
     }
 
     function serverInformation()
