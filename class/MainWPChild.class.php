@@ -87,7 +87,7 @@ class MainWPChild
         $this->plugin_slug = plugin_basename($plugin_file);
         list ($t1, $t2) = explode('/', $this->plugin_slug);
         $this->slug = str_replace('.php', '', $t2);
-        
+            
         $this->posts_where_suffix = '';
         $this->comments_and_clauses = '';
         add_action('template_redirect', array($this, 'template_redirect'));
@@ -3217,18 +3217,22 @@ class MainWPChild
         }
 
         $maint_options = $_POST['options'];
+        $max_revisions = isset($_POST['revisions']) ? intval($_POST['revisions']) : 0;
+        
         if (!is_array($maint_options))
         {
             $information['status'] = 'FAIL';
             $maint_options = array();
         }
-
-        if (in_array('revisions', $maint_options))
-        {
+         
+        if (empty($max_revisions)) {
             $sql_clean = "DELETE FROM $wpdb->posts WHERE post_type = 'revision'";
             $wpdb->query($sql_clean);
+        } else {
+            $results = MainWPHelper::getRevisions($max_revisions);
+            $count_deleted = MainWPHelper::deleteRevisions($results, $max_revisions);
         }
-
+        
         if (in_array('autodraft', $maint_options))
         {
             $sql_clean = "DELETE FROM $wpdb->posts WHERE post_status = 'auto-draft'";
@@ -3292,8 +3296,7 @@ class MainWPChild
         if (in_array('optimize', $maint_options))
         {
             $this->maintenance_optimize(true);
-        }
-
+        }        
         if (!isset($information['status'])) $information['status'] = 'SUCCESS';
         MainWPHelper::write($information);
     }
