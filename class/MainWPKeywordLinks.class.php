@@ -27,7 +27,8 @@ class MainWPKeywordLinks
         $this->config = get_option('mainwp_kwl_options', array());
         $this->keyword_links = get_option('mainwp_kwl_keyword_links', array()); 
         if (empty($this->keyword_links))
-            $this->keyword_links = array();          
+            $this->keyword_links = array();    
+        //print_r($this->keyword_links);
         $this->siteurl = get_option('siteurl');
         add_action('permalink_structure_changed', array(&$this, 'permalinkChanged'), 10, 2);
         add_action('mainwp_child_deactivation', array($this, 'child_deactivation'));
@@ -462,11 +463,20 @@ class MainWPKeywordLinks
         if ($post && $post->ID > 0) 
             $spec_link_id = get_post_meta($post->ID, '_mainwp_kwl_specific_link_id', true); 
         
-        foreach($this->keyword_links as $link) {            
-            if ($link->type == 1 || $link->type == 3)
-                $links[] = $link;
-            else if ($spec_link_id && $spec_link_id == $link->id){
-                $links[] = $link;
+        $post_timestamp = strtotime($post->post_date);        
+        foreach($this->keyword_links as $link) {              
+            if ($link->type == 1 || $link->type == 3) {                
+                if ($link->check_post_date) {                                     
+                    if ($post_timestamp < $link->check_post_date)
+                        $links[] = $link;
+                } else 
+                    $links[] = $link;
+            } else if ($spec_link_id && $spec_link_id == $link->id){
+                if ($link->check_post_date) {
+                    if ($post_timestamp < $link->check_post_date)
+                        $links[] = $link;
+                } else 
+                    $links[] = $link;
             }
         }        
         return $links;
@@ -666,12 +676,18 @@ class MainWPKeywordLinks
     public function delete_link() {
         $result = array();
         if (!empty($_POST['link_id'])) {
-            $del_link = $this->get_link($_POST['link_id'], false);
-            if ($del_link) {
-                if ($del_link->type == 2 || $del_link->type == 3)                     
-                    $deleted = delete_post_meta($del_link->post_id, '_mainwp_kwl_specific_link_id'); 
-                if ($this->set_link($del_link->id, '')) 
-                    $return['status'] = 'SUCCESS';             
+            $current = $this->get_link($_POST['link_id'], false);
+            $delete_permanent = $_POST['delete_permanent'];
+            if ($current) {
+                if ($delete_permanent) {
+                    if ($current->type == 2 || $current->type == 3)                     
+                        $deleted = delete_post_meta($current->post_id, '_mainwp_kwl_specific_link_id'); 
+                    if ($this->set_link($current->id, '')) 
+                        $return['status'] = 'SUCCESS';             
+                } else {
+                    $current->check_post_date = time();
+                    $this->set_link($current->id, $current);
+                }
             }
             else 
                 $return['status'] = 'SUCCESS';
