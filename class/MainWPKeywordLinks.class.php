@@ -27,9 +27,9 @@ class MainWPKeywordLinks
         $this->config = get_option('mainwp_kwl_options', array());
         $this->keyword_links = get_option('mainwp_kwl_keyword_links', array()); 
         if (empty($this->keyword_links))
-            $this->keyword_links = array();
+            $this->keyword_links = array();          
         $this->siteurl = get_option('siteurl');
-		add_action('permalink_structure_changed', array(&$this, 'permalinkChanged'), 10, 2);
+        add_action('permalink_structure_changed', array(&$this, 'permalinkChanged'), 10, 2);
         add_action('mainwp_child_deactivation', array($this, 'child_deactivation'));
     }
     
@@ -515,7 +515,11 @@ class MainWPKeywordLinks
     public function explode_multi($str) {
         $delimiters = array(",", ";", "|");
         $str = str_replace($delimiters, ",", $str);
-        return explode(',', $str);
+        $kws = explode(',', $str);
+        $return = array();
+        foreach ($kws as $kw)             
+            $return[] = trim($kw);
+        return $return;
     }
     
     public function redirect_cloak() {
@@ -701,14 +705,24 @@ class MainWPKeywordLinks
     public function edit_link() {
         $return = array();
         $link_id = $_POST['id'];
-        if (!empty($link_id)) {   
+        if (!empty($link_id)) {
+            
+                $valid_kws = "";                
+                $chec_kws = $this->check_existed_keywords($link_id, sanitize_text_field($_POST['keyword']));
+                if (is_array($chec_kws['existed']) && count($chec_kws['existed']) > 0) {
+                    $return['existed_keywords'] = $chec_kws['existed'];
+                }                
+                if (is_array($chec_kws['valid']) && count($chec_kws['valid']) > 0) {
+                    $valid_kws = implode(",", $chec_kws['valid']);
+                }
+                
                 $old = $this->get_link($link_id);
                 $link = new stdClass;
                 $link->id = intval($link_id);
                 $link->name = sanitize_text_field($_POST['name']);                
                 $link->destination_url = sanitize_text_field($_POST['destination_url']);
                 $link->cloak_path = sanitize_text_field($_POST['cloak_path']);
-                $link->keyword = sanitize_text_field($_POST['keyword']);
+                $link->keyword = $valid_kws;
                 $link->link_target = $_POST['link_target'];  // number or text
                 $link->link_rel = $_POST['link_rel']; // number or text
                 $link->link_class = sanitize_text_field($_POST['link_class']);
@@ -732,6 +746,27 @@ class MainWPKeywordLinks
             return $return;
     }
      
+    function check_existed_keywords($link_id, $keywords) {
+        $new_kws = $this->explode_multi($keywords);
+        $existed_kws = array();          
+        if (is_array($new_kws) && is_array($this->keyword_links)) {
+            foreach($this->keyword_links as $lnk_id => $kw) {                  
+                if ($link_id != $lnk_id) {                                        
+                    $link_kws = $this->explode_multi($kw->keyword);                    
+                    if (is_array($link_kws)) {                        
+                        foreach($new_kws as $new_kw) {
+                            if (in_array($new_kw, $link_kws) && !in_array($new_kw, $existed_kws))
+                                $existed_kws[] = $new_kw;     
+                        }
+                    } 
+                }
+            }
+        } 
+        
+        return array('existed' => $existed_kws, 
+                    'valid' => array_diff( $new_kws,  $existed_kws));
+    }
+    
     public function update_config() {
             $return = array();
             $this->config = array(
