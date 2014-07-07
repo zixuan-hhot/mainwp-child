@@ -677,7 +677,7 @@ class MainWPKeywordLinks
         $result = array();
         if (!empty($_POST['link_id'])) {
             $current = $this->get_link($_POST['link_id'], false);
-            $delete_permanent = $_POST['delete_permanent'];
+            $delete_permanent = intval($_POST['delete_permanent']);
             if ($current) {
                 if ($delete_permanent) {
                     if ($current->type == 2 || $current->type == 3)                     
