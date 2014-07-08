@@ -620,12 +620,12 @@ class MainWPKeywordLinks
     public function action() {
         $result = array();
         switch ($_POST['action']) {
-			case 'enable_stats':
+            case 'enable_stats':
                 $result = $this->enable_stats();
-			break;
-			case 'refresh_data':
+                break;
+            case 'refresh_data':
                 $result = $this->refresh_data();
-			break;
+                break;
             case 'import_link':
             case 'add_link':
                 $result = $this->edit_link();
@@ -647,21 +647,53 @@ class MainWPKeywordLinks
                 break;        
             case 'donotlink_clear':
                 $result = $this->donotlink_clear();
-                break;        
+                break;  
+            case 'remove_keywords':
+                $result = $this->remove_keywords();
+                break;  
         }        
         MainWPHelper::write($result);
     }
-	
-	public function enable_stats()
+    
+    function remove_keywords() {
+        $result = array();
+        $remove_keywords = $_POST['keywords'];
+        $remove_keywords = unserialize(base64_decode($remove_keywords));
+        $remove_kws = $this->explode_multi($remove_keywords);
+        
+        if (is_array($remove_kws) && is_array($this->keyword_links)) {
+            $new_keyword_links = array();            
+            foreach($this->keyword_links as $link_id => $link) {
+                $lnk_kws = $link->keyword;
+                $lnk_kws= $this->explode_multi($lnk_kws);
+                $diff_kws = array();
+                if (is_array($lnk_kws)) {
+                    $diff_kws = array_diff($lnk_kws, $remove_kws);
+                }
+                if (count($diff_kws) > 0) {
+                    $link->keyword = implode(",", $diff_kws);
+                    $new_keyword_links[$link_id] = $link;
+                }                
+            }            
+            $this->keyword_links = $new_keyword_links;
+            MainWPHelper::update_option('mainwp_kwl_keyword_links', $this->keyword_links);
+            $return['status'] = 'SUCCESS';
+        } else {      
+            $return['status'] = 'NOCHANGE';                      
+        }
+        return $return;   
+    }
+    
+    public function enable_stats()
     {
-		$result = array();
+        $result = array();
         $enable_stats = intval($_POST['enablestats']);
         if (MainWPHelper::update_option('mainwp_kwl_enable_statistic', $enable_stats))
-			$return['status'] = 'SUCCESS';                      
+            $return['status'] = 'SUCCESS';                      
         return $return;
     }
 	
-	public function refresh_data()
+    public function refresh_data()
     {
         $result = array();
         if (isset($_POST['clear_all'])) {
