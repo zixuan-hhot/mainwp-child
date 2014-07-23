@@ -18,10 +18,11 @@ class MainWPChildLinksChecker
     
     public function action() {   
         $information = array();
-        if (!defined('BLC_ACTIVE')) {
+        if (!defined('BLC_ACTIVE')  || !function_exists('blc_init')) {
             $information['error'] = 'NO_BROKENLINKSCHECKER';
             MainWPHelper::write($information);
-        }   
+        }             
+        blc_init();        
         if (isset($_POST['mwp_action'])) {
             switch ($_POST['mwp_action']) {                
                 case "set_showhide":
@@ -30,6 +31,9 @@ class MainWPChildLinksChecker
                 case "sync_data":
                     $information = $this->sync_data();                    
                     break;
+                case "edit_link":
+                    $information = $this->edit_link();                    
+                    break;                
             }        
         }
         MainWPHelper::write($information);
@@ -79,12 +83,7 @@ class MainWPChildLinksChecker
     }
     
     function sync_data($strategy = "") {  
-        $information = array();           
-        if (!defined('BLC_ACTIVE') && !function_exists('blc_init')) {
-            $information['error'] = 'NO_BROKENLINKSCHECKER';
-            MainWPHelper::write($information);
-        }     
-        blc_init();
+        $information = array();
         $data = array();
         $data['broken'] = self::sync_counting_data('broken');
         $data['redirects'] = self::sync_counting_data('redirects');
@@ -215,6 +214,73 @@ class MainWPChildLinksChecker
         
         return $return;
   
-    }   
+    }  
+    
+    function edit_link() {
+        $information = array();     
+        //Load the link
+        $link = new blcLink( intval($_POST['link_id']) );
+
+        if ( !$link->valid() ){
+            $information['error'] = 'NOTFOUNDLINK'; // Oops, I can't find the link
+            return $information;
+        }
+
+        //Validate the new URL.
+        $new_url = stripslashes($_POST['new_url']);
+        $parsed = @parse_url($new_url);
+        if ( !$parsed ){
+            $information['error'] = 'URLINVALID'; // Oops, the new URL is invalid!
+            return $information;
+        }
+
+        $new_text = (isset($_POST['new_text']) && is_string($_POST['new_text'])) ? stripslashes($_POST['new_text']) : null;
+        if ( $new_text === '' ) {
+                $new_text = null;
+        }
+        if ( !empty($new_text) && !current_user_can('unfiltered_html') ) {
+                $new_text = stripslashes(wp_filter_post_kses(addslashes($new_text))); //wp_filter_post_kses expects slashed data.
+        }
+
+        $rez = $link->edit($new_url, $new_text);
+        if ( $rez === false ){
+            $information['error'] = __('An unexpected error occurred!');
+            return $information;
+        } else {
+                $new_link = $rez['new_link']; /** @var blcLink $new_link */
+                $new_status = $new_link->analyse_status();
+                $ui_link_text = null;
+                if ( isset($new_text) ) {
+                        $instances = $new_link->get_instances();
+                        if ( !empty($instances) ) {
+                                $first_instance = reset($instances);
+                                $ui_link_text = $first_instance->ui_get_link_text();
+                        }
+                }
+
+                $response = array(
+                        'new_link_id' => $rez['new_link_id'],
+                        'cnt_okay' => $rez['cnt_okay'],
+                        'cnt_error' => $rez['cnt_error'],
+
+                        'status_text' => $new_status['text'],
+                        'status_code' => $new_status['code'],
+                        'http_code'   => empty($new_link->http_code) ? '' : $new_link->http_code,
+
+                        'url' => $new_link->url,
+                        'link_text' => isset($new_text) ? $new_text : null,
+                        'ui_link_text' => isset($new_text) ? $ui_link_text : null,
+
+                        'errors' => array(),
+                );
+                //url, status text, status code, link text, editable link text
+
+
+                foreach($rez['errors'] as $error){ /** @var $error WP_Error */
+                        array_push( $response['errors'], implode(', ', $error->get_error_messages()) );
+                }
+                return $response;
+        }
+    }
 }
 
