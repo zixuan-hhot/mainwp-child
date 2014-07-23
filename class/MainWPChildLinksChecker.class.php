@@ -33,7 +33,10 @@ class MainWPChildLinksChecker
                     break;
                 case "edit_link":
                     $information = $this->edit_link();                    
-                    break;                
+                    break; 
+                case "unlink":
+                    $information = $this->unlink();                    
+                    break; 
             }        
         }
         MainWPHelper::write($information);
@@ -218,9 +221,12 @@ class MainWPChildLinksChecker
     
     function edit_link() {
         $information = array();     
+        if (!current_user_can('edit_others_posts')){
+             $information['error'] = 'NOTALLOW';
+             return $information;             
+        }
         //Load the link
-        $link = new blcLink( intval($_POST['link_id']) );
-
+        $link = new blcLink( intval($_POST['link_id']) );        
         if ( !$link->valid() ){
             $information['error'] = 'NOTFOUNDLINK'; // Oops, I can't find the link
             return $information;
@@ -282,5 +288,47 @@ class MainWPChildLinksChecker
                 return $response;
         }
     }
+    
+    function unlink(){
+        $information = array();
+        if (!current_user_can('edit_others_posts')){
+             $information['error'] = 'NOTALLOW';
+             return $information;             
+        }
+
+        if ( isset($_POST['link_id']) ){
+                //Load the link
+                $link = new blcLink( intval($_POST['link_id']) );
+
+                if ( !$link->valid() ){
+                    $information['error'] = 'NOTFOUNDLINK'; // Oops, I can't find the link
+                    return $information;
+                }
+
+                //Try and unlink it
+                $rez = $link->unlink();
+
+                if ( $rez === false ){
+                    $information['error'] = 'UNDEFINEDERROR'; // An unexpected error occured!
+                    return $information;
+                } else {
+                        $response = array(
+                                'cnt_okay' => $rez['cnt_okay'],
+                                'cnt_error' => $rez['cnt_error'],
+                                'errors' => array(),
+                        );
+                        foreach($rez['errors'] as $error){ /** @var WP_Error $error */
+                                array_push( $response['errors'], implode(', ', $error->get_error_messages()) );
+                        }
+                        return $response;
+                }
+
+        } else {
+            $information['error'] = __("Error : link_id not specified"); 
+            return $information;                
+        }
+    }
+
+        
 }
 
