@@ -37,6 +37,12 @@ class MainWPChildLinksChecker
                 case "unlink":
                     $information = $this->unlink();                    
                     break; 
+                case "set_dismiss":
+                    $information = $this->set_link_dismissed();                    
+                    break;
+                case "discard":
+                    $information = $this->discard();                    
+                    break;                
             }        
         }
         MainWPHelper::write($information);
@@ -329,6 +335,72 @@ class MainWPChildLinksChecker
         }
     }
 
+    private function set_link_dismissed(){
+        $information = array();
+        $dismiss = $_POST['dismiss'];
+        
+        if (!current_user_can('edit_others_posts')){
+            $information['error'] = 'NOTALLOW';
+            return $information;  
+        }
+
+        if ( isset($_POST['link_id']) ){
+                //Load the link
+                $link = new blcLink( intval($_POST['link_id']) );
+
+                if ( !$link->valid() ){
+                    $information['error'] = 'NOTFOUNDLINK'; // Oops, I can't find the link
+                    return $information;
+                }
+
+                $link->dismissed = $dismiss;
+
+                //Save the changes
+                if ( $link->save() ){
+                    $information = 'OK';
+                } else {
+                    $information['error'] = 'COULDNOTMODIFY'; // Oops, couldn't modify the link                                  
+                }
+                return $information;   
+        } else {
+            $information['error'] = __("Error : link_id not specified"); 
+            return $information; 
+        }
+    }
+
+     private function discard(){            
+        $information = array();        
+        if (!current_user_can('edit_others_posts')){
+            $information['error'] = 'NOTALLOW';
+            return $information;  
+        }     
+        if ( isset($_POST['link_id']) ){
+            //Load the link
+            $link = new blcLink( intval($_POST['link_id']) );
+
+            if ( !$link->valid() ){
+                $information['error'] = 'NOTFOUNDLINK'; // Oops, I can't find the link
+                return $information;
+            }
+
+            //Make it appear "not broken"
+            $link->broken = false;  
+            $link->false_positive = true;
+            $link->last_check_attempt = time();
+            $link->log = __("This link was manually marked as working by the user.");
+
+            //Save the changes
+            if ( $link->save() ){
+                $information['status'] = 'OK';
+                $information['last_check_attempt'] = $link->last_check_attempt;                
+            } else {
+                $information['error'] = 'COULDNOTMODIFY'; // Oops, couldn't modify the link                                  
+            }
+        } else {
+            $information['error'] = __("Error : link_id not specified"); 
+            return $information; 
+        }
+     }
         
 }
 
