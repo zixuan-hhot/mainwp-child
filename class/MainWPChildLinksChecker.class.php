@@ -178,9 +178,10 @@ class MainWPChildLinksChecker
                     $container = $instance->get_container(); /** @var blcContainer $container */
                     $lnk->container = $container;
                     
-                    if ( !empty($container) && ($container instanceof blcAnyPostContainer) ) {                        
+                    if ( !empty($container) /* && ($container instanceof blcAnyPostContainer) */ ) {                        
                         $lnk->container_type = $container->container_type;
-                        $lnk->container_id = $container->container_id;
+                        $lnk->container_id = $container->container_id;                          
+                        $lnk->source_data = MainWPChildLinksChecker::Instance()->ui_get_source($container, $instance->container_field);  
                     }
                     
                     $can_edit_text = false;
@@ -402,5 +403,47 @@ class MainWPChildLinksChecker
         }
      }
         
+    function ui_get_source($container, $container_field = ""){
+        if ($container->container_type == 'comment') {
+            return $this->ui_get_source_comment($container, $container_field);
+        } else if ($container instanceof blcAnyPostContainer) {
+            return $this->ui_get_source_post($container, $container_field);
+        }
+        return array();
+    }
+    
+    function ui_get_source_comment($container, $container_field = ''){
+        //Display a comment icon. 
+        if ( $container_field == 'comment_author_url' ){
+                $image = 'font-awesome/font-awesome-user.png';
+        } else {
+                $image = 'font-awesome/font-awesome-comment-alt.png';
+        }
+
+        $comment = $container->get_wrapped_object();
+
+        //Display a small text sample from the comment
+        $text_sample = strip_tags($comment->comment_content);
+        $text_sample = blcUtility::truncate($text_sample, 65);
+
+        return array(
+                'image' => $image,
+                'text_sample' => $text_sample,
+                'comment_author' => esc_attr($comment->comment_author),
+                'comment_id' => esc_attr($comment->comment_ID),
+                'comment_status' => wp_get_comment_status($comment->comment_ID),
+                'container_post_title' => get_the_title($comment->comment_post_ID),
+                'container_post_status' => get_post_status($comment->comment_post_ID),
+                'container_post_ID' => $comment->comment_post_ID,
+        );		
+    }
+    
+    function ui_get_source_post($container, $container_field = ''){        
+        return array(
+            'post_title' => get_the_title($container->container_id),
+            'post_status' => get_post_status($this->container_id),
+            'container_anypost' => true
+        );
+    }
 }
 
