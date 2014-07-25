@@ -61,6 +61,9 @@ class MainWPChildLinksChecker
     }    
     
     public static function hook_trashed_comment($comment_id){
+        if (get_option('mainwp_linkschecker_ext_enabled') !== "Y")
+            return;
+        
         if (!defined('BLC_ACTIVE')  || !function_exists('blc_init')) 
             return;        
         blc_init();               
@@ -71,6 +74,9 @@ class MainWPChildLinksChecker
         
     
     public static function hook_post_deleted($post_id){
+        if (get_option('mainwp_linkschecker_ext_enabled') !== "Y")
+            return;
+        
         if (!defined('BLC_ACTIVE')  || !function_exists('blc_init')) 
             return;        
         blc_init();   
