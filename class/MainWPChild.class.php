@@ -1233,10 +1233,12 @@ class MainWPChild
         }
         else if ($action == 'trash')
         {
+            add_action('trash_post', array('MainWPChildLinksChecker','hook_post_deleted'));
             wp_trash_post($postId);
         }
         else if ($action == 'delete')
         {
+            add_action('delete_post', array('MainWPChildLinksChecker','hook_post_deleted'));
             wp_delete_post($postId, true);
         }
         else if ($action == 'restore')
@@ -1329,6 +1331,7 @@ class MainWPChild
         }
         else if ($action == 'trash')
         {
+            add_action('trashed_comment', array('MainWPChildLinksChecker', 'hook_trashed_comment'), 10, 1);
             wp_trash_comment($commentId);
         }
         else if ($action == 'restore')

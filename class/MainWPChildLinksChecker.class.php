@@ -58,8 +58,40 @@ class MainWPChildLinksChecker
             add_filter('all_plugins', array($this, 'hide_plugin'));               
             add_filter('update_footer', array(&$this, 'update_footer'), 15);   
         }        
-    }        
-            
+    }    
+    
+    public static function hook_trashed_comment($comment_id){
+        if (!defined('BLC_ACTIVE')  || !function_exists('blc_init')) 
+            return;        
+        blc_init();               
+        $container = blcContainerHelper::get_container(array('comment', $comment_id));        
+        $container->delete();
+        blc_cleanup_links();
+    }
+        
+    
+    public static function hook_post_deleted($post_id){
+        if (!defined('BLC_ACTIVE')  || !function_exists('blc_init')) 
+            return;        
+        blc_init();   
+        
+        //Get the container type matching the type of the deleted post
+        $post = get_post($post_id);
+        if ( !$post ){
+                return;
+        }
+        //Get the associated container object
+        $post_container = blcContainerHelper::get_container( array($post->post_type, intval($post_id)) );
+
+        if ( $post_container ){
+                //Delete it
+                $post_container->delete();
+                //Clean up any dangling links
+                blc_cleanup_links();
+        }
+    }
+	
+        
     public function hide_plugin($plugins) {
         foreach ($plugins as $key => $value)
         {
@@ -82,7 +114,7 @@ class MainWPChildLinksChecker
         return $text;
     }
     
-    
+
      function set_showhide() {
         MainWPHelper::update_option('mainwp_linkschecker_ext_enabled', "Y");        
         $hide = isset($_POST['showhide']) && ($_POST['showhide'] === "hide") ? 'hide' : "";
