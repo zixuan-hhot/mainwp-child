@@ -42,12 +42,19 @@ class MainWPChildLinksChecker
                     break;
                 case "discard":
                     $information = $this->discard();                    
-                    break;                
+                    break;          
+                case "save_settings":
+                    $information = $this->save_settings();                    
+                    break; 
+                case "force_recheck":
+                    $information = $this->force_recheck();                    
+                    break; 
             }        
         }
         MainWPHelper::write($information);
     }  
    
+     
     public function init()
     {          
         if (get_option('mainwp_linkschecker_ext_enabled') !== "Y")
@@ -72,6 +79,39 @@ class MainWPChildLinksChecker
         blc_cleanup_links();
     }
         
+    function save_settings() {
+        $information = array();
+        $information['result'] = 'NOTCHANGE';  
+        $new_check_threshold = intval($_POST['check_threshold']);        
+        if( $new_check_threshold > 0 ){
+            $conf = blc_get_configuration();
+            $conf->options['check_threshold'] = $new_check_threshold;
+            if ($conf->save_options())
+                $information['result'] = 'SUCCESS';
+        }             
+        return $information;
+    }
+    
+    function force_recheck() {
+        $this->initiate_recheck();
+        $information = array();
+        $information['result'] = 'SUCCESS';
+        return $information;
+    }
+    
+    function initiate_recheck(){
+    	global $wpdb; /** @var wpdb $wpdb */
+
+    	//Delete all discovered instances
+    	$wpdb->query("TRUNCATE {$wpdb->prefix}blc_instances");
+    	
+    	//Delete all discovered links
+    	$wpdb->query("TRUNCATE {$wpdb->prefix}blc_links");
+    	
+    	//Mark all posts, custom fields and bookmarks for processing.
+    	blc_resynch(true);
+    }
+       
     
     public static function hook_post_deleted($post_id){
         if (get_option('mainwp_linkschecker_ext_enabled') !== "Y")
