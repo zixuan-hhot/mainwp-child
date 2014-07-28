@@ -132,32 +132,17 @@ class MainWPChildLinksChecker
     function sync_data($strategy = "") {  
         $information = array();
         $data = array();
-        $data['broken'] = self::sync_counting_data('broken');
-        $data['redirects'] = self::sync_counting_data('redirects');
-        $data['dismissed'] = self::sync_counting_data('dismissed');
-        $data['all'] = self::sync_counting_data('all');  
+        
+        $blc_link_query = blcLinkQuery::getInstance();
+        $data['broken'] = $blc_link_query->get_filter_links('broken', array('count_only' => true));
+        $data['redirects'] = $blc_link_query->get_filter_links('redirects', array('count_only' => true));
+        $data['dismissed'] = $blc_link_query->get_filter_links('dismissed', array('count_only' => true));
+        $data['all'] = $blc_link_query->get_filter_links('all', array('count_only' => true));
         $data['link_data'] = self::sync_link_data();          
         $information['data'] = $data;
         return $information;
     }
-    
-    static function sync_counting_data($filter) {       
-        global $wpdb;
         
-        $all_filters = array(
-            'broken' => '( broken = 1 )',
-            'redirects' => '( redirect_count > 0 )',                
-            'dismissed' => '( dismissed = 1 )',                
-            'all' => '1'
-        );
-        
-        $where = $all_filters[$filter];
-        if (empty($where))
-            return 0;
-        
-        return blc_get_links(array('count_only' => true, 'where_expr' => $where));
-    }
-    
     static function sync_link_data() {        
         $links = blc_get_links(array('load_instances' => true));
         $get_fields = array(
@@ -437,8 +422,8 @@ class MainWPChildLinksChecker
             }
         } else {
             $information['error'] = __("Error : link_id not specified"); 
-            return $information; 
         }
+        return $information; 
      }
         
     function ui_get_source($container, $container_field = ""){
