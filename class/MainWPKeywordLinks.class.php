@@ -466,7 +466,7 @@ class MainWPKeywordLinks
         $post_timestamp = strtotime($post->post_date);        
         foreach($this->keyword_links as $link) {              
             if ($link->type == 1 || $link->type == 3) {                
-                if ($link->check_post_date) {                                     
+                if (isset($link->check_post_date) && $link->check_post_date) {                                     
                     if ($post_timestamp < $link->check_post_date)
                         $links[] = $link;
                 } else 
