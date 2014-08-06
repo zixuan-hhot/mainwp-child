@@ -10,6 +10,8 @@ class MainWPKeywordLinks
     protected $link_temp;
     protected $link_count_temp;
     protected $link_count_each_temp;
+    protected $link_exact_match = 1;
+    protected $link_case_sensitive = 1;
     
     static function Instance() {
         if (MainWPKeywordLinks::$instance == null) {
@@ -301,7 +303,8 @@ class MainWPKeywordLinks
         
         // print_r($this->keyword_links);
        // echo "======";
-       // print_r($links);
+//        if ($post->ID == 735)
+//            print_r($links);
         
         if (empty($links))
             return $content;
@@ -318,11 +321,17 @@ class MainWPKeywordLinks
             
             global $current_user;
             
+            $link->exact_match = isset($link->exact_match) ? $link->exact_match : 1; // to remove warning
+            $link->case_sensitive = isset($link->case_sensitive) ? $link->case_sensitive : 1; // to remove warning
+           
             $this->link_temp = $link;
             $this->link_count_each_temp = $replace_max_keyword;
-            //$keywords = explode(',', $link->keyword);
+            $this->link_exact_match = $link->exact_match;
+            $this->link_case_sensitive = $link->case_sensitive;
             $keywords = $this->explode_multi($link->keyword);
-            usort($keywords, create_function('$a,$b', 'return strlen($a)<strlen($b);'));            
+            usort($keywords, create_function('$a,$b', 'return strlen($a)<strlen($b);'));  
+            $replace_cs = $link->case_sensitive ? "s" : "is";
+            //print_r($keywords);
             foreach ($keywords as $keyword) {
                 $keyword = trim($keyword);
                 if (empty($keyword))
@@ -330,21 +339,23 @@ class MainWPKeywordLinks
                 if (in_array(array("keyword" => $keyword, "link" => $link->destination_url), (array) $not_allow_keywords)) {
                     continue;
                 }
-                $keyword = preg_replace('/([$^\/?+.*\]\[)(}{])/is', '\\\\\1', $keyword);
+                $keyword = preg_replace('/([$^\/?+.*\]\[)(}{])/is', '\\\\\1', $keyword);   
                 
-                if (strpos($content, $keyword) !== false) {
-                    //Replace keyword in H tag
+                if (($link->case_sensitive && strpos($content, $keyword) !== false) || (!$link->case_sensitive && stripos($content, $keyword) !== false)) {                    
+                    //Replace keyword in H tag                    
                     if ($this->get_option('replace_keyword_in_h_tag')) {
                         //$content = preg_replace_callback('/(<a[^>]*>.*?'.$keyword.'.*?<\/a>|<[^>]*'.$keyword.'[^>]*>|\{[^}]*'.$keyword.'[^}]*\}|\w*('.$keyword.')\w*)/is', array(&$this, 'keyword_mark'), $content);
-                        $content = preg_replace_callback("/(<a[^>]*>[^<]*?" . $keyword . "[^<]*?<\/a>|<[^>]*" . $keyword . "[^>]*>|\{[^\}]*" . $keyword . "[^\}]*\}|\w*(" . $keyword . ")\w*)/is", array(&$this, 'keyword_mark'), $content);
+                        $content = preg_replace_callback("/(<a[^>]*>[^<]*?" . $keyword . "[^<]*?<\/a>|<[^>]*" . $keyword . "[^>]*>|\{[^\}]*" . $keyword . "[^\}]*\}|\w*(" . $keyword . ")\w*)/" . $replace_cs, array(&$this, 'keyword_mark'), $content);
                     } else {
                         //$content = preg_replace_callback('/(<h[123456][^>]*>.*?'.$keyword.'.*?<\/h[123456]>|<a[^>]*>.*?'.$keyword.'.*?<\/a>|<[^>]*'.$keyword.'[^>]*>|\{[^}]*'.$keyword.'[^}]*\}|\w*('.$keyword.')\w*)/is', array(&$this, 'keyword_mark'), $content);
-                        $content = preg_replace_callback("/(<h[123456][^>]*>[^<]*?" . $keyword . "[^<]*?<\/h[123456]>|<a[^>]*>[^<]*?" . $keyword . "[^<]*?<\/a>|<[^>]*" . $keyword . "[^>]*>|\{[^\}]*" . $keyword . "[^\}]*\}|\w*(" . $keyword . ")\w*)/is", array(&$this, 'keyword_mark'), $content);
+                        $content = preg_replace_callback("/(<h[123456][^>]*>[^<]*?" . $keyword . "[^<]*?<\/h[123456]>|<a[^>]*>[^<]*?" . $keyword . "[^<]*?<\/a>|<[^>]*" . $keyword . "[^>]*>|\{[^\}]*" . $keyword . "[^\}]*\}|\w*(" . $keyword . ")\w*)/" . $replace_cs, array(&$this, 'keyword_mark'), $content);
                     }       
                 }
             }            
         }
-        $content = preg_replace_callback('/\{MAINWP_LINK +HREF="(.*?)" +TARGET="(.*?)" +REL="(.*?)" +LINK-ID="(.*?)" +CLASS="(.*?)" +TEXT="(.*?)" *\}/is', array(&$this, 'keyword_replace'), $content);
+        //$content = preg_replace_callback('/\{MAINWP_LINK +HREF="(.*?)" +TARGET="(.*?)" +REL="(.*?)" +LINK-ID="(.*?)" +CLASS="(.*?)" +TEXT="(.*?)" *\}/is', array(&$this, 'keyword_replace'), $content);
+        $content = preg_replace_callback('/\{MAINWP_LINK +HREF="(.*?)" +TARGET="(.*?)" +REL="(.*?)" +LINK-ID="(.*?)" +CLASS="(.*?)" +TEXT="(.*?)" +FULL_TEXT="(.*?)" *\}/is', array(&$this, 'keyword_replace'), $content);
+        
         return $content;
     }
     
@@ -355,9 +366,11 @@ class MainWPKeywordLinks
         
         if ($this->link_count_temp === 0 || $this->link_count_each_temp === 0)
             return $matches[1];
-        
-        if ($matches[1] != $matches[2])
-            return $matches[1];
+
+        if ($this->link_exact_match) {
+            if ($matches[1] != $matches[2])
+                return $matches[1];
+        }
         
         if ($this->link_count_temp != -1)
             $this->link_count_temp--;
@@ -407,7 +420,8 @@ class MainWPKeywordLinks
             $class .= " kwl-regular-link"; 
         }
         
-        return '{MAINWP_LINK HREF="' . ( $this->link_temp->cloak_path ? $this->siteurl . $redirection_folder . '/' . $this->link_temp->cloak_path : $this->link_temp->destination_url) . '" TARGET="' . $target . '" REL="' . $rel . '" LINK-ID="' . (isset($this->link_temp->id) ? $this->link_temp->id : 0) . '" CLASS="' . $class . '" TEXT="' . $matches[1] . '"}';
+        //return '{MAINWP_LINK HREF="' . ( $this->link_temp->cloak_path ? $this->siteurl . $redirection_folder . '/' . $this->link_temp->cloak_path : $this->link_temp->destination_url) . '" TARGET="' . $target . '" REL="' . $rel . '" LINK-ID="' . (isset($this->link_temp->id) ? $this->link_temp->id : 0) . '" CLASS="' . $class . '" TEXT="' . $matches[1] . '"}';
+        return '{MAINWP_LINK HREF="' . ( $this->link_temp->cloak_path ? $this->siteurl . $redirection_folder . '/' . $this->link_temp->cloak_path : $this->link_temp->destination_url) . '" TARGET="' . $target . '" REL="' . $rel . '" LINK-ID="' . (isset($this->link_temp->id) ? $this->link_temp->id : 0) . '" CLASS="' . $class . '" TEXT="' . $matches[2] . '" FULL_TEXT="' . $matches[1] . '"}';
     }
     
     public function keyword_replace( $matches )
@@ -418,6 +432,12 @@ class MainWPKeywordLinks
         $a .= ( $matches[4] ) ? ' link-id="'.$matches[4].'"' : '';
         $a .= ( $matches[5] ) ? ' class="'.$matches[5].'"' : '';
         $a .= '>'.$matches[6].'</a>';
+        
+        if (!$this->link_exact_match) {
+            if ($matches[7] !== $matches[6])
+               $a = str_replace($matches[6], $a, $matches[7]);
+        }
+        
         return $a;
     }
      
@@ -775,6 +795,8 @@ class MainWPKeywordLinks
                 $link->link_rel = $_POST['link_rel']; // number or text
                 $link->link_class = sanitize_text_field($_POST['link_class']);
                 $link->type = intval($_POST['type']);  
+                $link->exact_match = intval($_POST['exact_match']);  
+                $link->case_sensitive = intval($_POST['case_sensitive']);  
                 
                  if ($link->type == 2 || $link->type == 3) {
                     if (intval($_POST['post_id'])) {                       
