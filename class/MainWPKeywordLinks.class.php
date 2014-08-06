@@ -143,9 +143,9 @@ class MainWPKeywordLinks
             return true;
         } else if ('' ==  get_option( 'permalink_structure')) {
             include_once(ABSPATH . '/wp-admin/includes/misc.php');
-            $redirection_folder = $this->get_option('redirection_folder', 'goto');            
+            $redirection_folder = $this->get_option('redirection_folder', '');            
             if (empty($redirection_folder))
-                $redirection_folder = "goto";
+                self::clear_htaccess();
             
             //Create rewrite ruler
             $rules = $this->mod_rewrite_rules(array($redirection_folder.'/'  => 'index.php'));
@@ -284,15 +284,14 @@ class MainWPKeywordLinks
         
         // save specific link 
         if ($post) {            
-            $specific_link = get_post_meta($post->ID, '_mainwp_kwl_specific_link', true);               
-            $specific_link = unserialize($specific_link); 
+            $specific_link = unserialize(get_post_meta($post->ID, '_mainwp_kwl_specific_link', true));                          
             if (is_array($specific_link) && count($specific_link) > 0) {  
                 $specific_link = current($specific_link);
                 $specific_link->post_id = $post->ID;                
                 //update_post_meta($post->ID, '_mainwp_kwl_specific_link_save', array($specific_link->id => $specific_link));                   
                 update_post_meta($post->ID, '_mainwp_kwl_specific_link_id', $specific_link->id);                   
                 if ($this->set_link($specific_link->id, $specific_link))                                
-                    delete_post_meta($post->ID, '_mainwp_kwl_specific_link'); // delete the source meta              
+                    update_post_meta($post->ID, '_mainwp_kwl_specific_link', "<saved>");               
             }                         
         }
 
@@ -302,9 +301,11 @@ class MainWPKeywordLinks
             $links = $this->get_available_links();   
         
         // print_r($this->keyword_links);
-       // echo "======";
-//        if ($post->ID == 735)
-//            print_r($links);
+//        if ($post->ID == 751) {
+//            //print_r($links);
+//            $custom = get_post_custom($post->ID);
+//            print_r($custom);                   
+//        }        
         
         if (empty($links))
             return $content;
@@ -405,14 +406,10 @@ class MainWPKeywordLinks
             $class = $this->link_temp->link_class;
         else
             $class = $this->get_option('default_link_class');
-        $redirection_folder = $this->get_option('redirection_folder', 'goto');            
-        if (empty($redirection_folder))
-                $redirection_folder = "goto";
+        $redirection_folder = $this->get_option('redirection_folder', '');            
+
         if (!empty($redirection_folder))
             $redirection_folder = "/" . $redirection_folder;
-        
-//        if (empty($redirection_folder))
-//            $redirection_folder = 'goto';
         
         $regular_link = false;
         if (empty($this->link_temp->cloak_path)) {
@@ -557,7 +554,7 @@ class MainWPKeywordLinks
         
         if ($this->get_option('mainwp_kwl_do_not_link_site_blocked', false))
             return;
-            
+        
         $request = $_SERVER['REQUEST_URI'];
         // Check if the request is correct
         if (!preg_match('|^[a-z0-9-~+_.?#=!&;,/:%@$\|*\'()\\x80-\\xff]+$|i', $request))
@@ -567,18 +564,17 @@ class MainWPKeywordLinks
         $sitepath = ( isset($siteurl['path']) ) ? $siteurl['path'] : '';
         $filter_request = preg_replace('|^' . $sitepath . '/?|i', '', $request);
         $filter_request = preg_replace('|/?$|i', '', $filter_request);
-        
-        $redirection_folder = $this->get_option('redirection_folder', 'goto');        
-        $redirection_folder = empty($redirection_folder) ? "goto" : $redirection_folder;
-        
-        //user use redirection_folder (or not set it - we use by default)
-        if ($redirection_folder != '') {
+
+        $redirection_folder = $this->get_option('redirection_folder', '');        
+       
+        if (!empty($redirection_folder)) {   
             //if the request doesn't' containt the redirection folder we will return immediately
             if (strpos($filter_request, $redirection_folder . '/') === false) {
                 return;
             }
-            $filter_request = str_replace($redirection_folder . '/', '', $filter_request);
         }
+        
+        $filter_request = str_replace($redirection_folder . '/', '', $filter_request);
         
         if (empty($filter_request))
             return;
@@ -597,8 +593,8 @@ class MainWPKeywordLinks
         }            
         
         if (!empty($destination_url)){
-			if (get_option('mainwp_kwl_enable_statistic'))		
-				$this->add_statistic($link_id, $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_REFERER']);                         
+            if (get_option('mainwp_kwl_enable_statistic'))		
+                    $this->add_statistic($link_id, $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_REFERER']);                         
             wp_redirect($destination_url);
             die();
         }            
