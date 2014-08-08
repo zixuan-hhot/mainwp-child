@@ -143,12 +143,16 @@ class MainWPKeywordLinks
             return true;
         } else if ('' ==  get_option( 'permalink_structure')) {
             include_once(ABSPATH . '/wp-admin/includes/misc.php');
-            $redirection_folder = $this->get_option('redirection_folder', '');            
-            if (empty($redirection_folder))
-                self::clear_htaccess();
-            
-            //Create rewrite ruler
-            $rules = $this->mod_rewrite_rules(array($redirection_folder.'/'  => 'index.php'));
+            $redirection_folder = $this->get_option('redirection_folder', '');
+            if (empty($redirection_folder)) {
+                $rules = $this->get_cloak_rules(); 
+                $rules = $this->mod_rewrite_rules($rules);
+                //error_log(print_r($rules, true));
+                //self::clear_htaccess();
+            } else {            
+                //Create rewrite ruler
+                $rules = $this->mod_rewrite_rules(array($redirection_folder.'/'  => 'index.php'));
+            }
             $home_path = ABSPATH;
             $htaccess_file = $home_path . '.htaccess';
             if (function_exists('save_mod_rewrite_rules'))
@@ -166,6 +170,15 @@ class MainWPKeywordLinks
     }
     
 	
+    function get_cloak_rules() {
+        $cloak_rules = array();
+        foreach($this->keyword_links as $link) {  
+            if (!empty($link->cloak_path)) {
+                $cloak_rules[$link->cloak_path] = "index.php";
+            }
+        }
+        return $cloak_rules;
+    }
     
     public function saveClickCallback()
     {
@@ -482,13 +495,13 @@ class MainWPKeywordLinks
         
         $post_timestamp = strtotime($post->post_date);        
         foreach($this->keyword_links as $link) {              
-            if ($link->type == 1 || $link->type == 3) {                
+            if ($link->type == 1 || $link->type == 3) {   // type: 1,3 is normal link and specific link             
                 if (isset($link->check_post_date) && $link->check_post_date) {                                     
                     if ($post_timestamp < $link->check_post_date)
                         $links[] = $link;
                 } else 
                     $links[] = $link;
-            } else if ($spec_link_id && $spec_link_id == $link->id){
+            } else if ($spec_link_id && $spec_link_id == $link->id){ // type 2 is specific link
                 if ($link->check_post_date) {
                     if ($post_timestamp < $link->check_post_date)
                         $links[] = $link;
@@ -720,7 +733,16 @@ class MainWPKeywordLinks
         }    
         return $return;
     }
-	
+    
+    function update_htaccess_for_change_cloak_links($link) {
+        if (empty($link))
+            return;
+        $redirection_folder = $this->get_option('redirection_folder', '');
+        if (empty($redirection_folder)) {
+            $this->update_htaccess(true);
+        }
+    }   
+    
     public function delete_link() {
         $result = array();
         if (!empty($_POST['link_id'])) {
@@ -736,6 +758,7 @@ class MainWPKeywordLinks
                     $current->check_post_date = time();
                     $this->set_link($current->id, $current);
                 }
+                $this->update_htaccess_for_change_cloak_links($current); 
             }
             else 
                 $return['status'] = 'SUCCESS';
@@ -754,7 +777,8 @@ class MainWPKeywordLinks
                     $cleared = $this->set_link($clear_link->id, $clear_link);
                 } else if ($clear_link->type == 1) {
                     $cleared = $this->set_link($clear_link->id, ''); // delete link                  
-                }                          
+                }
+                $this->update_htaccess_for_change_cloak_links($clear_link); 
             }
             else 
                 $cleared = true;
@@ -805,8 +829,10 @@ class MainWPKeywordLinks
                     }
                 } 
                 
-                if ($this->set_link($link->id, $link))
-                    $return['status'] = 'SUCCESS';                
+                if ($this->set_link($link->id, $link)) {
+                    $return['status'] = 'SUCCESS'; 
+                    $this->update_htaccess_for_change_cloak_links($link);                    
+                }
             }               
         MainWPHelper::update_option('mainwpKeywordLinks', 1); // enable extension functions
             return $return;
