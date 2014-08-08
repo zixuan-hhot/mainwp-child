@@ -512,7 +512,7 @@ class MainWPHelper
         return !strncmp($haystack, $needle, strlen($needle));
     }
 
-    function endsWith($haystack, $needle)
+    public static function endsWith($haystack, $needle)
     {
         $length = strlen($needle);
         if ($length == 0) {
@@ -853,6 +853,30 @@ class MainWPHelper
         return $count_deleted;
     }
 
+    public static function inExcludes($excludes, $value)
+    {
+        $inExcludes = false;
+        if ($excludes != null)
+        {
+            foreach ($excludes as $exclude)
+            {
+                if (MainWPHelper::endsWith($exclude, '*'))
+                {
+                    if (MainWPHelper::startsWith($value, substr($exclude, 0, strlen($exclude) - 1)))
+                    {
+                        $inExcludes = true;
+                        break;
+                    }
+                }
+                else if ($value == $exclude)
+                {
+                    $inExcludes = true;
+                    break;
+                }
+            }
+        }
+        return $inExcludes;
+    }
 }
 
 ?>
