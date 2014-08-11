@@ -96,11 +96,12 @@ class MainWPChild
         add_action('init', array(&$this, 'parse_init'));
         add_action('admin_menu', array(&$this, 'admin_menu'));
         add_action('admin_init', array(&$this, 'admin_init'));
-        add_action('init', array(&$this, 'localization'));
+        add_action('init', array(&$this, 'localization'));        
         $this->checkOtherAuth();
 		
         MainWPClone::init();
-        MainWPChildServerInformation::init();
+        MainWPChildServerInformation::init();  
+        MainWPClientReport::init();
         $this->run_saved_snippets();        
         //Clean legacy...
         if (get_option('mainwp_child_legacy') === false)
@@ -116,7 +117,7 @@ class MainWPChild
         if (is_array($branding_header) && isset($branding_header['name']) && !empty($branding_header['name'])) {
             $this->branding_robust = stripslashes($branding_header["name"]);
         }
-        add_action( 'admin_notices', array(&$this, 'admin_notice'));
+        add_action( 'admin_notices', array(&$this, 'admin_notice'));        
     }
 
     function update()
@@ -457,7 +458,7 @@ class MainWPChild
                     $information['backup'] = $res['file'];
                     $information['size'] = $res['filesize'];
                 }
-
+                
                 //todo: RS: Remove this when the .18 is out
                 $plugins = array();
                 $dir = WP_CONTENT_DIR . '/plugins/';
@@ -1657,6 +1658,7 @@ class MainWPChild
             $information['full'] = false;
             $information['db'] = false;
         }
+        do_action('mainwp_backup', $information);        
         MainWPHelper::write($information);
     }
 
