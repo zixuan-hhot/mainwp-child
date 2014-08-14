@@ -1657,8 +1657,7 @@ class MainWPChild
         {
             $information['full'] = false;
             $information['db'] = false;
-        }
-        do_action('mainwp_backup', $information);        
+        }             
         MainWPHelper::write($information);
     }
 

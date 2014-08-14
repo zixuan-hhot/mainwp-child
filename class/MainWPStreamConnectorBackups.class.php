@@ -64,39 +64,10 @@ if (class_exists('WP_Stream_Connector')) {
             return $links;
 	}
 
-        public static function callback_mainwp_backup($information) {            
-            $message = "";
-            if (is_array($information)) {
-                if (isset($information['full'])) {
-                    if (!empty($information['full'])) {                
-                        $backup_type = "full";                        
-                        $full_path = $information['full'];
-                        $file_name = basename($full_path);
-                        $size_in_byte = $information['size'];
-                        $file_size = number_format($size_in_byte / (1024 * 1024), 2);
-                        $message = __('Full backup success, destination %1$s, size %2$s MB', "mainwp-child");
-                    } else {
-                        $message = __("Full backup failed", "mainwp-child");
-                    }
-                } else if (isset($information['db'])) {
-                   if (!empty($information['db'])) {                
-                        $backup_type = "database";
-                        $full_path = $information['db'];
-                        $file_name = basename($full_path);
-                        $size_in_byte = $information['size'];
-                        $file_size = number_format($size_in_byte / (1024 * 1024), 2);
-                        $message = __('Database backup success, destination %1$s, size %2$s MB', "mainwp-child");
-                   } else {
-                        $message = __("Database backup failed", "mainwp-child");
-                   }
-                } 
-            } else {
-                $message = __("Database backup failed due to an undefined error", "mainwp-child");
-            }
-            
+        public static function callback_mainwp_backup($destination, $message, $size, $status, $type) {                        
             self::log(
                 $message,
-                compact('file_name', 'file_size', 'backup_type', 'full_path', 'size_in_byte'),
+                compact('destination', 'status', 'type', 'size'),
                 0,
                 array( 'mainwp_backups' => 'mainwp_backup' )
             );

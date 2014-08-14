@@ -16,7 +16,7 @@ if (class_exists('WP_Stream_Connector')) {
 	 * @var array
 	 */
 	public static $actions = array(
-		'mainwp_sucuri_check',		
+		'mainwp_sucuri_scan',		
 	);
 
 	/**
@@ -35,7 +35,7 @@ if (class_exists('WP_Stream_Connector')) {
 	 */
 	public static function get_action_labels() {
 		return array(
-			'mainwp_sucuri_check'    => __( 'Check', 'default' ),			
+			'mainwp_sucuri_scan'    => __( 'Scan', 'default' ),			
 		);
 	}
 
@@ -65,27 +65,30 @@ if (class_exists('WP_Stream_Connector')) {
 		return $links;
 	}
 
-        public static function callback_mainwp_sucuri_check($result, $status) {
-            $message = $scan_result = $scan_status = "";
+        public static function callback_mainwp_sucuri_scan($data, $status) {
+            $message = $scan_status = "";
+            $scan_result = unserialize(base64_decode($data));
             if ($status == "success") {
-                $message = __("Sucuri scan success", "mainwp-child");
-                $scan_result = $result;
+                $message = __("Sucuri scan success", "mainwp-child");                
                 $scan_status = "success";
             } else {
-                $message = __("Sucuri scan failed", "mainwp-child");
-                $scan_result = $result;   
+                $message = __("Sucuri scan failed", "mainwp-child");                
                 $scan_status = "failed";
             }
             
-            $record_id = self::log(
+            $status = $webtrust = $result = "";            
+            if (is_array($scan_result)) {
+                $status = isset($scan_result['sucuri.status']) ? base64_encode(serialize($scan_result['sucuri.status'])) : "";
+                $webtrust = isset($scan_result['sucuri.webtrust']) ? base64_encode(serialize($scan_result['sucuri.webtrust'])) : "";
+                $result = isset($scan_result['sucuri.result']) ? base64_encode(serialize($scan_result['sucuri.result'])) : "";
+            }
+            
+            self::log(
                 $message,
-                compact('scan_status'),
+                compact('scan_status', 'status', 'webtrust', 'result'),
                 0,
-                array( 'mainwp_sucuri' => 'mainwp_sucuri_check' )
-            );
-            // scan result too big to save to log data
-            if (!empty($record_id))
-                update_option('mainwp_creport_sucuri_scan_result_' . $record_id, $scan_result);
+                array( 'mainwp_sucuri' => 'mainwp_sucuri_scan' )
+            );            
         }
     }
 }

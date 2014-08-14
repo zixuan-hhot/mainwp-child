@@ -30,9 +30,7 @@ class MainWPClientReport
     public static function init_stream_connectors($classes) {
         $connectors = array(
             'Backups',
-            'Sucuri',
-          //  'GoogleAnalytics',
-         //   'Piwik'
+            'Sucuri',                  
         );      
         
         foreach ( $connectors as $connector ) {                
@@ -50,9 +48,12 @@ class MainWPClientReport
         }   
         if (isset($_POST['mwp_action'])) {
             switch ($_POST['mwp_action']) {
-                case "save_stream":
-                    $information = $this->save_stream();
-                break;    
+                case "save_sucuri_stream":
+                    $information = $this->save_sucuri_stream();
+                break; 
+                case "save_backup_stream":
+                    $information = $this->save_backup_stream();
+                break;
                 case "get_stream":
                     $information = $this->get_stream();
                 break; 
@@ -64,8 +65,18 @@ class MainWPClientReport
         MainWPHelper::write($information);
     }  
     
-    public function save_stream() {        
-        do_action("mainwp_sucuri_check", $_POST['result'], $_POST['status']);
+    public function save_sucuri_stream() {        
+        do_action("mainwp_sucuri_scan", $_POST['result'], $_POST['status']);
+        return true;
+    }    
+    
+    public function save_backup_stream() {
+        do_action("mainwp_backup", $_POST['destination'] , $_POST['message'], $_POST['size'], $_POST['status'], $_POST['type']);
+        return true;
+    }
+    
+    public function save_ga_stream() {
+        do_action("mainwp_ga");
         return true;
     }    
     
@@ -178,16 +189,14 @@ class MainWPClientReport
             "widget" => "widgets",
             "menu" => "menus",
             "backups" => "mainwp_backups",
-            "backup" => "mainwp_backups",
-            "security" => "mainwp_sucuri",           
+            "backup" => "mainwp_backups",                       
         );
-        
+               
         $convert_action_name = array(
             "restored" => "untrashed",
             "spam" => "spammed",
             "backups" => "mainwp_backup",
-            "backup" => "mainwp_backup",
-            "checks" => "mainwp_sucuri_check"
+            "backup" => "mainwp_backup"
         );
         
         $allowed_data = array(                             
@@ -212,7 +221,9 @@ class MainWPClientReport
                    }       
 
                     $context = isset($convert_context_name[$context]) ? $convert_context_name[$context] : $context;
-                    $action = isset($convert_action_name[$action]) ? $convert_action_name[$action] : $action;
+                    if (isset($convert_action_name[$action])) {
+                        $action = $convert_action_name[$action];
+                    }
 
                     switch ($data) {                      
                        case "count": 
@@ -272,15 +283,13 @@ class MainWPClientReport
             "menu" => "menus",
             "backups" => "mainwp_backups",
             "backup" => "mainwp_backups",
-            "security" => "mainwp_sucuri",
+            "sucuri" => "mainwp_sucuri",
         );
         
         $convert_action_name = array(
             "restored" => "untrashed",
             "spam" => "spammed",
-            "backup" => "mainwp_backup",            
-            "checks" => "mainwp_sucuri_check",            
-            "check" => "mainwp_sucuri_check",            
+            "backup" => "mainwp_backup"                      
         );
         
         $some_allowed_data = array(            
@@ -325,6 +334,10 @@ class MainWPClientReport
                     $users_updated = true; 
             } else if ($context == "mainwp_backups") {
                 if ($record->context !== "mainwp_backups") {
+                    continue;
+                }
+            } else if ($context == "mainwp_sucuri") {
+                if ($record->context !== "mainwp_sucuri") {
                     continue;
                 }
             } else {            
@@ -419,21 +432,21 @@ class MainWPClientReport
                         $data = "author_meta";
                         $token_values[$token] = $this->get_stream_meta_data($record->ID, $data);                                                                                 
                         break; 
-                    case "destination":   
-                        if ($context == "mainwp_backups") {
-                            $data = "full_path";
-                            $token_values[$token] = $this->get_stream_meta_data($record->ID, $data);                                                                                 
-                        } else 
-                            $token_values[$token] = $token; 
-                        break; 
-                    case "result":   
-                        if ($context == "mainwp_sucuri") {
-                            $result = get_option('mainwp_creport_sucuri_scan_result_' . $record->ID);
-                            //error_log(print_r(unserialize(base64_decode($result)), true));
-                            $token_values[$token] = unserialize(base64_decode($result));                                                                                 
+                    case "status":   // sucuri cases                         
+                    case "webtrust":   
+                    case "result": 
+                        if ($context == "mainwp_sucuri") {                           
+                            $token_values[$token] = unserialize(base64_decode($this->get_stream_meta_data($record->ID, $data)));                                                                                 
                         } else 
                             $token_values[$token] = $token; 
                         break;
+                    case "destination":   // backup cases                         
+                    case "type":   
+                        if ($context == "mainwp_backups") {                           
+                            $token_values[$token] = $this->get_stream_meta_data($record->ID, $data);                                                                                 
+                        } else 
+                            $token_values[$token] = $token; 
+                        break;                    
                     default:   
                         $token_values[$token] = $token;                                                                                 
                         break;
