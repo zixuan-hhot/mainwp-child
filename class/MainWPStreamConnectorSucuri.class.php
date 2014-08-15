@@ -76,16 +76,16 @@ if (class_exists('WP_Stream_Connector')) {
                 $scan_status = "failed";
             }
             
-            $status = $webtrust = $result = "";            
+            $status = $webtrust = $results = "";            
             if (is_array($scan_result)) {
-                $status = isset($scan_result['sucuri.status']) ? base64_encode(serialize($scan_result['sucuri.status'])) : "";
-                $webtrust = isset($scan_result['sucuri.webtrust']) ? base64_encode(serialize($scan_result['sucuri.webtrust'])) : "";
-                $result = isset($scan_result['sucuri.result']) ? base64_encode(serialize($scan_result['sucuri.result'])) : "";
+                $status = isset($scan_result['sucuri.check.status']) ? base64_encode(serialize($scan_result['sucuri.check.status'])) : "";
+                $webtrust = isset($scan_result['sucuri.check.webtrust']) ? base64_encode(serialize($scan_result['sucuri.check.webtrust'])) : "";
+                $results = isset($scan_result['sucuri.check.results']) ? base64_encode(serialize($scan_result['sucuri.check.results'])) : "";
             }
             
             self::log(
                 $message,
-                compact('scan_status', 'status', 'webtrust', 'result'),
+                compact('scan_status', 'status', 'webtrust', 'results'),
                 0,
                 array( 'mainwp_sucuri' => 'mainwp_sucuri_scan' )
             );            

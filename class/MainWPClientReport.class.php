@@ -189,7 +189,8 @@ class MainWPClientReport
             "widget" => "widgets",
             "menu" => "menus",
             "backups" => "mainwp_backups",
-            "backup" => "mainwp_backups",                       
+            "backup" => "mainwp_backups", 
+            "sucuri" => "mainwp_sucuri",
         );
                
         $convert_action_name = array(
@@ -237,6 +238,10 @@ class MainWPClientReport
                                         continue;                                    
                                 } else if ($context == "mainwp_backups") {
                                     if ($record->context !== "mainwp_backups") {
+                                        continue;
+                                    }
+                                } else if ($context == "mainwp_sucuri") {
+                                    if ($record->context !== "mainwp_sucuri") {
                                         continue;
                                     }
                                 } else { 
@@ -434,7 +439,7 @@ class MainWPClientReport
                         break; 
                     case "status":   // sucuri cases                         
                     case "webtrust":   
-                    case "result": 
+                    case "results": 
                         if ($context == "mainwp_sucuri") {                           
                             $token_values[$token] = unserialize(base64_decode($this->get_stream_meta_data($record->ID, $data)));                                                                                 
                         } else 
