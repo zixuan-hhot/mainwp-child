@@ -66,7 +66,7 @@ class MainWPClientReport
     }  
     
     public function save_sucuri_stream() {        
-        do_action("mainwp_sucuri_scan", $_POST['result'], $_POST['status']);
+        do_action("mainwp_sucuri_scan", $_POST['result'], $_POST['scan_status']);
         return true;
     }    
     
@@ -438,10 +438,9 @@ class MainWPClientReport
                         $token_values[$token] = $this->get_stream_meta_data($record->ID, $data);                                                                                 
                         break; 
                     case "status":   // sucuri cases                         
-                    case "webtrust":   
-                    case "results": 
+                    case "webtrust":                       
                         if ($context == "mainwp_sucuri") {                           
-                            $token_values[$token] = unserialize(base64_decode($this->get_stream_meta_data($record->ID, $data)));                                                                                 
+                            $token_values[$token] = $this->get_stream_meta_data($record->ID, $data);                                                                                 
                         } else 
                             $token_values[$token] = $token; 
                         break;
