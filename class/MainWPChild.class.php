@@ -60,7 +60,8 @@ class MainWPChild
         'page_speed' => 'page_speed',
         'woo_com_status' => 'woo_com_status',
         'heatmaps' => 'heatmaps',
-        'links_checker' => 'links_checker'
+        'links_checker' => 'links_checker',
+        'wordfence' => 'wordfence'
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -660,6 +661,8 @@ class MainWPChild
         MainWPClientReport::Instance()->creport_init();
         MainWPChildPagespeed::Instance()->init();        
         MainWPChildLinksChecker::Instance()->init();
+        MainWPChildWordfence::Instance()->wordfence_init();        
+        
     }
 
     function default_option_active_plugins($default)
@@ -3695,6 +3698,10 @@ class MainWPChild
     }
     function links_checker() {        
         MainWPChildLinksChecker::Instance()->action();                
+    }
+    
+    function wordfence() {        
+        MainWPChildWordfence::Instance()->action();                
     }
 }
 
