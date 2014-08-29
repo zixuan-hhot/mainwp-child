@@ -5,6 +5,54 @@ class MainWPChildWordfence
     public static $instance = null;   
     private static $wfLog = false;
     
+    public static $options_filter = array(
+            'alertEmails',
+            'alertOn_adminLogin',
+            'alertOn_block',
+            'alertOn_critical',
+            'alertOn_loginLockout',
+            'alertOn_lostPasswdForm',
+            'alertOn_nonAdminLogin',
+            'alertOn_update',
+            'alertOn_warnings',
+            'alert_maxHourly',
+            'autoUpdate',
+            'firewallEnabled',
+            'howGetIPs',
+            'liveTrafficEnabled',
+            'loginSec_blockAdminReg',
+            'loginSec_countFailMins',
+            'loginSec_disableAuthorScan',
+            'loginSec_lockInvalidUsers',
+            'loginSec_lockoutMins',
+            'loginSec_maskLoginErrors',
+            'loginSec_maxFailures',
+            'loginSec_maxForgotPasswd',
+            'loginSec_strongPasswds',
+            'loginSec_userBlacklist',
+            'loginSecurityEnabled',
+            'other_scanOutside',
+            'scan_exclude',
+            'scansEnabled_comments',
+            'scansEnabled_core',
+            'scansEnabled_diskSpace',
+            'scansEnabled_dns',
+            'scansEnabled_fileContents',
+            'scansEnabled_heartbleed',
+            'scansEnabled_highSense',
+            'scansEnabled_malware',
+            'scansEnabled_oldVersions',
+            'scansEnabled_options',
+            'scansEnabled_passwds',
+            'scansEnabled_plugins',
+            'scansEnabled_posts',
+            'scansEnabled_scanImages',
+            'scansEnabled_themes',
+            'scheduledScansEnabled',
+            'securityLevel'
+        );
+
+     
     static function Instance() {
         if (MainWPChildWordfence::$instance == null) {
             MainWPChildWordfence::$instance = new MainWPChildWordfence();
@@ -64,6 +112,9 @@ class MainWPChildWordfence
                 break;
                 case "restore_file":
                     $information = $this->restore_file();
+                break;
+                case "save_setting":
+                    $information = $this->save_setting();
                 break;
             }        
         }
@@ -340,6 +391,28 @@ class MainWPChildWordfence
 			'file' => $localFile
 			);
 	}
+        
+        function save_setting() {
+            $settings = unserialize(base64_decode($_POST['settings']));
+            if (is_array($settings) && count($settings) > 0) {
+                $opts = $settings;		
+		foreach($opts as $key => $val){
+                    if (in_array($key, self::$options_filter)) {
+                        if($key != 'apiKey'){ //Don't save API key yet
+                            wfConfig::set($key, $val);
+                        }
+                    }
+		}
+		
+		if($opts['autoUpdate'] == '1'){
+			wfConfig::enableAutoUpdate();
+		} else if($opts['autoUpdate'] == '0'){
+			wfConfig::disableAutoUpdate();
+		}
+                
+		return array('result' => 'SUCCESS');
+            }
+        }
         
 }
 
