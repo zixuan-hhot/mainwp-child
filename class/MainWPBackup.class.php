@@ -473,23 +473,48 @@ class MainWPBackup
 
         if (file_exists(rtrim($path, '/') . '/.htaccess')) $this->addFileToZip(rtrim($path, '/') . '/.htaccess', rtrim(str_replace(ABSPATH, '', $path), '/') . '/mainwp-htaccess');
 
-        $nodes = glob(rtrim($path, '/') . '/*');
-        if (empty($nodes)) return true;
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path), RecursiveIteratorIterator::SELF_FIRST);
 
-        foreach ($nodes as $node)
+        foreach ($iterator as $path)
         {
-            if (!MainWPHelper::inExcludes($excludes, str_replace(ABSPATH, '', $node)))
+            $name = $path->__toString();
+            if (MainWPHelper::endsWith($name, '/.') || MainWPHelper::endsWith($name, '/..')) continue;
+
+            if (!MainWPHelper::inExcludes($excludes, str_replace(ABSPATH, '', $name)))
             {
-                if (is_dir($node))
+                if ($path->isDir())
                 {
-                    $this->zipAddDir($node, $excludes);
+                    $this->zip->addEmptyDir(str_replace(ABSPATH, '', $name));
                 }
-                else if (is_file($node))
+                else
                 {
-                    $this->addFileToZip($node, str_replace(ABSPATH, '', $node));
+                    $this->addFileToZip($name, str_replace(ABSPATH, '', $name));
                 }
             }
+            $name = null;
+            unset($name);
         }
+
+        $iterator = null;
+        unset($iterator);
+
+//        $nodes = glob(rtrim($path, '/') . '/*');
+//        if (empty($nodes)) return true;
+//
+//        foreach ($nodes as $node)
+//        {
+//            if (!MainWPHelper::inExcludes($excludes, str_replace(ABSPATH, '', $node)))
+//            {
+//                if (is_dir($node))
+//                {
+//                    $this->zipAddDir($node, $excludes);
+//                }
+//                else if (is_file($node))
+//                {
+//                    $this->addFileToZip($node, str_replace(ABSPATH, '', $node));
+//                }
+//            }
+//        }
     }
 
     public function pclZipAddDir($path, $excludes)
@@ -546,6 +571,8 @@ class MainWPBackup
    		return false;
    	}
 
+    protected $gcCnt = 0;
+
     function addFileToZip($path, $zipEntryName)
     {
         if (time() - $this->lastRun > 20)
@@ -565,6 +592,7 @@ class MainWPBackup
         // return $zip->addFile( $path, $zipEntryName );
 
         $this->zipArchiveSizeCount += filesize($path);
+        $this->gcCnt++;
 
         //5 mb limit!
         if (filesize($path) > 5 * 1024 * 1024)
@@ -580,6 +608,14 @@ class MainWPBackup
                 return false;
             }
             $added = $this->zip->addFromString($zipEntryName, $contents);
+			$contents = null;
+			unset($contents);
+        }
+
+        if ($this->gcCnt > 20)
+        {
+            @gc_collect_cycles();
+            $this->gcCnt = 0;
         }
 
         //Over limits?
