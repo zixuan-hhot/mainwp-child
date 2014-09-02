@@ -114,7 +114,10 @@ class MainWPChildBranding
                                 'generator_link' => $settings['child_generator_link'],
                                 'admin_css' => $settings['child_admin_css'],
                                 'login_css' => $settings['child_login_css'],
-                                'texts_replace' => $settings['child_texts_replace']                                
+                                'texts_replace' => $settings['child_texts_replace'],
+                                'hide_nag' => $settings['child_hide_nag'],
+                                'hide_screen_opts' => $settings['child_hide_screen_opts'],
+                                'hide_help_box' => $settings['child_hide_help_box']                
                             );
         
         if (isset($settings['child_login_image_url'])) {
@@ -274,6 +277,11 @@ class MainWPChildBranding
                 remove_filter( 'update_footer', 'core_update_footer' );
                 add_filter('update_footer', array(&$this, 'update_admin_footer'), 14);
             }
+            
+            if (isset($extra_setting['hide_nag']) && !empty($extra_setting['hide_nag'])) 
+            {
+                add_action( 'admin_init', create_function('', 'remove_action( \'admin_notices\', \'update_nag\', 3 );') );
+            }                   
         }   
     }
     
@@ -316,10 +324,26 @@ class MainWPChildBranding
     }
     
     function custom_admin_css() {
+        $header_css = "";
         $extra_setting = $this->settings['extra_settings'];
+        
         if (is_array($extra_setting) && isset($extra_setting['admin_css']) && !empty($extra_setting['admin_css'])) {
-            echo '<style>' . $extra_setting['admin_css'] . '</style>';
-        }      
+            $header_css .= $extra_setting['admin_css'];
+        }    
+        
+        if (isset($extra_setting['hide_screen_opts']) && !empty($extra_setting['hide_screen_opts'])) 
+        {
+            $header_css .=  ' #screen-options-link-wrap { display: none; }';
+        }
+        
+        if (isset($extra_setting['hide_help_box']) && !empty($extra_setting['hide_help_box'])) 
+	{
+		$header_css .= ' #contextual-help-link-wrap { display: none; }';
+		$header_css .= ' #contextual-help-link { display: none; }';
+	}
+            
+        if (!empty($header_css)) 
+            echo '<style>' . $header_css . '</style>';            
     }
     
     function custom_login_css() {
