@@ -51,6 +51,21 @@ class MainWPChildWordfence
             'scheduledScansEnabled',
             'securityLevel',
             //'scheduleScan' // filtered this
+            'blockFakeBots',
+            'neverBlockBG',
+            'maxGlobalRequests',
+            'maxGlobalRequests_action',     
+            'maxRequestsCrawlers',
+            'maxRequestsCrawlers_action',
+            'max404Crawlers',
+            'max404Crawlers_action',
+            'maxRequestsHumans',
+            'maxRequestsHumans_action',
+            'max404Humans',
+            'max404Humans_action',
+            'maxScanHits',
+            'maxScanHits_action',
+            'blockedTime'       
         );
 
      
