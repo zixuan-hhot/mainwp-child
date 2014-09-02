@@ -11,7 +11,7 @@ include_once(ABSPATH . '/wp-admin/includes/plugin.php');
 
 class MainWPChild
 {
-    private $version = '1.0.0';
+    private $version = '1.1';
     private $update_version = '1.0';
 
     private $callableFunctions = array(
@@ -982,12 +982,11 @@ class MainWPChild
                         if (strcmp($slug, $premiumPlugin) == 0)
                         {
                             $mwp_premium_updates_todo[$key] = $update;
-                            $mwp_premium_updates_todo_slugs[] = $slug;
+                            $mwp_premium_updates_todo_slugs[] = $premiumPlugin;
                         }
                     }
                 }
                 unset($mwp_premium_updates);
-
                 $premiumUpgrader = new Plugin_Upgrader(new Bulk_Plugin_Upgrader_Skin(compact('nonce', 'url')));
             }
 
@@ -1534,7 +1533,7 @@ class MainWPChild
         MainWPHelper::write(array('size' => filesize($result[0])));
     }
 
-    function backup()
+    function backup($pWrite = true)
     {
         $timeout = 20 * 60 * 60; //20minutes
         @set_time_limit($timeout);
@@ -1551,6 +1550,7 @@ class MainWPChild
             $excludes[] = str_replace(ABSPATH, '', WP_CONTENT_DIR) . '/object-cache.php';
 
             $file_descriptors = (isset($_POST['file_descriptors']) ? $_POST['file_descriptors'] : 0);
+            $loadFilesBeforeZip = (isset($_POST['loadFilesBeforeZip']) ? $_POST['loadFilesBeforeZip'] : true);
 
             $newExcludes = array();
             foreach ($excludes as $exclude)
@@ -1633,7 +1633,7 @@ class MainWPChild
             {
                 $file = $_POST['file'];
             }
-            $res = MainWPBackup::get()->createFullBackup($newExcludes, $fileName, false, false, $file_descriptors, $file, $excludezip, $excludenonwp);
+            $res = MainWPBackup::get()->createFullBackup($newExcludes, $fileName, false, false, $file_descriptors, $file, $excludezip, $excludenonwp, $loadFilesBeforeZip);
             if (!$res)
             {
                 $information['full'] = false;
@@ -1663,8 +1663,11 @@ class MainWPChild
         {
             $information['full'] = false;
             $information['db'] = false;
-        }             
-        MainWPHelper::write($information);
+        }
+
+        if ($pWrite) MainWPHelper::write($information);
+
+        return $information;
     }
 
     protected function backupDB($fileName = '')
