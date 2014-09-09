@@ -65,7 +65,7 @@ class MainWPChildWordfence
             'max404Humans_action',
             'maxScanHits',
             'maxScanHits_action',
-            'blockedTime'       
+            'blockedTime'            
         );
 
      
@@ -136,6 +136,24 @@ class MainWPChildWordfence
                 case "save_setting":
                     $information = $this->save_setting();
                 break;
+                case "ticker":
+                    $information = $this->ticker();
+                break;
+                case "reverse_lookup":
+                    $information = $this->reverse_lookup();
+                break;
+                case "update_live_traffic":
+                    $information = $this->update_live_traffic();
+                break;
+                case "block_ip":
+                    $information = $this->block_ip();
+                break;
+                case "unblock_ip":
+                    $information = $this->unblock_ip();
+                break;          
+                case "load_static_panel":
+                    $information = $this->load_static_panel();
+                break;   
             }        
         }
         MainWPHelper::write($information);
@@ -215,8 +233,12 @@ class MainWPChildWordfence
     }  
     
     public function get_log(){        
-        $information = array('events' => self::getLog()->getStatusEvents(0));  
-        $information['summary'] = self::getLog()->getSummaryEvents();
+        $information = array();
+        $wfLog = self::getLog();
+        if ($wfLog) {
+            $information['events'] = $wfLog->getStatusEvents(0);
+            $information['summary'] = $wfLog->getSummaryEvents();
+        }        
         $information['debugOn'] = wfConfig::get('debugOn', false);
         $information['updateInt'] = wfConfig::get('actUpdateInterval', 2);    
         $information['timeOffset'] = 3600 * get_option('gmt_offset');
@@ -276,6 +298,7 @@ class MainWPChildWordfence
             $wfIssues->deleteIssue($issueID);
             return array('ok' => 1);
     }
+    
     function bulk_operation(){
             $op = $_POST['op'];
             if($op == 'del' || $op == 'repair'){
@@ -365,7 +388,7 @@ class MainWPChildWordfence
                     return array('errorMsg' => "Invalid bulk operation selected");
             }
     }   
-    
+        
     function delete_file(){
 		$issueID = $_POST['issueID'];
 		$wfIssues = new wfIssues();
@@ -465,10 +488,118 @@ class MainWPChildWordfence
                         wp_unschedule_event($sched, 'mainwp_child_wordfence_cron_scan');
                     }
                 }
-                
-		return array('result' => 'SUCCESS');
+                $result = array('result' => 'SUCCESS');
+                $result['cacheType'] = wfConfig::get('cacheType');                
+		return $result;
             }
         }
+        
+        function update_live_traffic() {
+            if (isset($_POST['liveTrafficEnabled'])) {
+                wfConfig::set('liveTrafficEnabled', $_POST['liveTrafficEnabled']);
+                return array(
+                    'ok' => 1                    
+                );
+            }
+        }
+        
+        function ticker() {
+            $wfdb = new wfDB();
+            global $wpdb;
+            $p = $wpdb->base_prefix;
+
+            $serverTime = $wfdb->querySingle("select unix_timestamp()");
+            $issues = new wfIssues();
+            $jsonData = array(
+                    'serverTime' => $serverTime,
+                    'msg' => $wfdb->querySingle("select msg from $p"."wfStatus where level < 3 order by ctime desc limit 1")
+                    );
+            $events = array();
+            $alsoGet = $_POST['alsoGet'];
+            if(preg_match('/^logList_(404|hit|human|ruser|crawler|gCrawler|loginLogout)$/', $alsoGet, $m)){
+                    $type = $m[1];
+                    $newestEventTime = $_POST['otherParams'];
+                    $listType = 'hits';
+                    if($type == 'loginLogout'){
+                            $listType = 'logins';
+                    }
+                    $events = self::getLog()->getHits($listType, $type, $newestEventTime);
+            } else if($alsoGet == 'perfStats'){
+                    $newestEventTime = $_POST['otherParams'];
+                    $events = self::getLog()->getPerfStats($newestEventTime);
+            }
+            /*
+            $longest = 0;
+            foreach($events as $e){
+                    $length = $e['domainLookupEnd'] + $e['connectEnd'] + $e['responseStart'] + $e['responseEnd'] + $e['domReady'] + $e['loaded'];
+                    $longest = $length > $longest ? $length : $longest;
+            }
+            */
+            $jsonData['events'] = $events;
+            $jsonData['alsoGet'] = $alsoGet; //send it back so we don't load data if panel has changed
+            $jsonData['cacheType'] = wfConfig::get('cacheType');       
+            $jsonData['nonce_child'] = wp_create_nonce('wp-ajax');
+            
+//            $liveTrafficEnabled = wfConfig::get('liveTrafficEnabled');
+//            if (isset($_POST['liveTrafficEnabled']) && $_POST['liveTrafficEnabled'] != $liveTrafficEnabled) {
+//                wfConfig::set('liveTrafficEnabled', $_POST['liveTrafficEnabled']);
+//            }
+            //$jsonData['longestLine'] = $longest;
+            return $jsonData;
+        }
+
+        function reverse_lookup() {
+            $ips = explode(',', $_POST['ips']);
+            $res = array();
+            foreach($ips as $ip){
+                    $res[$ip] = wfUtils::reverseLookup($ip);
+            }
+            return array('ok' => 1, 'ips' => $res);
+        }
+        
+        function block_ip() {
+            $IP = trim($_POST['IP']);
+            $perm = $_POST['perm'] == '1' ? true : false;
+            if(! preg_match('/^\d+\.\d+\.\d+\.\d+$/', $IP)){
+                    return array('err' => 1, 'errorMsg' => "Please enter a valid IP address to block.");
+            }
+            if($IP == wfUtils::getIP()){
+                    return array('err' => 1, 'errorMsg' => "You can't block your own IP address.");
+            }
+            if(self::getLog()->isWhitelisted($IP)){
+                    return array('err' => 1, 'errorMsg' => "The IP address " . htmlentities($IP) . " is whitelisted and can't be blocked or it is in a range of internal IP addresses that Wordfence does not block. You can remove this IP from the whitelist on the Wordfence options page.");
+            }
+            if(wfConfig::get('neverBlockBG') != 'treatAsOtherCrawlers'){ //Either neverBlockVerified or neverBlockUA is selected which means the user doesn't want to block google 
+                    if(wfCrawl::verifyCrawlerPTR('/googlebot\.com$/i', $IP)){
+                            return array('err' => 1, 'errorMsg' => "The IP address you're trying to block belongs to Google. Your options are currently set to not block these crawlers. Change this in Wordfence options if you want to manually block Google.");
+                    }
+            }
+            self::getLog()->blockIP($IP, $_POST['reason'], false, $perm);
+            return array('ok' => 1);
+        }
+        
+        function unblock_ip() {          
+            if (isset($_POST['IP'])) {
+                  $IP = $_POST['IP'];
+                self::getLog()->unblockIP($IP);
+                return array('ok' => 1);
+            }
+        }         
+        
+        public static function load_static_panel(){
+		$mode = $_POST['mode'];
+		$wfLog = self::getLog();
+		if($mode == 'topScanners' || $mode == 'topLeechers'){
+			$results = $wfLog->getLeechers($mode);
+		} else if($mode == 'blockedIPs'){
+			$results = $wfLog->getBlockedIPs();
+		} else if($mode == 'lockedOutIPs'){
+			$results = $wfLog->getLockedOutIPs();
+		} else if($mode == 'throttledIPs'){
+			$results = $wfLog->getThrottledIPs();
+		}
+		return array('ok' => 1, 'results' => $results);
+	}
         
 }
 
