@@ -65,7 +65,11 @@ class MainWPChildWordfence
             'max404Humans_action',
             'maxScanHits',
             'maxScanHits_action',
-            'blockedTime'            
+            'blockedTime',
+            'liveTraf_ignorePublishers',
+            'liveTraf_ignoreUsers',
+            'liveTraf_ignoreIPs',
+            'liveTraf_ignoreUA'
         );
 
      
