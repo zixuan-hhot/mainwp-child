@@ -241,7 +241,7 @@ class MainWPChild
         }
 
         if (!get_option('mainwp_branding_remove_restore')) {
-            $restorePage = add_submenu_page('tools.php', $this->branding . ' Restore', '<span style="display: hidden"></span>', 'read', 'mainwp-child-restore', array('MainWPClone', 'renderRestore'));
+            $restorePage = add_submenu_page('tools.php', $this->branding . ' Restore', $this->branding . ' Restore', 'read', 'mainwp-child-restore', array('MainWPClone', 'renderRestore'));
             add_action('admin_print_scripts-'.$restorePage, array('MainWPClone', 'print_scripts'));
 
             $sitesToClone = get_option('mainwp_child_clone_sites');
