@@ -69,7 +69,24 @@ class MainWPChildWordfence
             'liveTraf_ignorePublishers',
             'liveTraf_ignoreUsers',
             'liveTraf_ignoreIPs',
-            'liveTraf_ignoreUA'
+            'liveTraf_ignoreUA',
+        
+            'whitelisted',
+            'bannedURLs',
+            'other_hideWPVersion',
+            'other_noAnonMemberComments',
+            'other_scanComments',
+            'other_pwStrengthOnUpdate',
+            'other_WFNet',
+            'maxMem',
+            'maxExecutionTime',
+            'actUpdateInterval',
+            'debugOn',
+            'deleteTablesOnDeact',
+            'disableCookies',
+            'startScansRemotely',
+            'disableConfigCaching',
+            'addCacheComment'
         );
 
      
@@ -267,8 +284,9 @@ class MainWPChildWordfence
         return array(
                 'issuesLists' => $iss,
                 'summary' => $i->getSummaryItems(),
-                'lastScanCompleted' => wfConfig::get('lastScanCompleted')
-                );
+                'lastScanCompleted' => wfConfig::get('lastScanCompleted'),
+                'nonce_child' => wp_create_nonce('wp-ajax')
+        );
     }
     function update_all_issues() {        
         $op = $_POST['op'];
@@ -469,15 +487,57 @@ class MainWPChildWordfence
         function save_setting() {
             $settings = unserialize(base64_decode($_POST['settings']));
             if (is_array($settings) && count($settings) > 0) {
+                $result = array('result' => 'SUCCESS');
+                
                 $opts = $settings;		
-		foreach($opts as $key => $val){
+                $validUsers = array();
+                $invalidUsers = array();
+                foreach(explode(',', $opts['liveTraf_ignoreUsers']) as $val){
+                        $val = trim($val);
+                        if(strlen($val) > 0){
+                                if(get_user_by('login', $val)){
+                                        $validUsers[] = $val;
+                                } else {
+                                        $invalidUsers[] = $val;
+                                }
+                        }
+                }  
+                
+                if(sizeof($invalidUsers) > 0){
+                       // return array('errorMsg' => "The following users you selected to ignore in live traffic reports are not valid on this system: " . htmlentities(implode(', ', $invalidUsers)) );
+                    $result['invalid_users'] = htmlentities(implode(', ', $invalidUsers)); 
+                }
+                
+                if(sizeof($validUsers) > 0){
+                        $opts['liveTraf_ignoreUsers'] = implode(',', $validUsers);
+                } else {
+                        $opts['liveTraf_ignoreUsers'] = '';
+                }
+
+                if(! $opts['other_WFNet']){	
+			$wfdb = new wfDB();
+			global $wpdb;
+			$p = $wpdb->base_prefix;
+			$wfdb->queryWrite("delete from $p"."wfBlocks where wfsn=1 and permanent=0");
+		}
+                
+                $regenerateHtaccess = false;
+		if(wfConfig::get('bannedURLs', false) != $opts['bannedURLs']){
+			$regenerateHtaccess = true;
+		}
+                
+                foreach($opts as $key => $val){
                     if (in_array($key, self::$options_filter)) {
                         if($key != 'apiKey'){ //Don't save API key yet
                             wfConfig::set($key, $val);
                         }
                     }
 		}
-		
+                
+                if($regenerateHtaccess){
+			wfCache::addHtaccessCode('add');
+		}
+                
 		if($opts['autoUpdate'] == '1'){
 			wfConfig::enableAutoUpdate();
 		} else if($opts['autoUpdate'] == '0'){
@@ -485,6 +545,7 @@ class MainWPChildWordfence
 		}
                 
                 $sch = isset($opts['scheduleScan']) ? $opts['scheduleScan'] : "";     
+                
                 if ($sch != get_option('mainwp_child_wordfence_cron_time')) {
                     update_option('mainwp_child_wordfence_cron_time', $sch);
                     $sched = wp_next_scheduled('mainwp_child_wordfence_cron_scan');
@@ -492,7 +553,7 @@ class MainWPChildWordfence
                         wp_unschedule_event($sched, 'mainwp_child_wordfence_cron_scan');
                     }
                 }
-                $result = array('result' => 'SUCCESS');
+                
                 $result['cacheType'] = wfConfig::get('cacheType');                
 		return $result;
             }
