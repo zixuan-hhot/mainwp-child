@@ -448,7 +448,7 @@ class MainWPChildWordfence
 			return array('cerrorMsg' => "We could not find that issue in our database.");
 		}
 		$dat = $issue['data'];	
-		$result = self::getWPFileContent($dat['file'], $dat['cType'], (isset($dat['cName']) ? $dat['cName'] : ''), (isset($dat['cVersion']) ? $dat['cVersion'] : ''));
+		$result = wordfence::getWPFileContent($dat['file'], $dat['cType'], (isset($dat['cName']) ? $dat['cName'] : ''), (isset($dat['cVersion']) ? $dat['cVersion'] : ''));
 		$file = $dat['file'];
 		if(isset($result['cerrorMsg']) && $result['cerrorMsg']){
 			return $result;
