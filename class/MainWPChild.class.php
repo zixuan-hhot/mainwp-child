@@ -555,8 +555,15 @@ class MainWPChild
                 $_SESSION['file'] = $file;
                 $_SESSION['size'] = $_POST['size'];
             }
-
-            add_filter('the_content', array(MainWPKeywordLinks::Instance(), 'filter_content'), 100, 2);
+            
+            $open_location = isset($_REQUEST['open_location']) ? $_REQUEST['open_location'] : '';  
+            if (!empty($open_location)) {
+                $open_location = base64_decode($open_location);                  
+                wp_redirect(site_url() . $open_location);
+                exit();
+            }
+            
+            add_filter('the_content', array(MainWPKeywordLinks::Instance(), 'filter_content'), 100, 2);            
             wp_redirect(admin_url($where));
             exit();
         }
