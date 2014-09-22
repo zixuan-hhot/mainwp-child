@@ -293,11 +293,11 @@ class MainWPChildWordfence
     public function load_issues() {
         $i = new wfIssues();
         $iss = $i->getIssues();
+        error_log("wp-ajax: " . wp_create_nonce('wp-ajax'));
         return array(
                 'issuesLists' => $iss,
                 'summary' => $i->getSummaryItems(),
-                'lastScanCompleted' => wfConfig::get('lastScanCompleted'),
-                'nonce_child' => wp_create_nonce('wp-ajax')
+                'lastScanCompleted' => wfConfig::get('lastScanCompleted')                
         );
     }
     function update_all_issues() {        
