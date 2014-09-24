@@ -272,8 +272,7 @@ class MainWPChildWordfence
             $information['events'] = $wfLog->getStatusEvents(0);
             $information['summary'] = $wfLog->getSummaryEvents();
         }        
-        $information['debugOn'] = wfConfig::get('debugOn', false);
-        $information['updateInt'] = wfConfig::get('actUpdateInterval', 2);    
+        $information['debugOn'] = wfConfig::get('debugOn', false);         
         $information['timeOffset'] = 3600 * get_option('gmt_offset');
         return $information;
     } 
@@ -622,12 +621,12 @@ class MainWPChildWordfence
         }
         
         function update_live_traffic() {
-            if (isset($_POST['liveTrafficEnabled'])) {
-                wfConfig::set('liveTrafficEnabled', $_POST['liveTrafficEnabled']);
-                return array(
-                    'ok' => 1                    
-                );
-            }
+//            if (isset($_POST['liveTrafficEnabled'])) {
+//                wfConfig::set('liveTrafficEnabled', $_POST['liveTrafficEnabled']);
+//                return array(
+//                    'ok' => 1                    
+//                );
+//            }
         }
         
         function ticker() {
@@ -664,14 +663,7 @@ class MainWPChildWordfence
             */
             $jsonData['events'] = $events;
             $jsonData['alsoGet'] = $alsoGet; //send it back so we don't load data if panel has changed
-            $jsonData['cacheType'] = wfConfig::get('cacheType');       
-            $jsonData['nonce_child'] = wp_create_nonce('wp-ajax');
-            
-//            $liveTrafficEnabled = wfConfig::get('liveTrafficEnabled');
-//            if (isset($_POST['liveTrafficEnabled']) && $_POST['liveTrafficEnabled'] != $liveTrafficEnabled) {
-//                wfConfig::set('liveTrafficEnabled', $_POST['liveTrafficEnabled']);
-//            }
-            //$jsonData['longestLine'] = $longest;
+            $jsonData['cacheType'] = wfConfig::get('cacheType');                
             return $jsonData;
         }
 
