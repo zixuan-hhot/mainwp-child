@@ -292,11 +292,13 @@ class MainWPChildWordfence
     public function load_issues() {
         $i = new wfIssues();
         $iss = $i->getIssues();
-        error_log("wp-ajax: " . wp_create_nonce('wp-ajax'));
+        //error_log("wp-ajax: " . wp_create_nonce('wp-ajax'));
         return array(
                 'issuesLists' => $iss,
                 'summary' => $i->getSummaryItems(),
-                'lastScanCompleted' => wfConfig::get('lastScanCompleted')                
+                'lastScanCompleted' => wfConfig::get('lastScanCompleted'),
+                'apiKey' => wfConfig::get('apiKey'),
+                'isPaid' => wfConfig::get('isPaid')
         );
     }
     function update_all_issues() {        
@@ -567,8 +569,8 @@ class MainWPChildWordfence
                 
                 $result['cacheType'] = wfConfig::get('cacheType');                  
                 $result['paidKeyMsg'] = false; 
-                
-                if(! $opts['apiKey']){ //Empty API key (after trim above), then try to get one.
+                $apiKey = trim($_POST['apiKey']);
+                if(! $apiKey){ //Empty API key (after trim above), then try to get one.
 			$api = new wfAPI('', wfUtils::getWPVersion());
 			try {
 				$keyData = $api->call('get_anon_api_key');
@@ -585,14 +587,14 @@ class MainWPChildWordfence
 				$result['error'] = "Your options have been saved, but we encountered a problem. You left your API key blank, so we tried to get you a free API key from the Wordfence servers. However we encountered a problem fetching the free key: " . htmlentities($e->getMessage()) ;
                                 return $result;
 			}
-		} else if($opts['apiKey'] != wfConfig::get('apiKey')){
-			$api = new wfAPI($opts['apiKey'], wfUtils::getWPVersion());
+		} else if($apiKey != wfConfig::get('apiKey')){
+			$api = new wfAPI($apiKey, wfUtils::getWPVersion());
 			try {
 				$res = $api->call('check_api_key', array(), array());
 				if($res['ok'] && isset($res['isPaid'])){
-					wfConfig::set('apiKey', $opts['apiKey']);					
+					wfConfig::set('apiKey', $apiKey);					
 					wfConfig::set('isPaid', $res['isPaid']); //res['isPaid'] is boolean coming back as JSON and turned back into PHP struct. Assuming JSON to PHP handles bools.
-                                        $result['apiKey'] = $opts['apiKey'];
+                                        $result['apiKey'] = $apiKey;
                                         $result['isPaid'] = $res['isPaid'];
 					if($res['isPaid']){
                                             $result['paidKeyMsg'] = true;
@@ -607,7 +609,7 @@ class MainWPChildWordfence
 			}
 		} else {
                     try {
-			$api = new wfAPI($opts['apiKey'], wfUtils::getWPVersion());
+			$api = new wfAPI($apiKey, wfUtils::getWPVersion());
 			$res = $api->call('ping_api_key', array(), array());
                     } catch (Exception $e){
                         $result['error'] = "Your options have been saved. However we noticed you do not change your API key and we tried to verify it with the Wordfence servers and received an error: " . htmlentities($e->getMessage());
