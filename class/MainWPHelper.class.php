@@ -146,6 +146,8 @@ class MainWPHelper
                     $originalImgUrl = $imgUrl;
                 }
 
+                try
+                {
                 $downloadfile = MainWPHelper::uploadImage($originalImgUrl);
                 $localUrl = $downloadfile['url'];
                 $linkToReplaceWith = dirname($localUrl);
@@ -157,6 +159,11 @@ class MainWPHelper
 
                 $lnkToReplace = dirname($imgUrl);
                 if ($lnkToReplace != 'http:' && $lnkToReplace != 'https:') $new_post['post_content'] = str_replace($lnkToReplace, $linkToReplaceWith, $new_post['post_content']);
+                }
+                catch (Exception $e)
+                {
+
+                }
             }
         }
         
