@@ -180,24 +180,27 @@ class MainWPClientReport
          
         $sections_data = array();    
         
-        if (isset($sections['header']) && is_array($sections['header'])) {
-            foreach($sections['header'] as $sec => $tokens) {
-                $sections_data['header'][$sec] = $this->get_section_loop_data($records, $tokens, $sec);
+        if (isset($sections['header']) && is_array($sections['header']) && !empty($sections['header'])) {
+            foreach($sections['header']['section_token'] as $index => $sec) {                
+                $tokens = $sections['header']['section_content_tokens'][$index];                
+                $sections_data['header'][$index] = $this->get_section_loop_data($records, $tokens, $sec);
             }
         }
-        if (isset($sections['body']) && is_array($sections['body'])) {
-            foreach($sections['body'] as $sec => $tokens) {
-                $sections_data['body'][$sec] = $this->get_section_loop_data($records, $tokens, $sec);
+        if (isset($sections['body']) && is_array($sections['body']) && !empty($sections['body'])) {
+            foreach($sections['body']['section_token'] as $index => $sec) {                
+                $tokens = $sections['body']['section_content_tokens'][$index];  
+                $sections_data['body'][$index] = $this->get_section_loop_data($records, $tokens, $sec);
             }
         }
-        if (isset($sections['footer']) && is_array($sections['footer'])) {
-            foreach($sections['footer'] as $sec => $tokens) {
-                $sections_data['footer'][$sec] = $this->get_section_loop_data($records, $tokens, $sec);
+        if (isset($sections['footer']) && is_array($sections['footer']) && !empty($sections['footer'])) {
+            foreach($sections['footer']  as $index => $sec) {                
+                $tokens = $sections['footer']['section_content_tokens'][$index];  
+                $sections_data['footer'][$index] = $this->get_section_loop_data($records, $tokens, $sec);
             }
         }
             
         $information = array('other_tokens_data' => $other_tokens_data,
-                             'sections_data' => $sections_data );            
+                             'sections_data' => $sections_data );           
         
         return $information;
     }
@@ -461,18 +464,21 @@ class MainWPClientReport
         $loop_count = 0;
         
         foreach ($records as $record) {     
-            $theme_edited = $users_updated = false;              
+            $theme_edited = $users_updated = $plugin_edited = false;              
             
             if (self::is_version_2()) {
                 if ($context == "plugins" && $action == "edited") {
                     if ($record->action !== "updated" || $record->connector !== "editor")
                         continue;
-                    else 
-                        $plugin_edited = true;                    
+                    else {
+                        $plugin_edited = true;                                            
+                    }
                 }
             }
             
-            if ($context == "themes" && $action == "edited") {
+            if($plugin_edited) {
+                // ok next
+            } else if ($context == "themes" && $action == "edited") {
                 if ($record->action !== "updated" || $record->connector !== "editor")
                     continue;
                 else 
@@ -562,7 +568,8 @@ class MainWPClientReport
                             } else if ($users_updated) {
                                 $data = "display_name";
                             }
-                        }
+                        } 
+                        
                         if ($data == "roles" && $users_updated) {
                             $user_info = get_userdata($record->object_id);
                             if ( !( is_object( $user_info ) && is_a( $user_info, 'WP_User' ) ) ) {                                
@@ -602,7 +609,7 @@ class MainWPClientReport
                             $token_values[$token] = $token; 
                         break;                    
                     default:   
-                        $token_values[$token] = $token;                                                                                 
+                        $token_values[$token] = "N/A";                                                                                 
                         break;
                 }                                
             
@@ -632,25 +639,6 @@ class MainWPClientReport
         
         $meta_key = $data;
         $value = "";
-        
-//        global $wpdb;
-//        
-//        if (class_exists('WP_Stream_Install'))
-//            $prefix = WP_Stream_Install::$table_prefix;
-//        else
-//            $prefix = $wpdb->prefix;
-//        
-//	$sql    = "SELECT meta_value FROM {$prefix}stream_meta WHERE record_id = " . $record_id . " AND meta_key = '" . $meta_key . "'";
-//	$meta   = $wpdb->get_row( $sql );        
-//        
-//        $value = "";
-//        if (!empty($meta)) {
-//            $value = $meta->meta_value;
-//            if ($meta_key == "author_meta") {
-//                $value = unserialize($value);
-//                $value = $value['display_name'];
-//            }            
-//        }
         
         if (isset($record->meta)) {
             $meta = $record->meta;
