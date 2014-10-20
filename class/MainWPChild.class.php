@@ -108,7 +108,8 @@ class MainWPChild
         if (is_array($branding_header) && isset($branding_header['name']) && !empty($branding_header['name'])) {
             $this->branding_robust = stripslashes($branding_header["name"]);
         }
-        add_action( 'admin_notices', array(&$this, 'admin_notice'));        
+        add_action( 'admin_notices', array(&$this, 'admin_notice'));  
+        add_filter('plugin_row_meta', array(&$this, 'plugin_row_meta'), 10, 2);  
     }
 
     function update()
@@ -193,6 +194,13 @@ class MainWPChild
         }
     }
 
+    
+    public function plugin_row_meta($plugin_meta, $plugin_file)
+    {
+        if ($this->plugin_slug != $plugin_file) return $plugin_meta; 
+        return apply_filters("mainwp_child_plugin_row_meta", $plugin_meta, $plugin_file, $this->plugin_slug);
+    }
+    
     function admin_menu()
     {
         if (get_option('mainwp_branding_remove_wp_tools')) {

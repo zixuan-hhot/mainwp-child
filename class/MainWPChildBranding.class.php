@@ -14,11 +14,12 @@ class MainWPChildBranding
         }
         return MainWPChildBranding::$instance;
     }
-
+    
     public function __construct()
     {
         $this->child_plugin_dir = dirname(dirname(__FILE__));        
         add_action('mainwp_child_deactivation', array($this, 'child_deactivation'));
+        add_filter("mainwp_child_plugin_row_meta", array($this, "plugin_row_meta"), 10, 3);
         
         $label = get_option("mainwp_branding_button_contact_label");
         if (!empty($label)) {
@@ -30,6 +31,24 @@ class MainWPChildBranding
         $this->settings['extra_settings'] = get_option('mainwp_branding_extra_settings');
     }
 
+    
+    public function plugin_row_meta($plugin_meta, $plugin_file, $child_plugin_slug)
+    {
+        if ($child_plugin_slug != $plugin_file) return $plugin_meta;  
+       
+        if (!self::is_branding())
+            return $plugin_meta;
+        
+        for ($i = 0; $i < count($plugin_meta); $i++) {
+            $str_meta = $plugin_meta[$i];            
+            if (strpos($str_meta, "plugin-install.php?tab=plugin-information")) {
+                unset ($plugin_meta[$i]);
+                break;
+            }
+        }
+        return $plugin_meta;
+    }
+    
     public static function admin_init()
     {
     }
