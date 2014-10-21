@@ -687,18 +687,58 @@ class MainWPChildBranding
         return false;
     }
     
+    function check_update_stream_plugin() {
+        if ( $plugins = current_user_can( 'update_plugins' ) ) {
+            $update_plugins = get_site_transient( 'update_plugins' );
+            if (!empty( $update_plugins->response )) {
+                $response =  $update_plugins->response;                
+                if (is_array($response) && isset($response['stream/stream.php']))                
+                    return true;
+            }
+	}
+        return false;
+    }
+    
     function update_footer($text){        
-        if (stripos($_SERVER['REQUEST_URI'], 'update-core.php') !== false && self::is_branding())
-        {
-            ?>
-           <script>
-                jQuery(document).ready(function(){
-                    jQuery('input[type="checkbox"][value="mainwp-child/mainwp-child.php"]').closest('tr').remove();
-                });        
-            </script>
-           <?php
+        if (self::is_branding()) {
+            if (stripos($_SERVER['REQUEST_URI'], 'update-core.php') !== false)
+            {  
+                ?>
+               <script>
+                    jQuery(document).ready(function(){
+                        jQuery('input[type="checkbox"][value="mainwp-child/mainwp-child.php"]').closest('tr').remove();
+                    });        
+                </script>
+               <?php
+            } 
+            
+            if ($this->check_update_stream_plugin()) {
+                ?>            
+                <script>
+                    jQuery(document).ready(function(){
+                        var menu_update = jQuery('span.update-plugins');
+                        var menu_count = jQuery('span.update-plugins > span.update-count'); 
+                        if (menu_count) {
+                            var count = parseInt(menu_count.html());                        
+                            if (count > 0) {                                                            
+                                jQuery('span.update-plugins > span.update-count').each(function(){
+                                     jQuery(this).html(count - 1);
+                                }); 
+                                jQuery('span.update-plugins > span.plugin-count').each(function(){
+                                     jQuery(this).html(count - 1);
+                                }); 
+                                var title = menu_update.attr('title').replace(count, count - 1);
+                                jQuery('span.update-plugins').each(function(){
+                                     jQuery(this).attr('title', title);
+                                });
+                               
+                            }
+                        }
+                    });        
+                </script>
+                <?php
+            }
         }
-
         return $text;
     }
 
