@@ -2680,7 +2680,7 @@ class MainWPChild
         {
             if (isset($_POST['keyword']))
             {
-                $this->posts_where_suffix .= " AND $wpdb->posts.post_content LIKE '%" . $_POST['keyword'] . "%'";
+                $this->posts_where_suffix .= " AND ($wpdb->posts.post_content LIKE '%" . $_POST['keyword'] . "%' OR $wpdb->posts.post_title LIKE '%" . $_POST['keyword'] . "%' )";
             }
             if (isset($_POST['dtsstart']) && $_POST['dtsstart'] != '')
             {
