@@ -3652,10 +3652,16 @@ class MainWPChild
             MainWPHelper::write($information); 
             return;
         }
-            
-        if ($path === '/')
+        
+        if (strpos($path, "wp-content") === 0) {    
+            $path = basename(WP_CONTENT_DIR) . substr($path, 10);
+        } else if (strpos($path, "wp-includes") === 0) {    
+            $path = WPINC . substr($path, 11);
+        }
+        
+        if ($path === '/') {
             $dir = ABSPATH;
-        else {
+        } else {
             $path = str_replace(' ', '-', $path);
             $path = str_replace('.', '-', $path);            
             $dir = ABSPATH . $path;
