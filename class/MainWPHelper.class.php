@@ -412,6 +412,13 @@ class MainWPHelper
             {
                 @touch($dir . 'index.php');
             }
+
+            if (!file_exists($dir . '.htaccess'))
+            {
+                $file = @fopen($dir . '.htaccess', 'w+');
+                @fwrite($file, 'deny from all');
+                @fclose($file);
+            }
             $url .= 'backup/';
         }
 
@@ -879,7 +886,8 @@ class MainWPHelper
 
     public static function inExcludes($excludes, $value)
     {
-        $inExcludes = false;
+        if (empty($value)) return false;
+
         if ($excludes != null)
         {
             foreach ($excludes as $exclude)
@@ -888,19 +896,24 @@ class MainWPHelper
                 {
                     if (MainWPHelper::startsWith($value, substr($exclude, 0, strlen($exclude) - 1)))
                     {
-                        $inExcludes = true;
-                        break;
+                        return true;
                     }
                 }
                 else if ($value == $exclude)
                 {
-                    $inExcludes = true;
-                    break;
+                    return true;
+                }
+                else if (MainWPHelper::startsWith($value, $exclude . '/'))
+                {
+                    return true;
                 }
             }
         }
-        return $inExcludes;
+        return false;
+    }
+
+    public static function isArchive($pFileName, $pPrefix = '', $pSuffix = '')
+    {
+        return preg_match('/' . $pPrefix . '(.*).(zip|tar|tar.gz|tar.bz2)' . $pSuffix . '$/', $pFileName);
     }
 }
-
-?>

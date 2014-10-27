@@ -61,7 +61,8 @@ class MainWPChild
         'woo_com_status' => 'woo_com_status',
         'heatmaps' => 'heatmaps',
         'links_checker' => 'links_checker',
-        'wordfence' => 'wordfence'
+        'wordfence' => 'wordfence',
+        'delete_backup' => 'delete_backup'
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -108,8 +109,8 @@ class MainWPChild
         if (is_array($branding_header) && isset($branding_header['name']) && !empty($branding_header['name'])) {
             $this->branding_robust = stripslashes($branding_header["name"]);
         }
-        add_action( 'admin_notices', array(&$this, 'admin_notice'));  
-        add_filter('plugin_row_meta', array(&$this, 'plugin_row_meta'), 10, 2);  
+        add_action( 'admin_notices', array(&$this, 'admin_notice'));        
+        add_filter('plugin_row_meta', array(&$this, 'plugin_row_meta'), 10, 2);
     }
 
     function update()
@@ -194,13 +195,13 @@ class MainWPChild
         }
     }
 
-    
+
     public function plugin_row_meta($plugin_meta, $plugin_file)
     {
-        if ($this->plugin_slug != $plugin_file) return $plugin_meta; 
+        if ($this->plugin_slug != $plugin_file) return $plugin_meta;
         return apply_filters("mainwp_child_plugin_row_meta", $plugin_meta, $plugin_file, $this->plugin_slug);
     }
-    
+
     function admin_menu()
     {
         if (get_option('mainwp_branding_remove_wp_tools')) {
@@ -410,13 +411,18 @@ class MainWPChild
 
     function parse_init()
     {
-        if (isset($_POST['cloneFunc']))
+        if (isset($_REQUEST['cloneFunc']))
         {
-            if (!isset($_POST['key'])) return;
-            if (!isset($_POST['f']) || ($_POST['f'] == '')) return;
-            if (!$this->isValidAuth($_POST['key'])) return;
+            if (!isset($_REQUEST['key'])) return;
+            if (!isset($_REQUEST['f']) || ($_REQUEST['f'] == '')) return;
+            if (!$this->isValidAuth($_REQUEST['key'])) return;
 
-            if ($_POST['cloneFunc'] == 'deleteCloneBackup')
+            if ($_REQUEST['cloneFunc'] == 'dl')
+            {
+                $this->uploadFile($_REQUEST['f']);
+                exit;
+            }
+            else if ($_POST['cloneFunc'] == 'deleteCloneBackup')
             {
                 $dirs = MainWPHelper::getMainWPDir('backup');
                 $backupdir = $dirs[0];
@@ -430,10 +436,19 @@ class MainWPChild
             {
                 $dirs = MainWPHelper::getMainWPDir('backup');
                 $backupdir = $dirs[0];
-                $result = glob($backupdir . 'backup-'.$_POST['f'].'-*.zip');
-                if (count($result) == 0) return;
+                $result = glob($backupdir . 'backup-'.$_POST['f'].'-*');
+                $archiveFile = false;
+                foreach ($result as $file)
+                {
+                    if (MainWPHelper::isArchive($file, 'backup-'.$_POST['f'].'-'))
+                    {
+                        $archiveFile = $file;
+                        break;
+                    }
+                }
+                if ($archiveFile === false) return;
 
-                MainWPHelper::write(array('size' => filesize($result[0])));
+                MainWPHelper::write(array('size' => filesize($archiveFile)));
             }
             else if ($_POST['cloneFunc'] == 'createCloneBackup')
             {
@@ -459,7 +474,10 @@ class MainWPChild
                     $newExcludes[] = rtrim($exclude, '/');
                 }
 
-                $res = MainWPBackup::get()->createFullBackup($newExcludes, (isset($_POST['f']) ? $_POST['f'] : $_POST['file']), true, $includeCoreFiles);
+                $method = (!isset($_POST['zipmethod']) ? 'tar.gz' : $_POST['zipmethod']);
+                if ($method == 'tar.gz' && !function_exists('gzopen')) $method = 'zip';
+
+                $res = MainWPBackup::get()->createFullBackup($newExcludes, (isset($_POST['f']) ? $_POST['f'] : $_POST['file']), true, $includeCoreFiles, 0, false, false, false, false, $method);
                 if (!$res)
                 {
                     $information['backup'] = false;
@@ -539,12 +557,22 @@ class MainWPChild
                 {
                     $file = $_REQUEST['file'];
                 }
+                else if (isset($_REQUEST['fdl']))
+                {
+                    $file = $_REQUEST['fdl'];
+                }
                 $auth = $this->auth($signature, rawurldecode((isset($_REQUEST['where']) ? $_REQUEST['where'] : $file)), isset($_REQUEST['nonce']) ? $_REQUEST['nonce'] : '', isset($_REQUEST['nossl']) ? $_REQUEST['nossl'] : 0);
                 if (!$auth) return;
                 if (!$this->login($_REQUEST['user']))
                 {
                     return;
                 }
+            }
+
+            if (isset($_REQUEST['fdl']))
+            {
+                $this->uploadFile($_REQUEST['fdl']);
+                exit;
             }
 
             $where = isset($_REQUEST['where']) ? $_REQUEST['where'] : '';
@@ -597,11 +625,21 @@ class MainWPChild
 		
         if (isset($_GET['mainwptest']))
         {
-//            error_reporting(E_ALL);
-//            ini_set('display_errors', TRUE);
-//            ini_set('display_startup_errors', TRUE);
-//            echo '<pre>';
-//            die('</pre>');
+            error_reporting(E_ALL);
+            ini_set('display_errors', TRUE);
+            ini_set('display_startup_errors', TRUE);
+            echo '<pre>';
+            $start = microtime(true);
+            //$excludes  = array('wp-content/uploads');
+            $excludes  = array();
+            $excludes[] = str_replace(ABSPATH, '', WP_CONTENT_DIR) . '/uploads/mainwp';
+            $uploadDir = MainWPHelper::getMainWPDir();
+            $uploadDir = $uploadDir[0];
+            $excludes[] = str_replace(ABSPATH, '', $uploadDir);
+
+            print_r(MainWPBackup::get()->createFullBackup($excludes, '', false, false, 0, false, false, false, false, 'tar.gz'));
+
+            die('</pre>');
         }
 
         //Register does not require auth, so we register here..
@@ -756,6 +794,13 @@ class MainWPChild
         return $r;
     }
 
+    public function http_request_reject_unsafe_urls($r, $url)
+    {
+        $r['reject_unsafe_urls'] = false;
+
+        return $r;
+    }
+
     /**
      * Functions to support core functionality
      */
@@ -795,6 +840,7 @@ class MainWPChild
             {
                 add_filter( 'http_request_args', array(&$this, 'noSSLFilterFunction'), 99, 2);
             }
+            add_filter('http_request_args', array(&$this, 'http_request_reject_unsafe_urls'), 99, 2);
 
             $result = $installer->run(array(
                 'package' => $url,
@@ -805,6 +851,7 @@ class MainWPChild
                 'hook_extra' => array()
             ));
 
+            remove_filter( 'http_request_args', array(&$this, 'http_request_reject_unsafe_urls') , 99, 2);
             if (isset($_POST['sslVerify']) && $_POST['sslVerify'] == 0)
             {
                 remove_filter( 'http_request_args', array(&$this, 'noSSLFilterFunction') , 99);
@@ -1547,22 +1594,38 @@ class MainWPChild
         $fileNameUID = (isset($_POST['fileNameUID']) ? $_POST['fileNameUID'] : '');
         $fileName = (isset($_POST['fileName']) ? $_POST['fileName'] : '');
 
-        $backupFile = '';
         if ($_POST['type'] == 'full')
         {
             if ($fileName != '')
             {
-                $backupFile = $fileName . '.zip';
+                $backupFile = $fileName;
             }
             else
             {
-                $backupFile = 'backup-' . $fileNameUID . '-*.zip';
+                $backupFile = 'backup-' . $fileNameUID . '-';
             }
+
+
+            $dirs = MainWPHelper::getMainWPDir('backup');
+            $backupdir = $dirs[0];
+            $result = glob($backupdir . $backupFile . '*');
+            $archiveFile = false;
+            foreach ($result as $file)
+            {
+                if (MainWPHelper::isArchive($file, $backupFile, '(.*)'))
+                {
+                    $archiveFile = $file;
+                    break;
+                }
+            }
+            if ($archiveFile === false) MainWPHelper::write(array());
+
+            MainWPHelper::write(array('size' => filesize($archiveFile)));
         }
         else
         {
             $backupFile = 'dbBackup-' . $fileNameUID . '-*.sql';
-        }
+
 
         $dirs = MainWPHelper::getMainWPDir('backup');
         $backupdir = $dirs[0];
@@ -1570,6 +1633,8 @@ class MainWPChild
         if (count($result) == 0) MainWPHelper::write(array());
 
         MainWPHelper::write(array('size' => filesize($result[0])));
+            exit();
+        }
     }
 
     function backup($pWrite = true)
@@ -1617,12 +1682,13 @@ class MainWPChild
                 //Backup buddy
                 $newExcludes[] = str_replace(ABSPATH, '', WP_CONTENT_DIR) . '/uploads/backupbuddy_backups';
                 $newExcludes[] = str_replace(ABSPATH, '', WP_CONTENT_DIR) . '/uploads/backupbuddy_temp';
+                $newExcludes[] = str_replace(ABSPATH, '', WP_CONTENT_DIR) . '/uploads/pb_backupbuddy';
 
                 //ManageWP
                 $newExcludes[] = str_replace(ABSPATH, '', WP_CONTENT_DIR) . '/managewp';
 
                 //InfiniteWP
-                $newExcludes[] = str_replace(ABSPATH, '', WP_CONTENT_DIR) . '/infinitewp/backups';
+                $newExcludes[] = str_replace(ABSPATH, '', WP_CONTENT_DIR) . '/infinitewp';
 
                 //WordPress Backup to Dropbox
                 $newExcludes[] = str_replace(ABSPATH, '', WP_CONTENT_DIR) . '/backups';
@@ -1682,7 +1748,14 @@ class MainWPChild
             {
                 $file = $_POST['file'];
             }
-            $res = MainWPBackup::get()->createFullBackup($newExcludes, $fileName, false, false, $file_descriptors, $file, $excludezip, $excludenonwp, $loadFilesBeforeZip);
+
+            $ext = 'zip';
+            if (isset($_POST['ext']))
+            {
+                $ext = $_POST['ext'];
+            }
+
+            $res = MainWPBackup::get()->createFullBackup($newExcludes, $fileName, true, true, $file_descriptors, $file, $excludezip, $excludenonwp, $loadFilesBeforeZip, $ext);
             if (!$res)
             {
                 $information['full'] = false;
@@ -1696,7 +1769,13 @@ class MainWPChild
         }
         else if ($_POST['type'] == 'db')
         {
-            $res = $this->backupDB($fileName);
+            $ext = 'zip';
+            if (isset($_POST['ext']))
+            {
+                $ext = $_POST['ext'];
+            }
+
+            $res = $this->backupDB($fileName, $ext);
             if (!$res)
             {
                 $information['db'] = false;
@@ -1719,7 +1798,7 @@ class MainWPChild
         return $information;
     }
 
-    protected function backupDB($fileName = '')
+    protected function backupDB($fileName = '', $ext = 'zip')
     {
         $dirs = MainWPHelper::getMainWPDir('backup');
         $dir = $dirs[0];
@@ -1731,7 +1810,7 @@ class MainWPChild
         {
             while (($file = readdir($dh)) !== false)
             {
-                if ($file != '.' && $file != '..' && (preg_match('/dbBackup-(.*).sql$/', $file) || preg_match('/dbBackup-(.*).sql.zip$/', $file)))
+                if ($file != '.' && $file != '..' && (preg_match('/dbBackup-(.*).sql(\.zip|\.tar|\.tar\.gz|\.tar\.bz2)?$/', $file)))
                 {
                     @unlink($dir . $file);
                 }
@@ -1744,13 +1823,13 @@ class MainWPChild
             @unlink($filepath);
         }
 
-        $result = MainWPBackup::get()->createBackupDB($filepath, true);
+        $result = MainWPBackup::get()->createBackupDB($filepath, $ext);
 
         MainWPHelper::update_option('mainwp_child_last_db_backup_size', filesize($result['filepath']));
 
         return ($result === false) ? false : array(
             'timestamp' => $timestamp,
-            'file' => $dirs[1] . basename($result['filepath']),
+            'file' => basename($result['filepath']),
             'filesize' => filesize($result['filepath'])
         );
     }
@@ -3652,13 +3731,13 @@ class MainWPChild
             MainWPHelper::write($information); 
             return;
         }
-        
-        if (strpos($path, "wp-content") === 0) {    
+
+        if (strpos($path, "wp-content") === 0) {
             $path = basename(WP_CONTENT_DIR) . substr($path, 10);
-        } else if (strpos($path, "wp-includes") === 0) {    
+        } else if (strpos($path, "wp-includes") === 0) {
             $path = WPINC . substr($path, 11);
         }
-        
+
         if ($path === '/') {
             $dir = ABSPATH;
         } else {
@@ -3729,6 +3808,53 @@ class MainWPChild
     function wordfence() {        
         MainWPChildWordfence::Instance()->action();                
     }
-}
 
+    function delete_backup()
+    {
+        $dirs = MainWPHelper::getMainWPDir('backup');
+        $backupdir = $dirs[0];
+
+        $file = $_REQUEST['del'];
+
+        if (@file_exists($backupdir . $file))
+        {
+            @unlink($backupdir . $file);
+        }
+
+        MainWPHelper::write(array('result' => 'ok'));
+    }
+
+    function uploadFile($file)
+    {
+        $dirs = MainWPHelper::getMainWPDir('backup');
+        $backupdir = $dirs[0];
+
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename=' . basename($file));
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($backupdir . $file));
+        while (@ob_end_flush());
+        $this->readfile_chunked($backupdir . $file);
+    }
+
+    function readfile_chunked($filename)
+    {
+        $chunksize = 1024; // how many bytes per chunk
+        $handle = @fopen($filename, 'rb');
+        if ($handle === false) return false;
+
+        while (!@feof($handle))
+        {
+            $buffer = @fread($handle, $chunksize);
+            echo $buffer;
+            @ob_flush();
+            @flush();
+            $buffer = null;
+        }
+        return @fclose($handle);
+    }
+}
 ?>

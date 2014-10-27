@@ -13,6 +13,8 @@ class MainWPBackup
     protected $timeout;
     protected $lastRun;
 
+    protected $archiver = null;
+
     protected function __construct()
     {
 
@@ -30,7 +32,7 @@ class MainWPBackup
     /**
      * Create full backup
      */
-    public function createFullBackup($excludes, $filePrefix = '', $addConfig = false, $includeCoreFiles = false, $file_descriptors = 0, $fileSuffix = false, $excludezip = false, $excludenonwp = false, $loadFilesBeforeZip = true)
+    public function createFullBackup($excludes, $filePrefix = '', $addConfig = false, $includeCoreFiles = false, $file_descriptors = 0, $fileSuffix = false, $excludezip = false, $excludenonwp = false, $loadFilesBeforeZip = true, $ext = 'zip')
     {
         $this->file_descriptors = $file_descriptors;
         $this->loadFilesBeforeZip = $loadFilesBeforeZip;
@@ -41,22 +43,34 @@ class MainWPBackup
 
         $timestamp = time();
         if ($filePrefix != '') $filePrefix .= '-';
-        if (($fileSuffix !== false) && !empty($fileSuffix))
+
+        if ($ext == 'zip')
         {
-            $file = $fileSuffix . '.zip';
+            $this->archiver = null;
+            $ext = '.zip';
         }
         else
         {
-            $file =  'backup-' . $filePrefix . $timestamp . '.zip';
+            $this->archiver = new TarArchiver($this, $ext);
+            $ext = $this->archiver->getExtension();
+        }
+
+        if (($fileSuffix !== false) && !empty($fileSuffix))
+        {
+            $file = $fileSuffix . $ext;
+        }
+        else
+        {
+            $file =  'backup-' . $filePrefix . $timestamp . $ext;
         }
         $filepath = $backupdir . $file;
-        $fileurl = $dirs[1] . $file;
+        $fileurl = $file;
 
         if ($dh = opendir($backupdir))
         {
             while (($file = readdir($dh)) !== false)
             {
-                if ($file != '.' && $file != '..' && preg_match('/(.*).zip/', $file))
+                if ($file != '.' && $file != '..' && preg_match('/(.*).(zip|tar|tar.gz|tar.bz2)$/', $file))
                 {
                     @unlink($backupdir . $file);
                 }
@@ -80,7 +94,11 @@ class MainWPBackup
         @ini_set('max_execution_time', $this->timeout);
 
         $success = false;
-        if ($this->checkZipSupport())
+        if ($this->archiver != null)
+        {
+            $success = $this->archiver->createFullBackup($filepath, $excludes, $addConfig, $includeCoreFiles, $excludezip, $excludenonwp);
+        }
+        else if ($this->checkZipSupport())
         {
             $success = $this->createZipFullBackup($filepath, $excludes, $addConfig, $includeCoreFiles, $excludezip, $excludenonwp);
         }
@@ -109,7 +127,12 @@ class MainWPBackup
         @ini_set('max_execution_time', $this->timeout);
 
         $success = false;
-        if ($this->checkZipSupport())
+
+        if ($this->archiver != null)
+        {
+            $success = $this->archiver->zipFile($file, $archive);
+        }
+        else if ($this->checkZipSupport())
         {
             $success = $this->_zipFile($file, $archive);
         }
@@ -486,7 +509,7 @@ class MainWPBackup
             {
                 if ($path->isDir())
                 {
-                    $this->zip->addEmptyDir(str_replace(ABSPATH, '', $name));
+                    $this->zipAddDir($name, $excludes);
                 }
                 else
                 {
@@ -652,15 +675,17 @@ class MainWPBackup
         return false;
     }
 
-    /**
-     * Create full SQL backup
-     *
-     * @return string The SQL string
-     */
-    public function createBackupDB($filepath, $zip = false)
+    public function createBackupDB($filepath, $archiveExt = false)
     {
+        $timeout = 20 * 60 * 60; //20minutes
+        @set_time_limit($timeout);
+        @ini_set('max_execution_time', $timeout);
+        $mem =  '512M';
+        @ini_set('memory_limit', $mem);
+
         $fh = fopen($filepath, 'w'); //or error;
 
+        /** @var $wpdb wpdb */
         global $wpdb;
 
         //Get all the tables
@@ -676,6 +701,7 @@ class MainWPBackup
             $rows = @MainWPChildDB::_query('SELECT * FROM ' . $table, $wpdb->dbh);
             if ($rows)
             {
+                $i = 0;
                 $table_insert = 'INSERT INTO `' . $table . '` VALUES (';
 
                 while ($row = @MainWPChildDB::fetch_array($rows))
@@ -688,16 +714,37 @@ class MainWPBackup
                     $query = trim($query, ', ') . ");";
 
                     fwrite($fh, "\n" . $query);
+                    $i++;
+
+                    if ($i >= 50)
+                    {
+                        fflush($fh);
+                        $i = 0;
+                    }
+
+                    $query = null;
+                    $row = null;
                 }
             }
+            $rows = null;
             fflush($fh);
         }
 
         fclose($fh);
 
-        if ($zip)
+        if ($archiveExt != false)
         {
-            $newFilepath = $filepath . '.zip';
+            $newFilepath = $filepath . '.' . $archiveExt;
+
+            if ($archiveExt == 'zip')
+            {
+                $this->archiver = null;
+            }
+            else
+            {
+                $this->archiver = new TarArchiver($this, $archiveExt);
+            }
+
             if ($this->zipFile($filepath, $newFilepath) && file_exists($newFilepath))
             {
                 @unlink($filepath);
