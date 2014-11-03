@@ -96,7 +96,7 @@ class MainWPChild
         $this->comments_and_clauses = '';
         add_action('template_redirect', array($this, 'template_redirect'));
         add_action('init', array(&$this, 'parse_init'));
-        add_action('admin_menu', array(&$this, 'admin_menu'));
+        add_action('admin_menu', array(&$this, 'branding_admin_menu'));
         add_action('admin_init', array(&$this, 'admin_init'));
         add_action('init', array(&$this, 'localization'));        
         $this->checkOtherAuth();
@@ -104,10 +104,20 @@ class MainWPChild
         MainWPClone::init();
         MainWPChildServerInformation::init();  
         MainWPClientReport::init();
-        $this->run_saved_snippets();        
-        $branding_header = get_option('mainwp_branding_plugin_header');
-        if (is_array($branding_header) && isset($branding_header['name']) && !empty($branding_header['name'])) {
-            $this->branding_robust = stripslashes($branding_header["name"]);
+        $this->run_saved_snippets();    
+        
+        $branding_robust = true;
+        if (get_option('mainwp_branding_preserve_branding')) {            
+            if (get_option('mainwp_child_branding_disconnected') === 'yes') {                
+                $branding_robust = false;
+            }
+        }           
+        
+        if ($branding_robust) {            
+            $branding_header = get_option('mainwp_branding_plugin_header');
+            if (is_array($branding_header) && isset($branding_header['name']) && !empty($branding_header['name'])) {
+                $this->branding_robust = stripslashes($branding_header["name"]);
+            }
         }
         add_action( 'admin_notices', array(&$this, 'admin_notice'));        
         add_filter('plugin_row_meta', array(&$this, 'plugin_row_meta'), 10, 2);
@@ -202,8 +212,14 @@ class MainWPChild
         return apply_filters("mainwp_child_plugin_row_meta", $plugin_meta, $plugin_file, $this->plugin_slug);
     }
 
-    function admin_menu()
+    function branding_admin_menu()
     {
+        if (get_option('mainwp_branding_preserve_branding')) {
+            if (get_option('mainwp_child_branding_disconnected') === 'yes') {
+                return;
+            }
+        } 
+        
         if (get_option('mainwp_branding_remove_wp_tools')) {
             remove_menu_page( 'tools.php' );                            
             $pos = stripos($_SERVER['REQUEST_URI'], 'tools.php') ||
@@ -1245,6 +1261,8 @@ class MainWPChild
         {
             MainWPHelper::error(__('Invalid request','mainwp-child'));
         }
+        
+        MainWPHelper::update_option('mainwp_child_branding_disconnected', 'yes');
 
         //Already added - can't readd. Deactivate plugin..
         if (get_option('mainwp_child_pubkey'))
@@ -1286,7 +1304,8 @@ class MainWPChild
         $nossl_key = uniqid('', true);
         MainWPHelper::update_option('mainwp_child_nossl_key', $nossl_key);
         $information['nosslkey'] = $nossl_key;
-
+        MainWPHelper::update_option('mainwp_child_branding_disconnected', '');
+        
         $information['register'] = 'OK';
         $information['user'] = $_POST['user'];
         $this->getSiteStats($information);
@@ -2083,7 +2102,9 @@ class MainWPChild
         global $wp_version;
 
         if ($exit) $this->updateExternalSettings();
-
+        
+        MainWPHelper::update_option('mainwp_child_branding_disconnected', '');
+                
         $information['version'] = $this->version;
         $information['wpversion'] = $wp_version;
         $information['siteurl'] = get_option('siteurl');
