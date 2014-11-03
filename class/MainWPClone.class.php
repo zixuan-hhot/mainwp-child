@@ -14,7 +14,8 @@ class MainWPClone
     {     
         if (empty($the_branding))
             $the_branding = "MainWP";
-        $page = add_options_page('MainWPClone', __($the_branding . ' Clone','mainwp-child'), 'manage_options', 'MainWPClone', array('MainWPClone', 'render'));
+        //$page = add_options_page('MainWPClone', __($the_branding . ' Clone','mainwp-child'), 'manage_options', 'MainWPClone', array('MainWPClone', 'render'));
+        $page = add_submenu_page('mainwp_child_tab', 'MainWPClone', '<div class="mainwp-hidden">' . __($the_branding . ' Clone','mainwp-child') . '</div>', 'manage_options', 'MainWPClone', array('MainWPClone', 'render'));
         add_action('admin_print_scripts-'.$page, array('MainWPClone', 'print_scripts'));
     }
 
@@ -22,7 +23,8 @@ class MainWPClone
     {
         if (empty($the_branding))
             $the_branding = "MainWP";
-        $page = add_options_page('MainWPClone', __($the_branding . ' Restore','mainwp-child'), 'manage_options', 'MainWPRestore', array('MainWPClone', 'renderNormalRestore'));
+        //$page = add_options_page('MainWPClone', __($the_branding . ' Restore','mainwp-child'), 'manage_options', 'MainWPRestore', array('MainWPClone', 'renderNormalRestore'));
+        $page = add_submenu_page('mainwp_child_tab', 'MainWPClone', '<div class="mainwp-hidden">' .  __($the_branding . ' Restore','mainwp-child')  . '</div>', 'manage_options', 'MainWPRestore', array('MainWPClone', 'renderNormalRestore'));
         add_action('admin_print_scripts-'.$page, array('MainWPClone', 'print_scripts'));
     }
 
@@ -164,7 +166,7 @@ class MainWPClone
     <?php _e('Upload backup in .zip format (Maximum filesize for your server settings: ','mainwp-child'); ?><?php echo $uploadSize; ?>)<br/>
     <i><?php _e('If you have a FULL backup created by your Network dashboard you may restore it by uploading here.','mainwp-child'); ?><br />
     <?php _e('A database only backup will not work.','mainwp-child'); ?></i><br /><br />
-    <form action="<?php echo admin_url('options-general.php?page=MainWPClone&upload=yes'); ?>" method="post" enctype="multipart/form-data"><input type="file" name="file" id="file" /> <input type="submit" name="submit" id="filesubmit" disabled="disabled" value="<?php _e('Clone/Restore Website','mainwp-child'); ?>" /></form>
+    <form action="<?php echo admin_url('admin.php?page=MainWPClone&upload=yes'); ?>" method="post" enctype="multipart/form-data"><input type="file" name="file" id="file" /> <input type="submit" name="submit" id="filesubmit" disabled="disabled" value="<?php _e('Clone/Restore Website','mainwp-child'); ?>" /></form>
         <?php
         }
 		
@@ -231,7 +233,7 @@ class MainWPClone
     <?php _e('Upload backup in .zip format (Maximum filesize for your server settings: ','mainwp-child'); ?><?php echo $uploadSize; ?>)<br/>
     <i><?php _e('If you have a FULL backup created by your Network dashboard you may restore it by uploading here.','mainwp-child'); ?><br />
     <?php _e('A database only backup will not work.','mainwp-child'); ?></i><br /><br />
-    <form action="<?php echo admin_url('options-general.php?page=MainWPRestore&upload=yes'); ?>" method="post" enctype="multipart/form-data"><input type="file" name="file" id="file" /> <input type="submit" name="submit" id="filesubmit" disabled="disabled" value="<?php _e('Restore Website','mainwp-child'); ?>" /></form>
+    <form action="<?php echo admin_url('admin.php?page=MainWPRestore&upload=yes'); ?>" method="post" enctype="multipart/form-data"><input type="file" name="file" id="file" /> <input type="submit" name="submit" id="filesubmit" disabled="disabled" value="<?php _e('Restore Website','mainwp-child'); ?>" /></form>
         <?php
         }
 		
@@ -252,7 +254,7 @@ Author URI: http://dd32.id.au/
     public static function renderCloneFromServer() {
 
         $page = $_REQUEST['page'];
-        $url = admin_url('options-general.php?page=' . $page . "#title_03"); 
+        $url = admin_url('admin.php?page=MainWPClone' . "#title_03"); 
 
         $dirs = MainWPHelper::getMainWPDir('backup', false);
         $current_dir = $backup_dir = $dirs[0];		
