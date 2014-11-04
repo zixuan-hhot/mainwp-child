@@ -109,14 +109,10 @@ class MainWPChild
         if (!get_option('mainwp_child_pubkey'))
             MainWPHelper::update_option('mainwp_child_branding_disconnected', 'yes');
         
-        $branding_robust = true;        
-        if (get_option('mainwp_branding_preserve_branding')) {            
-            if (get_option('mainwp_child_branding_disconnected') === 'yes') {                
-                $branding_robust = false;
-            }
-        }           
+        $branding_robust = true;       
+        $cancelled_branding = (get_option('mainwp_child_branding_disconnected') === 'yes') && !get_option('mainwp_branding_preserve_branding');
         
-        if ($branding_robust) {            
+        if ($branding_robust && !$cancelled_branding) {            
             $branding_header = get_option('mainwp_branding_plugin_header');
             if (is_array($branding_header) && isset($branding_header['name']) && !empty($branding_header['name'])) {
                 $this->branding_robust = stripslashes($branding_header["name"]);
@@ -217,14 +213,9 @@ class MainWPChild
             
     function admin_menu()
     {
-        $preserve_branding = false;
-        if (get_option('mainwp_branding_preserve_branding')) {
-            if (get_option('mainwp_child_branding_disconnected') === 'yes') {
-                $preserve_branding = true;
-            }
-        } 
-        
-        if (get_option('mainwp_branding_remove_wp_tools') && !$preserve_branding) {
+        $cancelled_branding = (get_option('mainwp_child_branding_disconnected') === 'yes') && !get_option('mainwp_branding_preserve_branding');
+                
+        if (get_option('mainwp_branding_remove_wp_tools') && !$cancelled_branding) {            
             remove_menu_page( 'tools.php' );                            
             $pos = stripos($_SERVER['REQUEST_URI'], 'tools.php') ||
                     stripos($_SERVER['REQUEST_URI'], 'import.php') ||
@@ -233,7 +224,7 @@ class MainWPChild
                 wp_redirect(get_option('siteurl') . '/wp-admin/index.php');  
         }
         // if preserve branding do not remove menus
-        if (get_option('mainwp_branding_remove_wp_setting') && !$preserve_branding) {
+        if (get_option('mainwp_branding_remove_wp_setting') && !$cancelled_branding) {
             remove_menu_page( 'options-general.php' );              
             $pos = stripos($_SERVER['REQUEST_URI'], 'options-general.php') || 
                     stripos($_SERVER['REQUEST_URI'], 'options-writing.php') || 
@@ -247,7 +238,7 @@ class MainWPChild
             }
         } 
         
-        if (get_option('mainwp_branding_remove_permalink') && !$preserve_branding) {
+        if (get_option('mainwp_branding_remove_permalink') && !$cancelled_branding) {
             remove_submenu_page('options-general.php', 'options-permalink.php');  
             $pos = stripos($_SERVER['REQUEST_URI'], 'options-permalink.php');            
             if ($pos !== false) {
@@ -263,10 +254,10 @@ class MainWPChild
         
         // if preserve branding do not hide menus
         // hide menu    
-        if ((!$remove_all_child_menu && get_option('mainwp_branding_child_hide') !== 'T') || $preserve_branding) {               
+        if ((!$remove_all_child_menu && get_option('mainwp_branding_child_hide') !== 'T') || $cancelled_branding) {               
             $branding_header = get_option('mainwp_branding_plugin_header');   
             
-            if (is_array($branding_header) && !empty($branding_header['name'])) {
+            if ((is_array($branding_header) && !empty($branding_header['name'])) && !$cancelled_branding) {
                 $this->branding = $child_menu_name = stripslashes($branding_header['name']);
                 $child_menu_icon = "";
             } else {
@@ -276,7 +267,7 @@ class MainWPChild
             
             add_menu_page($child_menu_name, $child_menu_name, 'read', 'mainwp_child_tab', array($this, 'on_show_page'), $child_menu_icon, '80.00001');
 
-            if (!get_option('mainwp_branding_remove_setting') || $preserve_branding)
+            if (!get_option('mainwp_branding_remove_setting') || $cancelled_branding)
             {
 //                add_options_page('MainWPSettings', __($this->branding . ' Settings','mainwp-child'), 'manage_options', 'MainWPSettings', array(&$this, 'settings'));
 //                add_options_page('MainWPSettings', __($this->branding . ' Server Information','mainwp-child'), 'manage_options', 'MainWPChildServerInformation', array('MainWPChildServerInformation', 'renderPage'));
@@ -284,7 +275,7 @@ class MainWPChild
                 add_submenu_page('mainwp_child_tab', 'MainWPSettings',  __($this->branding . ' Server Information','mainwp-child') , 'manage_options', 'MainWPChildServerInformation', array('MainWPChildServerInformation', 'renderPage'));
             }
 
-            if (!get_option('mainwp_branding_remove_restore') || $preserve_branding) {                
+            if (!get_option('mainwp_branding_remove_restore') || $cancelled_branding) {                
                 $restorePage = add_submenu_page('import.php', $this->branding . ' Restore', $this->branding . ' Restore', 'read', 'mainwp-child-restore', array('MainWPClone', 'renderRestore'));
 //                $restorePage = add_submenu_page('mainwp_child_tab', $this->branding . ' Restore', $this->branding . ' Restore' , 'read', 'mainwp-child-restore', array('MainWPClone', 'renderRestore'));
                 add_action('admin_print_scripts-'.$restorePage, array('MainWPClone', 'print_scripts'));

@@ -276,11 +276,9 @@ class MainWPChildBranding
         $extra_setting = $this->settings['extra_settings'];
         if (!is_array($extra_setting)) 
             $extra_setting = array();               
-        if (get_option('mainwp_branding_preserve_branding')) {
-            if (get_option('mainwp_child_branding_disconnected') === 'yes') {
-                return;
-            }
-        }          
+        $cancelled_branding = (get_option('mainwp_child_branding_disconnected') === 'yes') && !get_option('mainwp_branding_preserve_branding');
+        if ($cancelled_branding)       
+            return;
         // enable branding in case child plugin is deactive
         add_filter('all_plugins', array($this, 'branding_child_plugin')); 
         
