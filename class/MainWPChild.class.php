@@ -97,7 +97,7 @@ class MainWPChild
         add_action('template_redirect', array($this, 'template_redirect'));
         add_action('init', array(&$this, 'parse_init'));
         add_action('admin_menu', array(&$this, 'admin_menu'));
-        add_action('admin_init', array(&$this, 'admin_init'));
+        add_action('admin_init', array(&$this, 'admin_init'));        
         add_action('init', array(&$this, 'localization'));        
         $this->checkOtherAuth();
 		
@@ -211,7 +211,7 @@ class MainWPChild
         if ($this->plugin_slug != $plugin_file) return $plugin_meta;
         return apply_filters("mainwp_child_plugin_row_meta", $plugin_meta, $plugin_file, $this->plugin_slug);
     }
-
+            
     function admin_menu()
     {
         $preserve_branding = false;
@@ -253,10 +253,10 @@ class MainWPChild
             }
         }
         
-        $remove_all_child_menu = false;
+        $remove_all_child_menu = false;       
         if (get_option('mainwp_branding_remove_setting') && get_option('mainwp_branding_remove_restore')) {
             $remove_all_child_menu = true;
-        }
+        }             
         
         // if preserve branding do not hide menus
         // hide menu    
@@ -271,13 +271,13 @@ class MainWPChild
             {
 //                add_options_page('MainWPSettings', __($this->branding . ' Settings','mainwp-child'), 'manage_options', 'MainWPSettings', array(&$this, 'settings'));
 //                add_options_page('MainWPSettings', __($this->branding . ' Server Information','mainwp-child'), 'manage_options', 'MainWPChildServerInformation', array('MainWPChildServerInformation', 'renderPage'));
-                add_submenu_page('mainwp_child_tab', 'MainWPSettings', '<div class="mainwp-hidden">' . __($this->branding . ' Settings','mainwp-child') . '</div>', 'manage_options', 'mainwp_child_tab', array(&$this, 'settings'));
-                add_submenu_page('mainwp_child_tab', 'MainWPSettings', '<div class="mainwp-hidden">' . __($this->branding . ' Server Information','mainwp-child') . '</div>', 'manage_options', 'MainWPChildServerInformation', array('MainWPChildServerInformation', 'renderPage'));
+                add_submenu_page('mainwp_child_tab', 'MainWPSettings',  __($this->branding . ' Settings','mainwp-child') , 'manage_options', 'mainwp_child_tab', array(&$this, 'settings'));
+                add_submenu_page('mainwp_child_tab', 'MainWPSettings',  __($this->branding . ' Server Information','mainwp-child') , 'manage_options', 'MainWPChildServerInformation', array('MainWPChildServerInformation', 'renderPage'));
             }
 
             if (!get_option('mainwp_branding_remove_restore') || $preserve_branding) {                
                 $restorePage = add_submenu_page('import.php', $this->branding . ' Restore', $this->branding . ' Restore', 'read', 'mainwp-child-restore', array('MainWPClone', 'renderRestore'));
-//                $restorePage = add_submenu_page('mainwp_child_tab', $this->branding . ' Restore', '<div class="mainwp-hidden">' . $this->branding . ' Restore' . '</div>', 'read', 'mainwp-child-restore', array('MainWPClone', 'renderRestore'));
+//                $restorePage = add_submenu_page('mainwp_child_tab', $this->branding . ' Restore', $this->branding . ' Restore' , 'read', 'mainwp-child-restore', array('MainWPClone', 'renderRestore'));
                 add_action('admin_print_scripts-'.$restorePage, array('MainWPClone', 'print_scripts'));
 
                 $sitesToClone = get_option('mainwp_child_clone_sites');
@@ -290,13 +290,6 @@ class MainWPChild
                     MainWPClone::init_restore_menu($this->branding);
                 }
             }
-            ?>
-                <script language="javascript">
-                    jQuery(document).ready(function () {
-                        jQuery('div.mainwp-hidden').parent().parent().css("display", "none");
-                    });
-                </script>
-            <?php
         }        
     }
 	
