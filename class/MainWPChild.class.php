@@ -106,7 +106,10 @@ class MainWPChild
         MainWPClientReport::init();
         $this->run_saved_snippets();    
         
-        $branding_robust = true;
+        if (!get_option('mainwp_child_pubkey'))
+            MainWPHelper::update_option('mainwp_child_branding_disconnected', 'yes');
+        
+        $branding_robust = true;        
         if (get_option('mainwp_branding_preserve_branding')) {            
             if (get_option('mainwp_child_branding_disconnected') === 'yes') {                
                 $branding_robust = false;
@@ -260,12 +263,18 @@ class MainWPChild
         
         // if preserve branding do not hide menus
         // hide menu    
-        if ((!$remove_all_child_menu && get_option('mainwp_branding_child_hide') !== 'T') || $preserve_branding) {   
-            add_menu_page('MainWP Child', 'MainWP Child', 'read', 'mainwp_child_tab', array($this, 'on_show_page'), plugins_url('images/mainwpicon.png', dirname(plugin_basename(__FILE__))), '2.00001');
-            $branding_header = get_option('mainwp_branding_plugin_header');        
-
-            if (is_array($branding_header) && !empty($branding_header['name']))
-                 $this->branding = stripslashes($branding_header['name']);
+        if ((!$remove_all_child_menu && get_option('mainwp_branding_child_hide') !== 'T') || $preserve_branding) {               
+            $branding_header = get_option('mainwp_branding_plugin_header');   
+            
+            if (is_array($branding_header) && !empty($branding_header['name'])) {
+                $this->branding = $child_menu_name = stripslashes($branding_header['name']);
+                $child_menu_icon = "";
+            } else {
+                $child_menu_name = "MainWP Child";
+                $child_menu_icon = plugins_url('images/mainwpicon.png', dirname(plugin_basename(__FILE__)));
+            }
+            
+            add_menu_page($child_menu_name, $child_menu_name, 'read', 'mainwp_child_tab', array($this, 'on_show_page'), $child_menu_icon, '80.00001');
 
             if (!get_option('mainwp_branding_remove_setting') || $preserve_branding)
             {
@@ -311,32 +320,32 @@ class MainWPChild
             }
         }
         ?>
+        <div class="wrap">
     <div id="icon-options-general" class="icon32"><br></div><h2><?php _e($this->branding . ' Settings','mainwp-child'); ?></h2>
-    <form method="post" action="">
-        <br/>
-
-        <h3><?php _e('Connection Settings','mainwp-child'); ?></h3>        
-        <table class="form-table">
-            <tbody>
-            <tr valign="top">
-                <th scope="row"><input name="requireUniqueSecurityId" type="checkbox"
-                                       id="requireUniqueSecurityId" <?php if (get_option('mainwp_child_uniqueId') != '')
+    <div class="postbox" style="margin-top: 6em;">
+        <h3 class="hndle" style="margin: 0 !important; padding: .5em 1em;"><span><?php _e('Connection Settings','mainwp-child'); ?></span></h3>    
+        <div class="inside">  
+        <form method="post" action="">  
+        <div class="howto"><?php _e('The Unique Security ID adds additional protection between the Child plugin and your Main Dashboard. The Unique Security ID will need to match when being added to the Main Dashboard. This is additional security and should not be needed in most situations.','mainwp-child'); ?></div>
+        <div style="margin: 1em 0 4em 0;">
+        <input name="requireUniqueSecurityId" type="checkbox" id="requireUniqueSecurityId" <?php if (get_option('mainwp_child_uniqueId') != '')
                     {
                         echo 'checked';
-                    } ?> /> <label for="requireUniqueSecurityId"><?php _e('Require Unique Security ID','mainwp-child'); ?></label></th>
-                <td><?php if (get_option('mainwp_child_uniqueId') != '')
+                    } ?> /> <label for="requireUniqueSecurityId" style="font-size: 15px;"><?php _e('Require Unique Security ID','mainwp-child'); ?></label>
+        </div>
+        <div>
+            <?php if (get_option('mainwp_child_uniqueId') != '')
                 {
-                    echo '<i><strong>'.__('Your Unique Security ID is:','mainwp-child') . ' ' . get_option('mainwp_child_uniqueId') . '</strong></i>';
-                } ?></td>
-            </tr>
-            <tr>
-                <td colspan="2"><span class="howto"><?php _e('The Unique Security ID adds additional protection between the Child plugin and your<br/>Main Dashboard. The Unique Security ID will need to match when being added to <br/>the Main Dashboard. This is additional security and should not be needed in most situations.','mainwp-child'); ?></span>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-        <p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary"
-                                 value="<?php _e('Save Changes','mainwp-child'); ?>"></p></form>
+                    echo '<span style="border: 1px dashed #e5e5e5; background: #fafafa; font-size: 24px; padding: 1em 2em;">'.__('Your Unique Security ID is:','mainwp-child') . ' <span style="font-weight: bold; color: #7fb100;">' . get_option('mainwp_child_uniqueId') . '</span></span>';
+                } ?>
+        </div>
+        <p class="submit" style="margin-top: 4em;">
+            <input type="submit" name="submit" id="submit" class="button button-primary" value="<?php _e('Save Changes','mainwp-child'); ?>">
+        </p>
+    </form>
+    </div>
+    </div>
+    </div>
     <?php
     }
 

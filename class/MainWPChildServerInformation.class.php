@@ -141,7 +141,9 @@ class MainWPChildServerInformation
 
     public static function renderPage()
     {
-        ?><h2><?php _e('Plugin Conflicts'); ?></h2><?php
+        ?><div class="wrap">
+        <h2><?php _e('Plugin Conflicts'); ?></h2>
+        <br/><?php
         MainWPChildServerInformation::renderConflicts();
         ?><h2><?php _e('Server Information'); ?></h2><?php
         MainWPChildServerInformation::render();
@@ -149,6 +151,9 @@ class MainWPChildServerInformation
         MainWPChildServerInformation::renderCron();
         ?><h2><?php _e('Error Log'); ?></h2><?php
         MainWPChildServerInformation::renderErrorLogPage();
+        ?>
+        </div>
+        <?php
     }
 
     public static function getWarnings()
@@ -270,7 +275,7 @@ class MainWPChildServerInformation
         <table id="mainwp-table" class="wp-list-table widefat" cellspacing="0">
             <thead>
             <tr>
-                <th scope="col" class="manage-column sorted" style=""><span><?php _e('Server Configuration','mainwp'); ?></span></th>
+                <th scope="col" class="manage-column column-posts" style=""><span><?php _e('Server Configuration','mainwp'); ?></span></th>
                 <th scope="col" class="manage-column column-posts" style=""><?php _e('Suggested Value','mainwp'); ?></th>
                 <th scope="col" class="manage-column column-posts" style=""><?php _e('Value','mainwp'); ?></th>
                 <th scope="col" class="manage-column column-posts" style=""><?php _e('Status','mainwp'); ?></th>
@@ -311,8 +316,8 @@ class MainWPChildServerInformation
         <table id="mainwp-table" class="wp-list-table widefat" cellspacing="0">
             <thead>
             <tr>
-                <th scope="col" class="manage-column sorted" style=""><span><?php _e('Directory name','mainwp'); ?></span></th>
-                <th scope="col" class="manage-column sorted" style=""><span><?php _e('Path','mainwp'); ?></span></th>
+                <th scope="col" class="manage-column column-posts" style=""><span><?php _e('Directory name','mainwp'); ?></span></th>
+                <th scope="col" class="manage-column column-posts" style=""><span><?php _e('Path','mainwp'); ?></span></th>
                 <th scope="col" class="manage-column column-posts" style=""><?php _e('Check','mainwp'); ?></th>
                 <th scope="col" class="manage-column column-posts" style=""><?php _e('Result','mainwp'); ?></th>
                 <th scope="col" class="manage-column column-posts" style=""><?php _e('Status','mainwp'); ?></th>
@@ -329,7 +334,7 @@ class MainWPChildServerInformation
         <table id="mainwp-table" class="wp-list-table widefat" cellspacing="0">
         <thead>
             <tr>
-                <th scope="col" class="manage-column sorted" style=""><span><?php _e('Server Info','mainwp'); ?></span></th>
+                <th scope="col" class="manage-column column-posts" style=""><span><?php _e('Server Info','mainwp'); ?></span></th>
                 <th scope="col" class="manage-column column-posts" style=""><span><?php _e('Value','mainwp'); ?></span></th>
             </tr>
         </thead>
@@ -383,7 +388,7 @@ class MainWPChildServerInformation
     <table id="mainwp-table" class="wp-list-table widefat" cellspacing="0">
         <thead>
             <tr>
-                <th scope="col" class="manage-column sorted" style=""><span><?php _e('Next due','mainwp'); ?></span></th>
+                <th scope="col" class="manage-column column-posts" style=""><span><?php _e('Next due','mainwp'); ?></span></th>
                 <th scope="col" class="manage-column column-posts" style=""><span><?php _e('Schedule','mainwp'); ?></span></th>
                 <th scope="col" class="manage-column column-posts" style=""><span><?php _e('Hook','mainwp'); ?></span></th>
             </tr>
