@@ -641,11 +641,12 @@ class MainWPChild
         remove_action('login_init', 'send_frame_options_header');
 
         // Call Heatmap
-        if ((get_option('heatMapsIndividualOverrideSetting') != '1' && get_option('heatMapEnabled') !== '0') || 
-            (get_option('heatMapsIndividualOverrideSetting') == '1' && get_option('heatMapsIndividualDisable') != '1')
-            )
-             new MainWPHeatmapTracker();
-
+        if (get_option('heatMapExtensionLoaded') == 'yes') {
+            if ((get_option('heatMapsIndividualOverrideSetting') != '1' && get_option('heatMapEnabled') !== '0') || 
+                (get_option('heatMapsIndividualOverrideSetting') == '1' && get_option('heatMapsIndividualDisable') != '1')
+                )
+                 new MainWPHeatmapTracker();
+        }
         /**
          * Security
          */
@@ -2066,7 +2067,8 @@ class MainWPChild
             if ($_POST['heatMap'] == '1')
             {
                 if (get_option('heatMapEnabled') != '1') $update_htaccess = true;
-                MainWPHelper::update_option('heatMapEnabled', '1');                
+                MainWPHelper::update_option('heatMapEnabled', '1'); 
+                MainWPHelper::update_option('heatMapExtensionLoaded', 'yes');                 
             }
             else
             {
