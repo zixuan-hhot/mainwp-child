@@ -24,6 +24,7 @@ class MainWPChild
         'installplugintheme' => 'installPluginTheme',
         'upgradeplugintheme' => 'upgradePluginTheme',
         'backup' => 'backup',
+        'backup_checkpid' => 'backup_checkpid',
         'cloneinfo' => 'cloneinfo',
         'security' => 'getSecurityStats',
         'securityFix' => 'doSecurityFix',
@@ -97,28 +98,28 @@ class MainWPChild
         add_action('template_redirect', array($this, 'template_redirect'));
         add_action('init', array(&$this, 'parse_init'));
         add_action('admin_menu', array(&$this, 'admin_menu'));
-        add_action('admin_init', array(&$this, 'admin_init'));        
+        add_action('admin_init', array(&$this, 'admin_init'));
         add_action('init', array(&$this, 'localization'));        
         $this->checkOtherAuth();
 		
         MainWPClone::init();
         MainWPChildServerInformation::init();  
         MainWPClientReport::init();
-        $this->run_saved_snippets();    
-        
+        $this->run_saved_snippets();
+
         if (!get_option('mainwp_child_pubkey'))
             MainWPHelper::update_option('mainwp_child_branding_disconnected', 'yes');
-        
-        $branding_robust = true;       
+
+        $branding_robust = true;
         $cancelled_branding = (get_option('mainwp_child_branding_disconnected') === 'yes') && !get_option('mainwp_branding_preserve_branding');
-        
-        if ($branding_robust && !$cancelled_branding) {            
+
+        if ($branding_robust && !$cancelled_branding) {
             $branding_header = get_option('mainwp_branding_plugin_header');
             if (is_array($branding_header) && isset($branding_header['name']) && !empty($branding_header['name'])) {
                 $this->branding_robust = stripslashes($branding_header["name"]);
             }
         }
-        add_action( 'admin_notices', array(&$this, 'admin_notice'));        
+        add_action( 'admin_notices', array(&$this, 'admin_notice'));
         add_filter('plugin_row_meta', array(&$this, 'plugin_row_meta'), 10, 2);
     }
 
@@ -210,12 +211,12 @@ class MainWPChild
         if ($this->plugin_slug != $plugin_file) return $plugin_meta;
         return apply_filters("mainwp_child_plugin_row_meta", $plugin_meta, $plugin_file, $this->plugin_slug);
     }
-            
+
     function admin_menu()
     {
         $cancelled_branding = (get_option('mainwp_child_branding_disconnected') === 'yes') && !get_option('mainwp_branding_preserve_branding');
-                
-        if (get_option('mainwp_branding_remove_wp_tools') && !$cancelled_branding) {            
+
+        if (get_option('mainwp_branding_remove_wp_tools') && !$cancelled_branding) {
             remove_menu_page( 'tools.php' );                            
             $pos = stripos($_SERVER['REQUEST_URI'], 'tools.php') ||
                     stripos($_SERVER['REQUEST_URI'], 'import.php') ||
@@ -236,8 +237,8 @@ class MainWPChild
                 wp_redirect(get_option('siteurl') . '/wp-admin/index.php'); 
                 exit();
             }
-        } 
-        
+        }
+
         if (get_option('mainwp_branding_remove_permalink') && !$cancelled_branding) {
             remove_submenu_page('options-general.php', 'options-permalink.php');  
             $pos = stripos($_SERVER['REQUEST_URI'], 'options-permalink.php');            
@@ -247,16 +248,16 @@ class MainWPChild
             }
         }
         
-        $remove_all_child_menu = false;       
+        $remove_all_child_menu = false;
         if (get_option('mainwp_branding_remove_setting') && get_option('mainwp_branding_remove_restore')) {
             $remove_all_child_menu = true;
-        }             
-        
+        }
+
         // if preserve branding do not hide menus
-        // hide menu    
-        if ((!$remove_all_child_menu && get_option('mainwp_branding_child_hide') !== 'T') || $cancelled_branding) {               
-            $branding_header = get_option('mainwp_branding_plugin_header');   
-            
+        // hide menu
+        if ((!$remove_all_child_menu && get_option('mainwp_branding_child_hide') !== 'T') || $cancelled_branding) {
+            $branding_header = get_option('mainwp_branding_plugin_header');
+
             if ((is_array($branding_header) && !empty($branding_header['name'])) && !$cancelled_branding) {
                 $this->branding = $child_menu_name = stripslashes($branding_header['name']);
                 $child_menu_icon = "";
@@ -264,7 +265,7 @@ class MainWPChild
                 $child_menu_name = "MainWP Child";
                 $child_menu_icon = plugins_url('images/mainwpicon.png', dirname(plugin_basename(__FILE__)));
             }
-            
+
             add_menu_page($child_menu_name, $child_menu_name, 'read', 'mainwp_child_tab', array($this, 'on_show_page'), $child_menu_icon, '80.00001');
 
             if (!get_option('mainwp_branding_remove_setting') || $cancelled_branding)
@@ -275,7 +276,7 @@ class MainWPChild
                 add_submenu_page('mainwp_child_tab', 'MainWPSettings',  __($this->branding . ' Server Information','mainwp-child') , 'manage_options', 'MainWPChildServerInformation', array('MainWPChildServerInformation', 'renderPage'));
             }
 
-            if (!get_option('mainwp_branding_remove_restore') || $cancelled_branding) {                
+            if (!get_option('mainwp_branding_remove_restore') || $cancelled_branding) {
                 $restorePage = add_submenu_page('import.php', $this->branding . ' Restore', $this->branding . ' Restore', 'read', 'mainwp-child-restore', array('MainWPClone', 'renderRestore'));
 //                $restorePage = add_submenu_page('mainwp_child_tab', $this->branding . ' Restore', $this->branding . ' Restore' , 'read', 'mainwp-child-restore', array('MainWPClone', 'renderRestore'));
                 add_action('admin_print_scripts-'.$restorePage, array('MainWPClone', 'print_scripts'));
@@ -290,9 +291,9 @@ class MainWPChild
                     MainWPClone::init_restore_menu($this->branding);
                 }
             }
-        }        
+        }
     }
-	
+
     function admin_init(){
            MainWPChildBranding::admin_init();
     }
@@ -314,9 +315,9 @@ class MainWPChild
         <div class="wrap">
     <div id="icon-options-general" class="icon32"><br></div><h2><?php _e($this->branding . ' Settings','mainwp-child'); ?></h2>
     <div class="postbox" style="margin-top: 6em;">
-        <h3 class="hndle" style="margin: 0 !important; padding: .5em 1em;"><span><?php _e('Connection Settings','mainwp-child'); ?></span></h3>    
-        <div class="inside">  
-        <form method="post" action="">  
+        <h3 class="hndle" style="margin: 0 !important; padding: .5em 1em;"><span><?php _e('Connection Settings','mainwp-child'); ?></span></h3>
+        <div class="inside">
+        <form method="post" action="">
         <div class="howto"><?php _e('The Unique Security ID adds additional protection between the Child plugin and your Main Dashboard. The Unique Security ID will need to match when being added to the Main Dashboard. This is additional security and should not be needed in most situations.','mainwp-child'); ?></div>
         <div style="margin: 1em 0 4em 0;">
         <input name="requireUniqueSecurityId" type="checkbox" id="requireUniqueSecurityId" <?php if (get_option('mainwp_child_uniqueId') != '')
@@ -572,10 +573,10 @@ class MainWPChild
         //Login the user
         if (isset($_REQUEST['login_required']) && ($_REQUEST['login_required'] == 1) && isset($_REQUEST['user']))
         {
-            if (!is_user_logged_in() || $_REQUEST['user'] != $current_user->user_login)
+            $username = rawurldecode($_REQUEST['user']);
+            if (!is_user_logged_in() || $username != $current_user->user_login)
             {
                 $signature = rawurldecode(isset($_REQUEST['mainwpsignature']) ? $_REQUEST['mainwpsignature'] : '');
-//                $signature = str_replace(' ', '+', $signature);
                 $file = '';
                 if (isset($_REQUEST['f']))
                 {
@@ -591,7 +592,7 @@ class MainWPChild
                 }
                 $auth = $this->auth($signature, rawurldecode((isset($_REQUEST['where']) ? $_REQUEST['where'] : $file)), isset($_REQUEST['nonce']) ? $_REQUEST['nonce'] : '', isset($_REQUEST['nossl']) ? $_REQUEST['nossl'] : 0);
                 if (!$auth) return;
-                if (!$this->login($_REQUEST['user']))
+                if (!$this->login($username))
                 {
                     return;
                 }
@@ -599,7 +600,7 @@ class MainWPChild
 
             if (isset($_REQUEST['fdl']))
             {
-                $this->uploadFile($_REQUEST['fdl']);
+                $this->uploadFile($_REQUEST['fdl'], isset($_REQUEST['foffset']) ? $_REQUEST['foffset'] : 0);
                 exit;
             }
 
@@ -642,7 +643,7 @@ class MainWPChild
 
         // Call Heatmap
         if (get_option('heatMapExtensionLoaded') == 'yes') {
-            if ((get_option('heatMapsIndividualOverrideSetting') != '1' && get_option('heatMapEnabled') !== '0') || 
+            if ((get_option('heatMapsIndividualOverrideSetting') != '1' && get_option('heatMapEnabled') !== '0') ||
                 (get_option('heatMapsIndividualOverrideSetting') == '1' && get_option('heatMapsIndividualDisable') != '1')
                 )
                  new MainWPHeatmapTracker();
@@ -654,21 +655,16 @@ class MainWPChild
 		
         if (isset($_GET['mainwptest']))
         {
-            error_reporting(E_ALL);
-            ini_set('display_errors', TRUE);
-            ini_set('display_startup_errors', TRUE);
-            echo '<pre>';
-            $start = microtime(true);
-            //$excludes  = array('wp-content/uploads');
-            $excludes  = array();
-            $excludes[] = str_replace(ABSPATH, '', WP_CONTENT_DIR) . '/uploads/mainwp';
-            $uploadDir = MainWPHelper::getMainWPDir();
-            $uploadDir = $uploadDir[0];
-            $excludes[] = str_replace(ABSPATH, '', $uploadDir);
-
-            print_r(MainWPBackup::get()->createFullBackup($excludes, '', false, false, 0, false, false, false, false, 'tar.gz'));
-
-            die('</pre>');
+//            error_reporting(E_ALL);
+//            ini_set('display_errors', TRUE);
+//            ini_set('display_startup_errors', TRUE);
+//            echo '<pre>';
+//            $start = microtime(true);
+//
+//            sleep(3);
+//
+//            $stop = microtime(true);
+//            die(($stop - $start) . 's</pre>');
         }
 
         //Register does not require auth, so we register here..
@@ -1274,7 +1270,7 @@ class MainWPChild
         {
             MainWPHelper::error(__('Invalid request','mainwp-child'));
         }
-        
+
         MainWPHelper::update_option('mainwp_child_branding_disconnected', 'yes');
 
         //Already added - can't readd. Deactivate plugin..
@@ -1318,7 +1314,7 @@ class MainWPChild
         MainWPHelper::update_option('mainwp_child_nossl_key', $nossl_key);
         $information['nosslkey'] = $nossl_key;
         MainWPHelper::update_option('mainwp_child_branding_disconnected', '');
-        
+
         $information['register'] = 'OK';
         $information['user'] = $_POST['user'];
         $this->getSiteStats($information);
@@ -1669,11 +1665,66 @@ class MainWPChild
         }
     }
 
+    function backup_checkpid()
+    {
+        $pid = $_POST['pid'];
+
+        $dirs = MainWPHelper::getMainWPDir('backup');
+        $backupdir = $dirs[0];
+
+        $information = array();
+
+        /** @var $wp_filesystem WP_Filesystem_Base */
+        global $wp_filesystem;
+
+        $pidFile = trailingslashit($backupdir) . 'backup-' . $pid . '.pid';
+        $doneFile = trailingslashit($backupdir) . 'backup-' . $pid . '.done';
+        if ($wp_filesystem->is_file($pidFile))
+        {
+            $time = $wp_filesystem->mtime($pidFile);
+
+            $minutes = date('i', time());
+            $seconds = date('s', time());
+
+            $file_minutes = date('i', $time);
+            $file_seconds = date('s', $time);
+
+            $minuteDiff = $minutes - $file_minutes;
+            if ($minuteDiff == 59) $minuteDiff = 1;
+            $secondsdiff = ($minuteDiff * 60) + $seconds - $file_seconds;
+
+            $file = $wp_filesystem->get_contents($pidFile);
+            $information['file'] = basename($file);
+            if ($secondsdiff < 80)
+            {
+                $information['status'] = 'busy';
+            }
+            else
+            {
+                $information['status'] = 'stalled';
+            }
+        }
+        else if ($wp_filesystem->is_file($doneFile))
+        {
+            $file = $wp_filesystem->get_contents($doneFile);
+            $information['status'] = 'done';
+            $information['file'] = basename($file);
+            $information['size'] = @filesize($file);
+        }
+        else
+        {
+            $information['status'] = 'invalid';
+        }
+
+        MainWPHelper::write($information);
+    }
+
     function backup($pWrite = true)
     {
         $timeout = 20 * 60 * 60; //20minutes
         @set_time_limit($timeout);
         @ini_set('max_execution_time', $timeout);
+        MainWPHelper::endSession();
 
         $fileName = (isset($_POST['fileUID']) ? $_POST['fileUID'] : '');
         if ($_POST['type'] == 'full')
@@ -1787,7 +1838,15 @@ class MainWPChild
                 $ext = $_POST['ext'];
             }
 
-            $res = MainWPBackup::get()->createFullBackup($newExcludes, $fileName, true, true, $file_descriptors, $file, $excludezip, $excludenonwp, $loadFilesBeforeZip, $ext);
+            $pid = false;
+            if (isset($_POST['pid']))
+            {
+                $pid = $_POST['pid'];
+            }
+
+            $append = (isset($_POST['append']) && ($_POST['append'] == '1'));
+
+            $res = MainWPBackup::get()->createFullBackup($newExcludes, $fileName, true, true, $file_descriptors, $file, $excludezip, $excludenonwp, $loadFilesBeforeZip, $ext, $pid, $append);
             if (!$res)
             {
                 $information['full'] = false;
@@ -2067,8 +2126,8 @@ class MainWPChild
             if ($_POST['heatMap'] == '1')
             {
                 if (get_option('heatMapEnabled') != '1') $update_htaccess = true;
-                MainWPHelper::update_option('heatMapEnabled', '1'); 
-                MainWPHelper::update_option('heatMapExtensionLoaded', 'yes');                 
+                MainWPHelper::update_option('heatMapEnabled', '1');
+                MainWPHelper::update_option('heatMapExtensionLoaded', 'yes');
             }
             else
             {
@@ -2116,9 +2175,9 @@ class MainWPChild
         global $wp_version;
 
         if ($exit) $this->updateExternalSettings();
-        
+
         MainWPHelper::update_option('mainwp_child_branding_disconnected', '');
-                
+
         $information['version'] = $this->version;
         $information['wpversion'] = $wp_version;
         $information['siteurl'] = get_option('siteurl');
@@ -3859,7 +3918,7 @@ class MainWPChild
         MainWPHelper::write(array('result' => 'ok'));
     }
 
-    function uploadFile($file)
+    function uploadFile($file, $offset = 0)
     {
         $dirs = MainWPHelper::getMainWPDir('backup');
         $backupdir = $dirs[0];
@@ -3872,14 +3931,16 @@ class MainWPChild
         header('Pragma: public');
         header('Content-Length: ' . filesize($backupdir . $file));
         while (@ob_end_flush());
-        $this->readfile_chunked($backupdir . $file);
+        $this->readfile_chunked($backupdir . $file, $offset);
     }
 
-    function readfile_chunked($filename)
+    function readfile_chunked($filename, $offset)
     {
         $chunksize = 1024; // how many bytes per chunk
         $handle = @fopen($filename, 'rb');
         if ($handle === false) return false;
+
+        @fseek($handle, $offset);
 
         while (!@feof($handle))
         {

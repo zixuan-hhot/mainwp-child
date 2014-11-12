@@ -254,7 +254,7 @@ Author URI: http://dd32.id.au/
     public static function renderCloneFromServer() {
 
         $page = $_REQUEST['page'];
-        $url = admin_url('admin.php?page=MainWPClone' . "#title_03"); 
+        $url = admin_url('admin.php?page=MainWPClone' . "#title_03");
 
         $dirs = MainWPHelper::getMainWPDir('backup', false);
         $current_dir = $backup_dir = $dirs[0];		
@@ -276,7 +276,7 @@ Author URI: http://dd32.id.au/
 
         echo "<br /><hr /><br />";
         echo '<h2 id="title_03"><strong>' . __('Option 2:', 'mainwp-child') . '</strong> ' . __('Restore/Clone From Server','mainwp-child') . '</h2>';
-        echo '<div class="mainwp-child_info-box-green">' . __('If you have uploaded a FULL backup to your server (via FTP or other means) you can use this section to locate the zip file and select it.  A database only backup will not work.','mainwp-child') . '</div>'; 
+        echo '<div class="mainwp-child_info-box-green">' . __('If you have uploaded a FULL backup to your server (via FTP or other means) you can use this section to locate the zip file and select it.  A database only backup will not work.','mainwp-child') . '</div>';
 
         if (!is_readable($current_dir)) {
                 echo '<div class="mainwp-child_info-box-yellow"><strong>' . __('Root directory is not readable. Please contact with site administrator to correct.','mainwp-child') . '</strong></div>';
