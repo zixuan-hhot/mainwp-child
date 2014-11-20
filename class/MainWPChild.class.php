@@ -3031,7 +3031,8 @@ class MainWPChild
     {
         $keyword = $_POST['keyword'];
         $status = $_POST['status'];
-        $rslt = $this->get_all_themes_int(true, $keyword, $status);
+        $filter = isset($_POST['filter']) ? $_POST['filter'] : true;
+        $rslt = $this->get_all_themes_int($filter, $keyword, $status);
 
         MainWPHelper::write($rslt);
     }
@@ -3144,7 +3145,8 @@ class MainWPChild
     {
         $keyword = $_POST['keyword'];
         $status = $_POST['status'];
-        $rslt = $this->get_all_plugins_int(true, $keyword, $status);
+        $filter = isset($_POST['filter']) ? $_POST['filter'] : true;
+        $rslt = $this->get_all_plugins_int($filter, $keyword, $status);
 
         MainWPHelper::write($rslt);
     }
