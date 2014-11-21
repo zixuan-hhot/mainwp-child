@@ -63,7 +63,8 @@ class MainWPChild
         'heatmaps' => 'heatmaps',
         'links_checker' => 'links_checker',
         'wordfence' => 'wordfence',
-        'delete_backup' => 'delete_backup'
+        'delete_backup' => 'delete_backup',
+        'update_values' => 'update_values'
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -304,11 +305,11 @@ class MainWPChild
         {
             if (isset($_POST['requireUniqueSecurityId']))
             {
-                MainWPHelper::update_option('mainwp_child_uniqueId', MainWPHelper::randString(8));
+                MainWPHelper::update_option('mainwp_child_uniqueId', MainWPHelper::randString(8));                
             }
             else
             {
-                MainWPHelper::update_option('mainwp_child_uniqueId', '');
+                MainWPHelper::update_option('mainwp_child_uniqueId', '');                
             }
         }
         ?>
@@ -1277,8 +1278,8 @@ class MainWPChild
         if (get_option('mainwp_child_pubkey'))
         {
             MainWPHelper::error(__('Public key already set, reset the MainWP plugin on your site and try again.','mainwp-child'));
-        }
-
+        }        
+        
         if (get_option('mainwp_child_uniqueId') != '')
         {
             if (!isset($_POST['uniqueId']) || ($_POST['uniqueId'] == ''))
@@ -1315,8 +1316,10 @@ class MainWPChild
         $information['nosslkey'] = $nossl_key;
         MainWPHelper::update_option('mainwp_child_branding_disconnected', '');
 
-        $information['register'] = 'OK';
+        $information['register'] = 'OK';        
+        $information['uniqueId'] = get_option('mainwp_child_uniqueId', '');
         $information['user'] = $_POST['user'];
+        
         $this->getSiteStats($information);
     }
 
@@ -2392,7 +2395,7 @@ class MainWPChild
         if (isset($last_post[0])) $last_post = $last_post[0];
         if (isset($last_post)) $information['last_post_gmt'] = strtotime($last_post['post_modified_gmt']);
         $information['mainwpdir'] = (MainWPHelper::validateMainWPDir() ? 1 : -1);
-
+        $information['uniqueId'] = get_option('mainwp_child_uniqueId', '');
         if ($exit) MainWPHelper::write($information);
 
         return $information;
@@ -3919,7 +3922,14 @@ class MainWPChild
 
         MainWPHelper::write(array('result' => 'ok'));
     }
-
+    
+    function update_values()
+    {
+        $uniId = isset($_POST['uniqueId']) ? $_POST['uniqueId'] : "";
+        MainWPHelper::update_option('mainwp_child_uniqueId', $uniId);  
+        MainWPHelper::write(array('result' => 'ok'));
+    }    
+    
     function uploadFile($file, $offset = 0)
     {
         $dirs = MainWPHelper::getMainWPDir('backup');
