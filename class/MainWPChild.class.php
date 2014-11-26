@@ -149,8 +149,10 @@ class MainWPChild
             if (!get_option('mainwp_child_pubkey'))
             {
                 $child_name = ($this->branding_robust === "MainWP") ? "MainWP Child" : $this->branding_robust;
-                echo '<div class="error" style="text-align: center;"><p style="color: red; font-size: 16px; font-weight: bold;">Attention!</p>
-                      <p>Please add this site to your ' . $this->branding_robust . ' Dashboard now or deactivate the ' . $child_name . ' plugin until you are ready to do so to avoid security issues.</p></div>';
+                echo '<div class="error" style="text-align: center;"><p style="color: red; font-size: 16px; font-weight: bold;">Attention!</p>' .
+                      '<p>Please add this site to your ' . $this->branding_robust . ' Dashboard <b>NOW</b> or deactivate the ' . $child_name . ' plugin until you are ready to do so to avoid security issues.</p>' .
+                      '<p>You can also turn on the Unique Security ID option in ' . $this->branding_robust . ' settings if you would like extra security and additional time to add this site to your Dashboard.   Find out more in this Help Doc <a href="http://docs.mainwp.com/how-do-i-use-the-child-unique-security-id/" target="_blank">How do I use the Child Unique Security ID?</a></p>' .                      
+                      '</div>';
             }
         }
 
