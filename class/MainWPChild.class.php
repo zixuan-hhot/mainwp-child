@@ -258,6 +258,9 @@ class MainWPChild
             $remove_all_child_menu = true;
         }
 
+        $restorePage = add_submenu_page('import.php', $this->branding . ' Restore', $this->branding . ' Restore', 'read', 'mainwp-child-restore', array('MainWPClone', 'renderRestore'));
+        add_action('admin_print_scripts-'.$restorePage, array('MainWPClone', 'print_scripts'));
+        
         // if preserve branding do not hide menus
         // hide menu
         if ((!$remove_all_child_menu && get_option('mainwp_branding_child_hide') !== 'T') || $cancelled_branding) {
@@ -282,9 +285,9 @@ class MainWPChild
             }
 
             if (!get_option('mainwp_branding_remove_restore') || $cancelled_branding) {
-                $restorePage = add_submenu_page('import.php', $this->branding . ' Restore', $this->branding . ' Restore', 'read', 'mainwp-child-restore', array('MainWPClone', 'renderRestore'));
+//                $restorePage = add_submenu_page('import.php', $this->branding . ' Restore', $this->branding . ' Restore', 'read', 'mainwp-child-restore', array('MainWPClone', 'renderRestore'));
 //                $restorePage = add_submenu_page('mainwp_child_tab', $this->branding . ' Restore', $this->branding . ' Restore' , 'read', 'mainwp-child-restore', array('MainWPClone', 'renderRestore'));
-                add_action('admin_print_scripts-'.$restorePage, array('MainWPClone', 'print_scripts'));
+//                add_action('admin_print_scripts-'.$restorePage, array('MainWPClone', 'print_scripts'));
 
                 $sitesToClone = get_option('mainwp_child_clone_sites');
                 if ($sitesToClone != '0')
