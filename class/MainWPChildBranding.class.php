@@ -678,7 +678,7 @@ class MainWPChildBranding
         $wp_admin_bar->add_node($args);
     }
     
-    protected static function is_branding() {
+    public static function is_branding() {
         // hide
         if (get_option('mainwp_branding_child_hide') == 'T')
             return true;
