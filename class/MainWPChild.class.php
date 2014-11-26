@@ -149,10 +149,10 @@ class MainWPChild
             if (!get_option('mainwp_child_pubkey'))
             {
                 $child_name = ($this->branding_robust === "MainWP") ? "MainWP Child" : $this->branding_robust;
-                $msg = '<div class="error" style="text-align: center;"><p style="color: red; font-size: 16px; font-weight: bold;">Attention!</p>' .
-                      '<p>Please add this site to your ' . $this->branding_robust . ' Dashboard <b>NOW</b> or deactivate the ' . $child_name . ' plugin until you are ready to do so to avoid security issues.</p>' ;                
+                $msg = '<div class="postbox" style="padding-left: 1em; padding-right: 1em; margin-top: 4em;"><p style="text-align: center; background: #dd3d36; color: #fff; font-size: 22px; font-weight: bold;">Attention!</p>' .
+                      '<p style="font-size: 16px;">Please add this site to your ' . $this->branding_robust . ' Dashboard <b>NOW</b> or deactivate the ' . $child_name . ' plugin until you are ready to do so to avoid unexpected security issues.</p>' ;                
                 if (!MainWPChildBranding::is_branding()) 
-                    $msg .= '<p>You can also turn on the Unique Security ID option in ' . $this->branding_robust . ' settings if you would like extra security and additional time to add this site to your Dashboard.   Find out more in this Help Doc <a href="http://docs.mainwp.com/how-do-i-use-the-child-unique-security-id/" target="_blank">How do I use the Child Unique Security ID?</a></p>';                      
+                    $msg .= '<p>You can also turn on the Unique Security ID option in <a href="admin.php?page=mainwp_child_tab">' . $this->branding_robust . ' settings</a> if you would like extra security and additional time to add this site to your Dashboard.   Find out more in this Help Doc <a href="http://docs.mainwp.com/how-do-i-use-the-child-unique-security-id/" target="_blank">How do I use the Child Unique Security ID?</a></p>';                      
                 $msg .= '</div>';
                 echo $msg;      
             }
