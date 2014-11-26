@@ -251,8 +251,8 @@ class TarArchiver
 
         if (file_exists(rtrim($path, '/') . '/.htaccess')) $this->addFile(rtrim($path, '/') . '/.htaccess', rtrim(str_replace(ABSPATH, '', $path), '/') . '/mainwp-htaccess');
 
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path), RecursiveIteratorIterator::SELF_FIRST,
-                    RecursiveIteratorIterator::CATCH_GET_CHILD);
+        $iterator = new ExampleSortedIterator(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path), RecursiveIteratorIterator::SELF_FIRST,
+                    RecursiveIteratorIterator::CATCH_GET_CHILD));
 
         /** @var $path DirectoryIterator */
         foreach ($iterator as $path)
@@ -287,7 +287,7 @@ class TarArchiver
             {
                 throw new Exception('Could not write to archive');
             }
-            @fflush($this->archive);
+            //@fflush($this->archive);
         }
         else if ($this->type == 'tar.bz2')
         {
@@ -403,6 +403,12 @@ class TarArchiver
     protected $cnt = 0;
     private function addFile($path, $entryName)
     {
+        if ($this->excludeZip && MainWPHelper::endsWith($path, '.zip'))
+        {
+            $this->log('Skipping ' . $path);
+            return false;
+        }
+
         $this->log('Adding ' . $path);
 
 //        if ($this->limit)
@@ -429,8 +435,6 @@ class TarArchiver
             @set_time_limit(20 * 60 * 60); /*20 minutes*/
             $this->lastRun = time();
         }
-
-        if ($this->excludeZip && MainWPHelper::endsWith($path, '.zip')) return false;
 
         $this->gcCnt++;
         if ($this->gcCnt > 20)
@@ -483,8 +487,8 @@ class TarArchiver
                 $checksum = pack("a8", sprintf("%07o", $checksum));
                 $block = substr_replace($block, $checksum, 148, 8);
 
-                $this->addData($block);
-                $this->addData(pack("a512", $entryName));
+                if (!isset($rslt['bytesRead'])) $this->addData($block);
+                if (!isset($rslt['bytesRead'])) $this->addData(pack("a512", $entryName));
                 $entryName = substr($entryName, 0, 100);
             }
         }
@@ -520,12 +524,20 @@ class TarArchiver
         {
             @fseek($fp, $rslt['bytesRead']);
 
-            $toRead = $rslt['bytesRead'] % 512;
+            $alreadyRead = ($rslt['bytesRead'] % 512);
+            $toRead = 512 - $alreadyRead;
             if ($toRead > 0)
             {
                 $this->tempContent = fread($fp, $toRead);
 
                 $this->addData($this->tempContent);
+
+                $remainder = 512 - (strlen($this->tempContent) + $alreadyRead);
+                $this->log('DEBUG-Added ' . strlen($this->tempContent) . '(before: ' . $alreadyRead . ') will pack: ' . $remainder . ' (packed: '. strlen(pack("a" . $remainder, "")));
+                if ($remainder > 0)
+                {
+                    $this->addData(pack("a" . $remainder), "");
+                }
             }
         }
 
@@ -667,7 +679,7 @@ class TarArchiver
             {
                 $readOffset = $rslt['readOffset'];
                 $bytesRead = $rslt['bytesRead'];
-                @fseek($this->archive, $readOffset + $bytesRead);
+                //@fseek($this->archive, $readOffset + $bytesRead);
 
                 $out = array('bytesRead' => $bytesRead);
             }
@@ -712,7 +724,7 @@ class TarArchiver
 
             if ($block === false || strlen($block) == 0)
             {
-                return false;
+                return $rslt;
             }
 
             if (strlen($block) != 512)
@@ -768,7 +780,7 @@ class TarArchiver
                     $ftell = @ftell($this->archive);
                     if ($this->type == 'tar.gz')
                     {
-                        if ($ftell == -1)
+                        if (($ftell === false) || ($ftell == -1))
                         {
                             @fseek($this->archive, $previousFtell);
 
@@ -803,7 +815,7 @@ class TarArchiver
                             return $rslt;
                         }
                     }
-                    else if ($this->type == 'tar')
+                    else if (($this->type == 'tar') && (($ftell === false) || ($ftell == -1)))
                     {
                         $this->log('Will append this: ' . print_r($rslt, 1));
                         return $rslt;
@@ -1179,3 +1191,58 @@ class TarArchiver
         return null;
     }
 }
+
+class ExampleSortedIterator extends SplHeap
+{
+    public function __construct(Iterator $iterator)
+    {
+        foreach ($iterator as $item) {
+            $this->insert($item);
+        }
+    }
+    public function compare($b,$a)
+    {
+        $pathA = $a->__toString();
+        $pathB = $b->__toString();
+        $dirnameA = (is_file($pathA) ? dirname($pathA) : $pathA);
+        $dirnameB = (is_file($pathB) ? dirname($pathB) : $pathB);
+
+        //if both are in the same folder, first show the files, then the directories
+        if (dirname($pathA) == dirname($pathB))
+        {
+            if (is_file($pathA) && !is_file($pathB))
+            {
+                return -1;
+            }
+            else if (!is_file($pathA) && is_file($pathB))
+            {
+                return 1;
+            }
+
+            return strcmp($pathA, $pathB);
+        }
+        else if ($dirnameA == $dirnameB)
+        {
+            return strcmp($pathA, $pathB);
+        }
+        else if (MainWPHelper::startsWith($dirnameA, $dirnameB))
+        {
+            return 1;
+        }
+        else if (MainWPHelper::startsWith($dirnameB, $dirnameA))
+        {
+            return -1;
+        }
+        else
+        {
+            $cmp = strcmp($dirnameA, $dirnameB);
+            if ($cmp == 0)
+            {
+                return strcmp($pathA, $pathB);
+            }
+
+            return $cmp;
+        }
+    }
+}
+?>

@@ -669,8 +669,6 @@ class MainWPChild
 //            echo '<pre>';
 //            $start = microtime(true);
 //
-//            sleep(3);
-//
 //            $stop = microtime(true);
 //            die(($stop - $start) . 's</pre>');
         }
@@ -1686,6 +1684,8 @@ class MainWPChild
 
         /** @var $wp_filesystem WP_Filesystem_Base */
         global $wp_filesystem;
+
+        MainWPHelper::getWPFilesystem();
 
         $pidFile = trailingslashit($backupdir) . 'backup-' . $pid . '.pid';
         $doneFile = trailingslashit($backupdir) . 'backup-' . $pid . '.done';
