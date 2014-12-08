@@ -271,24 +271,19 @@ class MainWPChild
                 $child_menu_icon = "";
             } else {
                 $child_menu_name = "MainWP Child";
-                $child_menu_icon = plugins_url('images/mainwpicon.png', dirname(plugin_basename(__FILE__)));
+                $child_menu_icon = 'data:image/png+xml;base64,' . base64_encode(file_get_contents($this->plugin_dir . '/images/mainwpicon.png'));
             }
 
-            add_menu_page($child_menu_name, $child_menu_name, 'read', 'mainwp_child_tab', array($this, 'on_show_page'), $child_menu_icon, '80.00001');
+            add_menu_page($child_menu_name, $child_menu_name, 'read', 'mainwp_child_tab', false, $child_menu_icon, '80.00001');
 
             if (!get_option('mainwp_branding_remove_setting') || $cancelled_branding)
             {
-//                add_options_page('MainWPSettings', __($this->branding . ' Settings','mainwp-child'), 'manage_options', 'MainWPSettings', array(&$this, 'settings'));
-//                add_options_page('MainWPSettings', __($this->branding . ' Server Information','mainwp-child'), 'manage_options', 'MainWPChildServerInformation', array('MainWPChildServerInformation', 'renderPage'));
                 add_submenu_page('mainwp_child_tab', 'MainWPSettings',  __($this->branding . ' Settings','mainwp-child') , 'manage_options', 'mainwp_child_tab', array(&$this, 'settings'));
                 add_submenu_page('mainwp_child_tab', 'MainWPSettings',  __($this->branding . ' Server Information','mainwp-child') , 'manage_options', 'MainWPChildServerInformation', array('MainWPChildServerInformation', 'renderPage'));
             }
 
-            if (!get_option('mainwp_branding_remove_restore') || $cancelled_branding) {
-//                $restorePage = add_submenu_page('import.php', $this->branding . ' Restore', $this->branding . ' Restore', 'read', 'mainwp-child-restore', array('MainWPClone', 'renderRestore'));
-//                $restorePage = add_submenu_page('mainwp_child_tab', $this->branding . ' Restore', $this->branding . ' Restore' , 'read', 'mainwp-child-restore', array('MainWPClone', 'renderRestore'));
-//                add_action('admin_print_scripts-'.$restorePage, array('MainWPClone', 'print_scripts'));
-
+            if (!get_option('mainwp_branding_remove_restore') || $cancelled_branding)
+            {
                 $sitesToClone = get_option('mainwp_child_clone_sites');
                 if ($sitesToClone != '0')
                 {
@@ -1735,6 +1730,39 @@ class MainWPChild
         @set_time_limit($timeout);
         @ini_set('max_execution_time', $timeout);
         MainWPHelper::endSession();
+
+
+        //Cleanup pid files!
+        $dirs = MainWPHelper::getMainWPDir('backup');
+        $backupdir = trailingslashit($dirs[0]);
+
+
+        /** @var $wp_filesystem WP_Filesystem_Base */
+        global $wp_filesystem;
+
+        MainWPHelper::getWPFilesystem();
+
+        $files = glob($backupdir . '*');
+        //Find old files (changes > 3 hr)
+        foreach ($files as $file)
+        {
+            if (MainWPHelper::endsWith($file, '/index.php') | MainWPHelper::endsWith($file, '/.htaccess')) continue;
+
+            if ((time() - filemtime($file)) > (60 * 60 * 3))
+            {
+                @unlink($file);
+            }
+        }
+
+        //Verify if another backup is running, if so, return an error
+        $files = glob($backupdir . '*.pid');
+        foreach ($files as $file)
+        {
+            if ((time() - filemtime($file)) < 160)
+            {
+                MainWPHelper::error('Another backup process is running, try again later');
+            }
+        }
 
         $fileName = (isset($_POST['fileUID']) ? $_POST['fileUID'] : '');
         if ($_POST['type'] == 'full')
