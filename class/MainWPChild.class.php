@@ -64,8 +64,7 @@ class MainWPChild
         'links_checker' => 'links_checker',
         'wordfence' => 'wordfence',
         'delete_backup' => 'delete_backup',
-        'update_values' => 'update_values',
-        'ithemes' => 'ithemes'        
+        'update_values' => 'update_values'
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -609,7 +608,7 @@ class MainWPChild
                 $auth = $this->auth($signature, rawurldecode((isset($_REQUEST['where']) ? $_REQUEST['where'] : $file)), isset($_REQUEST['nonce']) ? $_REQUEST['nonce'] : '', isset($_REQUEST['nossl']) ? $_REQUEST['nossl'] : 0);
                 if (!$auth) return;
                 $this->uploadFile($_REQUEST['fdl'], isset($_REQUEST['foffset']) ? $_REQUEST['foffset'] : 0);
-                exit;             
+                exit;
             }
 
             $where = isset($_REQUEST['where']) ? $_REQUEST['where'] : '';
@@ -750,7 +749,7 @@ class MainWPChild
         MainWPChildPagespeed::Instance()->init();        
         MainWPChildLinksChecker::Instance()->init();
         MainWPChildWordfence::Instance()->wordfence_init();        
-        MainWPChildIThemesSecurity::Instance()->ithemes_init();   
+        
     }
 
     function default_option_active_plugins($default)
@@ -3945,10 +3944,6 @@ class MainWPChild
     
     function wordfence() {        
         MainWPChildWordfence::Instance()->action();                
-    }
-    
-    function ithemes() {        
-        MainWPChildIThemesSecurity::Instance()->action();                
     }
 
     function delete_backup()
