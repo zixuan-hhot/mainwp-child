@@ -3971,9 +3971,12 @@ class MainWPChild
                 MainWPHelper::update_option('heatMapsIndividualOverrideSetting', $override);             
                 MainWPHelper::update_option('heatMapsIndividualDisable', $disable);            
                 $this->update_htaccess(true);
-            }
+                }            
+            MainWPHelper::write(array('result' => 'success'));
         }             
+        MainWPHelper::write(array('result' => 'fail'));         
     }
+    
     function links_checker() {        
         MainWPChildLinksChecker::Instance()->action();                
     }
