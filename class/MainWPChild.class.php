@@ -4017,7 +4017,17 @@ class MainWPChild
         $backupdir = $dirs[0];
 
         header('Content-Description: File Transfer');
-        header('Content-Type: application/octet-stream');
+
+        header('Content-Description: File Transfer');
+        if (MainWPHelper::endsWith($file, '.tar.gz'))
+        {
+            header('Content-Type: application/x-gzip');
+            header("Content-Encoding: gzip'");
+        }
+        else
+        {
+            header('Content-Type: application/octet-stream');
+        }
         header('Content-Disposition: attachment; filename="' . basename($file) . '"');
         header('Expires: 0');
         header('Cache-Control: must-revalidate');
