@@ -3139,7 +3139,7 @@ class MainWPChild
                 $out['slug'] = $theme->get_stylesheet();
                 if (!$filter)
                 {
-                    $rslt[] = $out;
+                    if ($keyword == '' || stristr($out['title'], $keyword)) $rslt[] = $out;
                 }
                 else if ($out['active'] == (($status == 'active') ? 1 : 0))
                 {
@@ -3256,7 +3256,7 @@ class MainWPChild
                 $out['active'] = (is_array($active_plugins) && in_array($pluginslug, $active_plugins)) ? 1 : 0;				                
                 if (!$filter)
                 {
-                    $rslt[] = $out;
+                    if ($keyword == '' || stristr($out['name'], $keyword)) $rslt[] = $out;   
                 }
                 else if ($out['active'] == (($status == 'active') ? 1 : 0))
                 {
