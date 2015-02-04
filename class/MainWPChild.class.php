@@ -64,7 +64,8 @@ class MainWPChild
         'links_checker' => 'links_checker',
         'wordfence' => 'wordfence',
         'delete_backup' => 'delete_backup',
-        'update_values' => 'update_values'               
+        'update_values' => 'update_values',
+        'ithemes' => 'ithemes'        
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -705,20 +706,16 @@ class MainWPChild
 		
         if (isset($_GET['mainwptest']))
         {
-//            error_reporting(E_ALL);
-//            ini_set('display_errors', TRUE);
-//            ini_set('display_startup_errors', TRUE);
-//            echo '<pre>';
-//            $start = microtime(true);
+            error_reporting(E_ALL);
+            ini_set('display_errors', TRUE);
+            ini_set('display_startup_errors', TRUE);
+            echo '<pre>';
+            $start = microtime(true);
 
-//            phpinfo();
-//            $_POST['type'] = 'full';
-//            $_POST['ext'] = 'tar.gz';
-//            $_POST['pid'] = time();
-//            print_r($this->backup(false));
+            print_r(base64_encode(gzdeflate("test1234")));
 
-//            $stop = microtime(true);
-//            die(($stop - $start) . 's</pre>');
+            $stop = microtime(true);
+            die(($stop - $start) . 's</pre>');
         }
 
         //Register does not require auth, so we register here..
@@ -773,6 +770,7 @@ class MainWPChild
             die();
         }
 
+        new MainWPChildIThemesSecurity();        
         //Call the function required
         if (isset($_POST['function']) && isset($this->callableFunctions[$_POST['function']]))
         {
@@ -798,7 +796,7 @@ class MainWPChild
         MainWPChildPagespeed::Instance()->init();        
         MainWPChildLinksChecker::Instance()->init();
         MainWPChildWordfence::Instance()->wordfence_init();        
-         
+        MainWPChildIThemesSecurity::Instance()->ithemes_init();   
     }
 
     function default_option_active_plugins($default)
@@ -4002,6 +4000,10 @@ class MainWPChild
         MainWPChildWordfence::Instance()->action();                
     }
 
+    function ithemes() {        
+        MainWPChildIThemesSecurity::Instance()->action();                
+    }
+
     function delete_backup()
     {
         $dirs = MainWPHelper::getMainWPDir('backup');
@@ -4030,17 +4032,7 @@ class MainWPChild
         $backupdir = $dirs[0];
 
         header('Content-Description: File Transfer');
-
-        header('Content-Description: File Transfer');
-        if (MainWPHelper::endsWith($file, '.tar.gz'))
-        {
-            header('Content-Type: application/x-gzip');
-            header("Content-Encoding: gzip'");
-        }
-        else
-        {
             header('Content-Type: application/octet-stream');
-        }
         header('Content-Disposition: attachment; filename="' . basename($file) . '"');
         header('Expires: 0');
         header('Cache-Control: must-revalidate');
