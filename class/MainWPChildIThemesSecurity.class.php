@@ -79,6 +79,9 @@ class MainWPChildIThemesSecurity
                 case "file_check":
                     $information = $this->file_check();
                 break; 
+                case "release_lockout":
+                    $information = $this->release_lockout();
+                break;             
             }        
         }
         MainWPHelper::write($information);
@@ -280,8 +283,11 @@ class MainWPChildIThemesSecurity
             'users_can_register' => get_site_option( 'users_can_register' ) ? 1 : 0,
             'force_ssl_login' => (defined( 'FORCE_SSL_LOGIN' ) && FORCE_SSL_LOGIN === true) ? 1 : 0,
             'force_ssl_admin' => (defined( 'FORCE_SSL_ADMIN' ) && FORCE_SSL_ADMIN === true) ? 1 : 0,
-            'server_nginx' => (ITSEC_Lib::get_server() == 'nginx') ? 1 : 0
-        );
+            'server_nginx' => (ITSEC_Lib::get_server() == 'nginx') ? 1 : 0,
+            'lockouts_host' => $this->get_lockouts( 'host', true ),
+            'lockouts_user' => $this->get_lockouts( 'user', true ),
+            'lockouts_username' => $this->get_lockouts( 'username', true )
+            );
         
         $out = array();                      
         if ($updated)
@@ -889,6 +895,144 @@ class MainWPChildIThemesSecurity
                         'last_run' => $last_run
                     );
     }        
+        
+    public function get_lockouts( $type = 'all', $current = false ) {
+
+            global $wpdb, $itsec_globals;
+
+            if ( $type !== 'all' || $current === true ) {
+                    $where = " WHERE ";
+            } else {
+                    $where = '';
+            }
+
+            switch ( $type ) {
+
+                    case 'host':
+                            $type_statement = "`lockout_host` IS NOT NULL && `lockout_host` != ''";
+                            break;
+                    case 'user':
+                            $type_statement = "`lockout_user` != 0";
+                            break;
+                    case 'username':
+                            $type_statement = "`lockout_username` IS NOT NULL && `lockout_username` != ''";
+                            break;
+                    default:
+                            $type_statement = '';
+                            break;
+
+            }
+
+            if ( $current === true ) {
+
+                    if ( $type_statement !== '' ) {
+                            $and = ' AND ';
+                    } else {
+                            $and = '';
+                    }
+
+                    $active = $and . " `lockout_active`=1 AND `lockout_expire_gmt` > '" . date( 'Y-m-d H:i:s', $itsec_globals['current_time_gmt'] ) . "'";
+
+            } else {
+
+                    $active = '';
+
+            }
+
+            $results = $wpdb->get_results( "SELECT * FROM `" . $wpdb->base_prefix . "itsec_lockouts`" . $where . $type_statement . $active . ";", ARRAY_A );            
+            $output = array();
+            if (is_array($results) && count($results) > 0) {
+                switch ( $type ) {
+                    case 'host':
+                            foreach ($results as $val) {
+                                $output[] = array(
+                                    'lockout_id' => $val['lockout_id'],
+                                    'lockout_host' => $val['lockout_host'],
+                                    'lockout_expire_gmt' => $val['lockout_expire_gmt']
+                                );
+                            }
+                            break;
+                    case 'user':
+                            foreach ($results as $val) {
+                                $output[] = array(
+                                    'lockout_id' => $val['lockout_id'],
+                                    'lockout_user' => $val['lockout_user'],
+                                    'lockout_expire_gmt' => $val['lockout_expire_gmt']
+                                );
+                            }
+                            break;
+                    case 'username':
+                            foreach ($results as $val) {
+                                $output[] = array(
+                                    'lockout_id' => $val['lockout_id'],
+                                    'lockout_username' => $val['lockout_username'],
+                                    'lockout_expire_gmt' => $val['lockout_expire_gmt']
+                                );
+                            }
+                            break;
+                    default:
+                            break;
+                }
+            }
+            return $output;
+	}
+      
+    public function release_lockout() {            
+        global $wpdb, $itsec_globals;
+
+        if ( ! class_exists( 'ITSEC_Lib' ) ) {
+            require( trailingslashit( $itsec_globals['plugin_dir'] ) . 'core/class-itsec-lib.php' );
+        }  
+        
+        $lockout_ids = $_POST['lockout_ids'];
+        if (!is_array($lockout_ids))
+            $lockout_ids = array();
+        
+        $type    = 'updated';
+        $message = __( 'The selected lockouts have been cleared.', 'it-l10n-better-wp-security' );
+        
+        foreach ( $lockout_ids as $value ) {
+                $wpdb->update(
+                        $wpdb->base_prefix . 'itsec_lockouts',
+                        array(
+                                'lockout_active' => 0,
+                        ),
+                        array(
+                                'lockout_id' => intval( $value ),
+                        )
+                );
+        }
+
+        ITSEC_Lib::clear_caches();
+
+        if ( is_multisite() ) {
+
+        } else {
+            if (!function_exists('add_settings_error'))
+                require_once (ABSPATH . '/wp-admin/includes/template.php');
+            
+            add_settings_error( 'itsec', esc_attr( 'settings_updated' ), $message, $type );
+        }
+        
+        $site_status = array(
+            'username_admin_exists' => username_exists( 'admin' ) ? 1 : 0,
+            'user_id1_exists' => ITSEC_Lib::user_id_exists( 1 ) ? 1 : 0,
+            'backup' => $this->backup_status(),
+            'permalink_structure' => get_option( 'permalink_structure' ),
+            'is_multisite' => is_multisite() ? 1 : 0,
+            'users_can_register' => get_site_option( 'users_can_register' ) ? 1 : 0,
+            'force_ssl_login' => (defined( 'FORCE_SSL_LOGIN' ) && FORCE_SSL_LOGIN === true) ? 1 : 0,
+            'force_ssl_admin' => (defined( 'FORCE_SSL_ADMIN' ) && FORCE_SSL_ADMIN === true) ? 1 : 0,
+            'server_nginx' => (ITSEC_Lib::get_server() == 'nginx') ? 1 : 0,
+            'lockouts_host' => $this->get_lockouts( 'host', true ),
+            'lockouts_user' => $this->get_lockouts( 'user', true ),
+            'lockouts_username' => $this->get_lockouts( 'username', true )
+        );
+        
+        return array('result' => 'success',
+                    'site_status' => $site_status                    
+                );
+    }
         
 }
 
