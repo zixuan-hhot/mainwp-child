@@ -2582,8 +2582,8 @@ class MainWPChild
                 $outPost = array();
                 $outPost['id'] = $post->ID;
                 $outPost['status'] = $post->post_status;
-                $outPost['title'] = utf8_encode($post->post_title);
-                $outPost['content'] = utf8_encode($post->post_content);
+                $outPost['title'] = $post->post_title;
+                $outPost['content'] = $post->post_content;
                 $outPost['comment_count'] = $post->comment_count;
                 $outPost['dts'] = strtotime($post->post_modified_gmt);
                 $usr = get_user_by('id', $post->post_author);
