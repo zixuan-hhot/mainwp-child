@@ -422,10 +422,4 @@ class MainWPHeatmapTracker
 	
 }
 
-
-
-
-
-
-
 ?>

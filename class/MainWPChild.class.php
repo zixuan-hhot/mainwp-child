@@ -11,7 +11,7 @@ include_once(ABSPATH . '/wp-admin/includes/plugin.php');
 
 class MainWPChild
 {
-    private $version = '2.0.7';
+    private $version = '2.0.8';
     private $update_version = '1.0';
 
     private $callableFunctions = array(
@@ -65,7 +65,7 @@ class MainWPChild
         'wordfence' => 'wordfence',
         'delete_backup' => 'delete_backup',
         'update_values' => 'update_values',
-        'ithemes' => 'ithemes'        
+        'ithemes' => 'ithemes'
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -706,16 +706,20 @@ class MainWPChild
 		
         if (isset($_GET['mainwptest']))
         {
-            error_reporting(E_ALL);
-            ini_set('display_errors', TRUE);
-            ini_set('display_startup_errors', TRUE);
-            echo '<pre>';
-            $start = microtime(true);
+//            error_reporting(E_ALL);
+//            ini_set('display_errors', TRUE);
+//            ini_set('display_startup_errors', TRUE);
+//            echo '<pre>';
+//            $start = microtime(true);
 
-            print_r(base64_encode(gzdeflate("test1234")));
+//            phpinfo();
+//            $_POST['type'] = 'full';
+//            $_POST['ext'] = 'tar.gz';
+//            $_POST['pid'] = time();
+//            print_r($this->backup(false));
 
-            $stop = microtime(true);
-            die(($stop - $start) . 's</pre>');
+//            $stop = microtime(true);
+//            die(($stop - $start) . 's</pre>');
         }
 
         //Register does not require auth, so we register here..
@@ -770,7 +774,7 @@ class MainWPChild
             die();
         }
 
-        new MainWPChildIThemesSecurity();        
+        new MainWPChildIThemesSecurity();
         //Call the function required
         if (isset($_POST['function']) && isset($this->callableFunctions[$_POST['function']]))
         {
@@ -796,7 +800,7 @@ class MainWPChild
         MainWPChildPagespeed::Instance()->init();        
         MainWPChildLinksChecker::Instance()->init();
         MainWPChildWordfence::Instance()->wordfence_init();        
-        MainWPChildIThemesSecurity::Instance()->ithemes_init();   
+        MainWPChildIThemesSecurity::Instance()->ithemes_init();
     }
 
     function default_option_active_plugins($default)
@@ -1134,15 +1138,18 @@ class MainWPChild
             if (count($premiumPlugins) > 0)
             {
                 $mwp_premium_updates = apply_filters('mwp_premium_perform_update', array());
-                foreach ($premiumPlugins as $premiumPlugin)
+                if (is_array($mwp_premium_updates) && is_array($premiumPlugins))
                 {
-                    foreach ($mwp_premium_updates as $key => $update)
+                    foreach ($premiumPlugins as $premiumPlugin)
                     {
-                        $slug = (isset($update['slug']) ? $update['slug'] : $update['Name']);
-                        if (strcmp($slug, $premiumPlugin) == 0)
+                        foreach ($mwp_premium_updates as $key => $update)
                         {
-                            $mwp_premium_updates_todo[$key] = $update;
-                            $mwp_premium_updates_todo_slugs[] = $premiumPlugin;
+                            $slug = (isset($update['slug']) ? $update['slug'] : $update['Name']);
+                            if (strcmp($slug, $premiumPlugin) == 0)
+                            {
+                                $mwp_premium_updates_todo[$key] = $update;
+                                $mwp_premium_updates_todo_slugs[] = $premiumPlugin;
+                            }
                         }
                     }
                 }
@@ -1213,15 +1220,18 @@ class MainWPChild
                 $mwp_premium_updates = apply_filters('mwp_premium_perform_update', array());
                 $mwp_premium_updates_todo = array();
                 $mwp_premium_updates_todo_slugs = array();
-                foreach ($premiumThemes as $premiumTheme)
+                if (is_array($premiumThemes) && is_array($mwp_premium_updates))
                 {
-                    foreach ($mwp_premium_updates as $key => $update)
+                    foreach ($premiumThemes as $premiumTheme)
                     {
-                        $slug = (isset($update['slug']) ? $update['slug'] : $update['Name']);
-                        if (strcmp($slug, $premiumTheme) == 0)
+                        foreach ($mwp_premium_updates as $key => $update)
                         {
-                            $mwp_premium_updates_todo[$key] = $update;
-                            $mwp_premium_updates_todo_slugs[] = $slug;
+                            $slug = (isset($update['slug']) ? $update['slug'] : $update['Name']);
+                            if (strcmp($slug, $premiumTheme) == 0)
+                            {
+                                $mwp_premium_updates_todo[$key] = $update;
+                                $mwp_premium_updates_todo_slugs[] = $slug;
+                            }
                         }
                     }
                 }
@@ -1814,17 +1824,20 @@ class MainWPChild
             $excludes[] = str_replace(ABSPATH, '', $uploadDir);
             $excludes[] = str_replace(ABSPATH, '', WP_CONTENT_DIR) . '/object-cache.php';
 
-            $uname = @posix_uname();
-            if (is_array($uname) && isset($uname['nodename']))
+            if (function_exists('posix_uname'))
             {
-                if (stristr($uname['nodename'], 'hostgator'))
+                $uname = @posix_uname();
+                if (is_array($uname) && isset($uname['nodename']))
                 {
-                    if (!isset($_POST['file_descriptors']) || $_POST['file_descriptors'] == 0 || $_POST['file_descriptors'] > 1000)
+                    if (stristr($uname['nodename'], 'hostgator'))
                     {
-                        $_POST['file_descriptors'] = 1000;
+                        if (!isset($_POST['file_descriptors']) || $_POST['file_descriptors'] == 0 || $_POST['file_descriptors'] > 1000)
+                        {
+                            $_POST['file_descriptors'] = 1000;
+                        }
+                        $_POST['file_descriptors_auto'] = 0;
+                        $_POST['loadFilesBeforeZip'] = false;
                     }
-                    $_POST['file_descriptors_auto'] = 0;
-                    $_POST['loadFilesBeforeZip'] = false;
                 }
             }
 
@@ -2448,14 +2461,17 @@ class MainWPChild
             if (count($pluginConflicts) > 0)
             {
                 if ($plugins == false) $plugins = $this->get_all_plugins_int(false);
-                foreach ($plugins as $plugin)
+                if (is_array($plugins) && is_array($pluginConflicts))
                 {
-                    foreach ($pluginConflicts as $pluginConflict)
+                    foreach ($plugins as $plugin)
                     {
-                       if (($plugin['active'] == 1) && (($plugin['name'] == $pluginConflict) || ($plugin['slug'] == $pluginConflict)))
-                       {
-                           $conflicts[] = $plugin['name'];
-                       }
+                        foreach ($pluginConflicts as $pluginConflict)
+                        {
+                           if (($plugin['active'] == 1) && (($plugin['name'] == $pluginConflict) || ($plugin['slug'] == $pluginConflict)))
+                           {
+                               $conflicts[] = $plugin['name'];
+                           }
+                        }
                     }
                 }
             }
@@ -2466,7 +2482,7 @@ class MainWPChild
         {
             $themeConflicts = json_decode(stripslashes($_POST['themeConflicts']), true);
             $conflicts = array();
-            if (count($themeConflicts) > 0)
+            if (is_array($themeConflicts) && count($themeConflicts) > 0)
             {
                 $theme = wp_get_theme()->get('Name');
                 foreach ($themeConflicts as $themeConflict)
@@ -4000,8 +4016,8 @@ class MainWPChild
         MainWPChildWordfence::Instance()->action();                
     }
 
-    function ithemes() {        
-        MainWPChildIThemesSecurity::Instance()->action();                
+    function ithemes() {
+        MainWPChildIThemesSecurity::Instance()->action();
     }
 
     function delete_backup()
@@ -4032,7 +4048,17 @@ class MainWPChild
         $backupdir = $dirs[0];
 
         header('Content-Description: File Transfer');
+
+        header('Content-Description: File Transfer');
+        if (MainWPHelper::endsWith($file, '.tar.gz'))
+        {
+            header('Content-Type: application/x-gzip');
+            header("Content-Encoding: gzip'");
+        }
+        else
+        {
             header('Content-Type: application/octet-stream');
+        }
         header('Content-Disposition: attachment; filename="' . basename($file) . '"');
         header('Expires: 0');
         header('Cache-Control: must-revalidate');
