@@ -11,7 +11,7 @@ include_once(ABSPATH . '/wp-admin/includes/plugin.php');
 
 class MainWPChild
 {
-    private $version = '2.0.8';
+    private $version = '2.0.9';
     private $update_version = '1.0';
 
     private $callableFunctions = array(
@@ -611,21 +611,6 @@ class MainWPChild
                 }
             }
 
-            if (!is_user_logged_in() || $username != $current_user->user_login)
-            {
-                if (!$this->login($username))
-                {
-                    return;
-                }
-
-                global $current_user;
-                if ($current_user->wp_user_level != 10 && (!isset($current_user->user_level) || $current_user->user_level != 10) && !current_user_can('level_10'))
-                {
-                    do_action('wp_logout');
-                    return;
-                }
-            }
-
             $signature = rawurldecode(isset($_REQUEST['mainwpsignature']) ? $_REQUEST['mainwpsignature'] : '');
             $file = '';
             if (isset($_REQUEST['f']))
@@ -643,6 +628,21 @@ class MainWPChild
 
             $auth = $this->auth($signature, rawurldecode((isset($_REQUEST['where']) ? $_REQUEST['where'] : $file)), isset($_REQUEST['nonce']) ? $_REQUEST['nonce'] : '', isset($_REQUEST['nossl']) ? $_REQUEST['nossl'] : 0);
             if (!$auth) return;
+
+            if (!is_user_logged_in() || $username != $current_user->user_login)
+            {
+                if (!$this->login($username))
+                {
+                    return;
+                }
+
+                global $current_user;
+                if ($current_user->wp_user_level != 10 && (!isset($current_user->user_level) || $current_user->user_level != 10) && !current_user_can('level_10'))
+                {
+                    do_action('wp_logout');
+                    return;
+                }
+            }
 
             if (isset($_REQUEST['fdl']))
             {
