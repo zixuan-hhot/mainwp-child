@@ -65,7 +65,9 @@ class MainWPChild
         'wordfence' => 'wordfence',
         'delete_backup' => 'delete_backup',
         'update_values' => 'update_values',
-        'ithemes' => 'ithemes'
+        'ithemes' => 'ithemes',
+        'multistores' => 'multistores',
+        'updraftplus' => 'updraftplus'
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -675,10 +677,21 @@ class MainWPChild
             }
             
             $open_location = isset($_REQUEST['open_location']) ? $_REQUEST['open_location'] : '';  
+            
             if (!empty($open_location)) {
                 $open_location = base64_decode ($open_location);
-                if (strpos($open_location, "nonce=child_temp_nonce") !== false)
-                    $open_location = str_replace ("nonce=child_temp_nonce", "nonce=" . wp_create_nonce('wp-ajax'), $open_location);
+                $_vars = MainWPHelper::parse_query($open_location);
+                $_path = parse_url($open_location, PHP_URL_PATH);
+                
+                if (isset($_vars['_mwpNoneName']) && isset($_vars['_mwpNoneValue'])) {
+                    $_vars[$_vars['_mwpNoneName']] = wp_create_nonce($_vars['_mwpNoneValue']);
+                    unset($_vars['_mwpNoneName']);
+                    unset($_vars['_mwpNoneValue']);                      
+                    $open_location = "/wp-admin/" . $_path . "?" . http_build_query($_vars);
+                } else {
+                    if (strpos($open_location, "nonce=child_temp_nonce") !== false)
+                        $open_location = str_replace ("nonce=child_temp_nonce", "nonce=" . wp_create_nonce('wp-ajax'), $open_location);
+                }
                 wp_redirect(site_url() . $open_location);
                 exit();
             }
@@ -774,7 +787,11 @@ class MainWPChild
             die();
         }
 
-        new MainWPChildIThemesSecurity();
+        new MainWPChildIThemesSecurity();   
+        
+        MainWPChildWooCommerceMultiStores::Instance()->init();              
+        MainWPChildUpdraftplusBackups::Instance()->updraftplus_init();
+        
         //Call the function required
         if (isset($_POST['function']) && isset($this->callableFunctions[$_POST['function']]))
         {
@@ -800,7 +817,7 @@ class MainWPChild
         MainWPChildPagespeed::Instance()->init();        
         MainWPChildLinksChecker::Instance()->init();
         MainWPChildWordfence::Instance()->wordfence_init();        
-        MainWPChildIThemesSecurity::Instance()->ithemes_init();
+        MainWPChildIThemesSecurity::Instance()->ithemes_init();        
     }
 
     function default_option_active_plugins($default)
@@ -2496,6 +2513,21 @@ class MainWPChild
             if (count($conflicts) > 0) $information['themeConflicts'] = $conflicts;
         }
 		
+        if (isset($_POST['othersData']))
+        {
+            $othersData = json_decode(stripslashes($_POST['othersData']), true);            
+            if (!is_array($othersData)) 
+                $othersData = array();
+            
+            do_action("mainwp-site-sync-others-data", $othersData);
+            
+            if (isset($othersData['syncUpdraftData']) && $othersData['syncUpdraftData']) {
+                $information['syncUpdraftData'] =   MainWPChildUpdraftplusBackups::Instance()->sync_data($othersData['syncUpdraftData']); 
+            }
+        }
+        
+        
+        
         $last_post = wp_get_recent_posts(array( 'numberposts' => absint('1')));
         if (isset($last_post[0])) $last_post = $last_post[0];
         if (isset($last_post)) $information['last_post_gmt'] = strtotime($last_post['post_modified_gmt']);
@@ -4019,7 +4051,15 @@ class MainWPChild
     function ithemes() {
         MainWPChildIThemesSecurity::Instance()->action();
     }
+    
+    function multistores() {
+        MainWPChildWooCommerceMultiStores::Instance()->action(); 
+    }
 
+    function updraftplus() {
+        MainWPChildUpdraftplusBackups::Instance()->action(); 
+    }
+    
     function delete_backup()
     {
         $dirs = MainWPHelper::getMainWPDir('backup');
