@@ -22,7 +22,7 @@ class MainWPChildUpdraftplusBackups
        
     public function action() {        
         $information = array();          
-        if (!defined('UPDRAFTPLUS_DIR') || !class_exists('UpdraftPlus') || !class_exists('UpdraftPlus_Options')) {
+        if (!self::isActivatedUpdraftplus()) {
             $information['error'] = 'NO_UPDRAFTPLUS';
             MainWPHelper::write($information);
         }   
@@ -91,6 +91,13 @@ class MainWPChildUpdraftplusBackups
         $information['result'] = 'SUCCESS';
         return $information;
     }
+    
+    public static function isActivatedUpdraftplus() {
+        if (!defined('UPDRAFTPLUS_DIR') || !class_exists('UpdraftPlus') || !class_exists('UpdraftPlus_Options')) 
+            return false;
+        return true;
+    }
+    
     
     private function get_settings_keys() {
         return  array(
@@ -553,8 +560,7 @@ class MainWPChildUpdraftplusBackups
                 }
                 if ('log' != $key && count($delete_from_service) > 0) {
                         foreach ($delete_from_service as $service) {
-                                if ('email' == $service) continue;
-                                error_log(UPDRAFTPLUS_DIR . $service);
+                                if ('email' == $service) continue;                                
                                 if (file_exists(UPDRAFTPLUS_DIR."/methods/$service.php")) require_once(UPDRAFTPLUS_DIR."/methods/$service.php");
                                 $objname = "UpdraftPlus_BackupModule_".$service;
                                 $deleted = -1;
@@ -2418,7 +2424,7 @@ ENDHERE;
     }
     
     public function sync_data($syncData = array()) {
-        if (!defined('UPDRAFTPLUS_DIR') || !class_exists('UpdraftPlus') || !class_exists('UpdraftPlus_Options')) 
+        if (!self::isActivatedUpdraftplus()) 
             return "";
         return $this->get_updraft_data($syncData);
     }    

@@ -2522,7 +2522,9 @@ class MainWPChild
             do_action("mainwp-site-sync-others-data", $othersData);
             
             if (isset($othersData['syncUpdraftData']) && $othersData['syncUpdraftData']) {
-                $information['syncUpdraftData'] =   MainWPChildUpdraftplusBackups::Instance()->sync_data($othersData['syncUpdraftData']); 
+                if (MainWPChildUpdraftplusBackups::isActivatedUpdraftplus()) {
+                    $information['syncUpdraftData'] =   MainWPChildUpdraftplusBackups::Instance()->sync_data($othersData['syncUpdraftData']); 
+                }
             }
         }
         
