@@ -217,6 +217,19 @@ class MainWPChildUpdraftplusBackups
         return $out;
     }
     
+    /*
+    * Plugin Name: UpdraftPlus - Backup/Restore
+    * Plugin URI: http://updraftplus.com
+    * Description: Backup and restore: take backups locally, or backup to Amazon S3, Dropbox, Google Drive, Rackspace, (S)FTP, WebDAV & email, on automatic schedules.
+    * Author: UpdraftPlus.Com, DavidAnderson
+    * Version: 1.9.60
+    * Donate link: http://david.dw-perspective.org.uk/donate
+    * License: GPLv3 or later
+    * Text Domain: updraftplus
+    * Domain Path: /languages
+    * Author URI: http://updraftplus.com
+    */
+    
     function backup_now() {        
         global $updraftplus;        
     	$backupnow_nocloud = (empty($_REQUEST['backupnow_nocloud'])) ? false : true;
@@ -241,16 +254,17 @@ class MainWPChildUpdraftplusBackups
 
         do_action($event, apply_filters('updraft_backupnow_options', $options));
         
-        if (wp_schedule_single_event(time()+5, $event, array($backupnow_nocloud)) === false) {
-                $updraftplus->log("A backup run failed to schedule");
-                //echo __("Failed.", 'updraftplus')."</div>";
-                $result = 'FAILED';
-        } else {
-                $result = 'OK';
-                //echo htmlspecialchars(__('OK. You should soon see activity in the "Last log message" field below.','updraftplus'))." <a href=\"http://updraftplus.com/faqs/my-scheduled-backups-and-pressing-backup-now-does-nothing-however-pressing-debug-backup-does-produce-a-backup/\"><br>".__('Nothing happening? Follow this link for help.','updraftplus')."</a></div>";
-                $updraftplus->log("A backup run has been scheduled");
-        }
-        $out = array('result' =>  $result);
+        // not used anymore
+//        if (wp_schedule_single_event(time()+5, $event, array($backupnow_nocloud)) === false) {
+//                $updraftplus->log("A backup run failed to schedule");
+//                //echo __("Failed.", 'updraftplus')."</div>";
+//                $result = 'FAILED';
+//        } else {
+//                $result = 'OK';
+//                //echo htmlspecialchars(__('OK. You should soon see activity in the "Last log message" field below.','updraftplus'))." <a href=\"http://updraftplus.com/faqs/my-scheduled-backups-and-pressing-backup-now-does-nothing-however-pressing-debug-backup-does-produce-a-backup/\"><br>".__('Nothing happening? Follow this link for help.','updraftplus')."</a></div>";
+//                $updraftplus->log("A backup run has been scheduled");
+//        }
+        $out = array('result' =>  'OK');
         return $out;
     }
     
