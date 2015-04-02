@@ -169,21 +169,13 @@ class MainWPChildUpdraftplusBackups
             if (class_exists('UpdraftPlus_Options')) {
                 foreach($keys as $key) {
                     if (isset($settings[$key])) {
-                        if ($key == "updraft_service") {
-                            $current_val = UpdraftPlus_Options::get_updraft_option("updraft_service", array());                        
-                            if (!is_array($current_val)) $current_val = array();                            
-                            $update_val = $settings[$key];
-                            if (is_array($update_val)) {
-                                foreach($update_val as $k => $v) {
-                                    $current_val[$k] = $v;
-                                }
-                            } else {
-                                $current_val = array();
-                            }
-                            UpdraftPlus_Options::update_updraft_option($key, $current_val);                        
-                        } else {
+//                        if ($key == "updraft_service") {                              
+//                            UpdraftPlus_Options::update_updraft_option($key, $settings[$key]);    
+//                        } else if ($key == "updraft_s3") {                            
+//                            UpdraftPlus_Options::update_updraft_option($key, $settings[$key]);    
+//                        } else {
                             UpdraftPlus_Options::update_updraft_option($key, $settings[$key]);                        
-                        }
+//                        }
                         $updated = true;
                     }
                 }
