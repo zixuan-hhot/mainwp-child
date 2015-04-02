@@ -110,13 +110,7 @@ class MainWPChildUpdraftplusBackups
                 'updraft_retain',
                 'updraft_retain_db',
                 'updraft_encryptionphrase',
-                'updraft_service',
-                'updraft_dropbox_appkey',
-                'updraft_dropbox_secret',
-                'updraft_ftp_login',
-                'updraft_ftp_pass',
-                'updraft_ftp_remote_path',
-                'updraft_server_address',
+                'updraft_service',                
                 'updraft_dir',
                 'updraft_email',
                 'updraft_delete_local',
@@ -131,9 +125,6 @@ class MainWPChildUpdraftplusBackups
                 'updraft_include_mu-plugins',
                 'updraft_include_others_exclude',
                 'updraft_include_uploads_exclude',
-                'updraft_dropboxtk_request_token',
-                'updraft_dropboxtk_access_token',
-                'updraft_dropbox_folder',
                 'updraft_adminlocking',
                 'updraft_starttime_files',
                 'updraft_starttime_db',
@@ -141,33 +132,28 @@ class MainWPChildUpdraftplusBackups
                 'updraft_startday_files',
                 'updraft_s3',
                 'updraft_s3generic',
-                'updraft_dreamhost',
-                'updraft_s3generic_login',
-                'updraft_s3generic_pass',
-                'updraft_s3generic_remote_path',
-                'updraft_s3generic_endpoint',
+                'updraft_dreamhost',           
                 'updraft_disable_ping',
                 'updraft_openstack',
                 'updraft_bitcasa',
                 'updraft_cloudfiles',
-                'updraft_cloudfiles_user',
-                'updraft_cloudfiles_apikey',
-                'updraft_cloudfiles_path',
-                'updraft_cloudfiles_authurl',
                 'updraft_ssl_useservercerts',
-                'updraft_ssl_disableverify',
-                'updraft_s3_login',
-                'updraft_s3_pass',
-                'updraft_s3_remote_path',
-                'updraft_dreamobjects_login',
-                'updraft_dreamobjects_pass',
-                'updraft_dreamobjects_remote_path',
+                'updraft_ssl_disableverify',                
                 'updraft_report_warningsonly',
                 'updraft_report_wholebackup',
                 'updraft_log_syslog',
                 'updraft_extradatabases',
                 'updraft_split_every',
-                'updraft_ssl_nossl',            
+                'updraft_ssl_nossl', 
+                'updraft_backupdb_nonwp',
+                'updraft_extradbs',
+                'updraft_include_more_path',
+                'updraft_dropbox',
+                'updraft_ftp',
+                'updraft_copycom',
+                'updraft_sftp_settings',
+                'updraft_webdav_settings',
+                'updraft_dreamobjects'            
             );
     } 
         
@@ -183,7 +169,21 @@ class MainWPChildUpdraftplusBackups
             if (class_exists('UpdraftPlus_Options')) {
                 foreach($keys as $key) {
                     if (isset($settings[$key])) {
-                        UpdraftPlus_Options::update_updraft_option($key, $settings[$key]);                        
+                        if ($key == "updraft_service") {
+                            $current_val = UpdraftPlus_Options::get_updraft_option("updraft_service", array());                        
+                            if (!is_array($current_val)) $current_val = array();                            
+                            $update_val = $settings[$key];
+                            if (is_array($update_val)) {
+                                foreach($update_val as $k => $v) {
+                                    $current_val[$k] = $v;
+                                }
+                            } else {
+                                $current_val = array();
+                            }
+                            UpdraftPlus_Options::update_updraft_option($key, $current_val);                        
+                        } else {
+                            UpdraftPlus_Options::update_updraft_option($key, $settings[$key]);                        
+                        }
                         $updated = true;
                     }
                 }
@@ -218,16 +218,16 @@ class MainWPChildUpdraftplusBackups
     }
     
     /*
-    * Plugin Name: UpdraftPlus - Backup/Restore
-    * Plugin URI: http://updraftplus.com
-    * Description: Backup and restore: take backups locally, or backup to Amazon S3, Dropbox, Google Drive, Rackspace, (S)FTP, WebDAV & email, on automatic schedules.
-    * Author: UpdraftPlus.Com, DavidAnderson
-    * Version: 1.9.60
-    * Donate link: http://david.dw-perspective.org.uk/donate
-    * License: GPLv3 or later
-    * Text Domain: updraftplus
-    * Domain Path: /languages
-    * Author URI: http://updraftplus.com
+    *Plugin: UpdraftPlus - Backup/Restore
+    *PluginURI: http://updraftplus.com
+    *Description: Backup and restore: take backups locally, or backup to Amazon S3, Dropbox, Google Drive, Rackspace, (S)FTP, WebDAV & email, on automatic schedules.
+    *Author: UpdraftPlus.Com, DavidAnderson
+    *Version: 1.9.60
+    *Donate link: http://david.dw-perspective.org.uk/donate
+    *License: GPLv3 or later
+    *Text Domain: updraftplus
+    *Domain Path: /languages
+    *Author URI: http://updraftplus.com
     */
     
     function backup_now() {        
