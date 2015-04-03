@@ -2528,7 +2528,7 @@ class MainWPChild
             }
         }
         
-        
+        $information['faviIcon'] = $this->get_favi_icon();
         
         $last_post = wp_get_recent_posts(array( 'numberposts' => absint('1')));
         if (isset($last_post[0])) $last_post = $last_post[0];
@@ -2540,6 +2540,20 @@ class MainWPChild
         return $information;
     }
 
+    function get_favi_icon() {
+        $url = site_url();          
+        $request = wp_remote_get( $url, array('timeout' => 50));                
+        $favi = "";
+        if (is_array($request) && isset($request['body'])) {        
+            $preg_str = '/<link\s+(?:type="[^"]+"\s*)?(?:rel="(?:shortcut\s+)?icon"\s*)?(?:type="[^"]+"\‌​s*)?href="([^"]+)"(?:type="[^"]+"\s*)?(?:\s*rel="(?:shortcut\‌​s+)?icon"\s*)?(?:t‌​ype="[^"]+"\s*)?\s*\/?>/';
+            if (preg_match($preg_str, $request['body'], $matches))
+            {
+               $favi = $matches[1];
+            } 
+        }
+        return $favi;
+    }
+    
     function scanDir($pDir, $pLvl)
     {
         $output = array();
