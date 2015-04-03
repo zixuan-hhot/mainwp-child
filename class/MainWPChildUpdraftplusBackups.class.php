@@ -79,6 +79,9 @@ class MainWPChildUpdraftplusBackups
                 case "restorebackup":
                     $information = $this->restoreBackup();
                 break;
+                case "extradbtestconnection":
+                    $information = $this->extradb_testconnection();
+                break;
             }        
         }
         MainWPHelper::write($information);
@@ -130,6 +133,7 @@ class MainWPChildUpdraftplusBackups
                 'updraft_starttime_db',
                 'updraft_startday_db',
                 'updraft_startday_files',
+                'updraft_googledrive',
                 'updraft_s3',
                 'updraft_s3generic',
                 'updraft_dreamhost',           
@@ -222,6 +226,87 @@ class MainWPChildUpdraftplusBackups
     *Author URI: http://updraftplus.com
     */
     
+    public function extradb_testconnection() {
+
+            if (empty($_POST['user'])) 
+                return array('r' => $_POST['row'], 'm' => '<p>'.sprintf(__("Failure: No %s was given.",'updraftplus').'</p>',__('user','updraftplus')));
+
+            if (empty($_POST['host'])) 
+                return array('r' => $_POST['row'], 'm' => '<p>'.sprintf(__("Failure: No %s was given.",'updraftplus').'</p>',__('host','updraftplus')));
+
+            if (empty($_POST['name'])) 
+                return array('r' => $_POST['row'], 'm' => '<p>'.sprintf(__("Failure: No %s was given.",'updraftplus').'</p>',__('database name','updraftplus')));
+
+            global $updraftplus_admin;
+            $updraftplus_admin->logged = array();
+
+            $ret = '';
+            $failed = false;
+
+            $wpdb_obj = new UpdraftPlus_WPDB_OtherDB_Test($_POST['user'], $_POST['pass'], $_POST['name'], $_POST['host']);
+            if (!empty($wpdb_obj->error)) {
+                    $failed = true;
+                    $ret .= '<p>';$dbinfo['user'].'@'.$dbinfo['host'].'/'.$dbinfo['name']." : ".__('database connection attempt failed', 'updraftplus')."</p>";
+                    if (is_wp_error($wpdb_obj->error) || is_string($wpdb_obj->error)) {
+                            $ret .= '<ul style="list-style: disc inside;">';
+                            if (is_wp_error($wpdb_obj->error)) {
+                                    $codes = $wpdb_obj->error->get_error_codes();
+                                    if (is_array($codes)) {
+                                            foreach ($codes as $code) {
+                                                    if ('db_connect_fail' == $code) {
+                                                            $ret .= "<li>".__('Connection failed: check your access details, that the database server is up, and that the network connection is not firewalled.', 'updraftplus')."</li>";
+                                                    } else {
+                                                            $err = $wpdb_obj->error->get_error_message($code);
+                                                            $ret .= "<li>".$err."</li>";
+                                                    }
+                                            }
+                                    }
+                            } else {
+                                    $ret .= "<li>".$wpdb_obj->error."</li>";
+                            }
+                            $ret .= '</ul>';
+                    }
+            }
+
+            $ret_info = '';
+            if (!$failed) {
+                    $all_tables = $wpdb_obj->get_results("SHOW TABLES", ARRAY_N);
+                    $all_tables = array_map(create_function('$a', 'return $a[0];'), $all_tables);
+                    if (empty($_POST['prefix'])) {
+                            $ret_info .= sprintf(__('%s table(s) found.', 'updraftplus'), count($all_tables));
+                    } else {
+                            $our_prefix = 0;
+                            foreach ($all_tables as $table) {
+                                    if (0 === strpos($table, $_POST['prefix'])) $our_prefix++;
+                            }
+                            $ret_info .= sprintf(__('%s total table(s) found; %s with the indicated prefix.', 'updraftplus'), count($all_tables), $our_prefix);
+                    }
+            }
+
+            $ret_after = '';
+
+            if (count($updraftplus_admin->logged) >0) {
+                    $ret_after .= "<p>".__('Messages:', 'updraftplus');
+                    $ret_after .= '<ul style="list-style: disc inside;">';
+
+                    foreach (array_unique($updraftplus_admin->logged) as $code => $err) {
+                            if ('db_connect_fail' === $code) $failed = true;
+                            $ret_after .= "<li><strong>$code:</strong> $err</li>";
+                    }
+                    $ret_after .= '</ul></p>';
+            }
+
+            if (!$failed) {
+                    $ret = '<p>'.__('Connection succeeded.', 'updraftplus').' '.$ret_info.'</p>'.$ret;
+            } else {
+                    $ret = '<p>'.__('Connection failed.', 'updraftplus').'</p>'.$ret;
+            }
+
+            restore_error_handler();
+            return array('r' => $_POST['row'], 'm' => $ret.$ret_after);
+    }
+
+        
     function backup_now() {        
         global $updraftplus;        
     	$backupnow_nocloud = (empty($_REQUEST['backupnow_nocloud'])) ? false : true;
