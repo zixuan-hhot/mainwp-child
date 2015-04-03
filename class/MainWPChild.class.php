@@ -2541,15 +2541,17 @@ class MainWPChild
     }
 
     function get_favi_icon() {
-        $url = site_url();          
+        $url = site_url();             
         $request = wp_remote_get( $url, array('timeout' => 50));                
         $favi = "";
         if (is_array($request) && isset($request['body'])) {        
-            $preg_str = '/<link\s+(?:type="[^"]+"\s*)?(?:rel="(?:shortcut\s+)?icon"\s*)?(?:type="[^"]+"\‌​s*)?href="([^"]+)"(?:type="[^"]+"\s*)?(?:\s*rel="(?:shortcut\‌​s+)?icon"\s*)?(?:t‌​ype="[^"]+"\s*)?\s*\/?>/';
+            //$preg_str = '/<link\s+(?:type="[^"]+"\s*)?(?:rel="(?:shortcut\s+)?icon"\s*)?(?:type="[^"]+"\‌​s*)?href="([^"]+)"(?:type="[^"]+"\s*)?(?:\s*rel="(?:shortcut\‌​s+)?icon"\s*)?(?:t‌​ype="[^"]+"\s*)?\s*\/? >/';
+            $preg_str = '/(<link\s+(?:[^\>]*)(?:rel="(?:shortcut\s+)?icon"\s*)(?:[^>]*)?href="([^"]+)"(?:[^>]*)?>)/is';
             if (preg_match($preg_str, $request['body'], $matches))
             {
-               $favi = $matches[1];
+               $favi = $matches[2];              
             } 
+            //error_log(print_r($request['body'], true));
         }
         return $favi;
     }
