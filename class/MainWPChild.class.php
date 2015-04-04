@@ -2528,7 +2528,7 @@ class MainWPChild
             }
         }
         
-        $information['faviIcon'] = $this->get_favi_icon();
+        $information['faviIcon'] = $this->get_favicon();
         
         $last_post = wp_get_recent_posts(array( 'numberposts' => absint('1')));
         if (isset($last_post[0])) $last_post = $last_post[0];
@@ -2540,18 +2540,19 @@ class MainWPChild
         return $information;
     }
 
-    function get_favi_icon() {
-        $url = site_url();             
+    function get_favicon() {
+        $url = site_url();                     
         $request = wp_remote_get( $url, array('timeout' => 50));                
         $favi = "";
         if (is_array($request) && isset($request['body'])) {        
-            //$preg_str = '/<link\s+(?:type="[^"]+"\s*)?(?:rel="(?:shortcut\s+)?icon"\s*)?(?:type="[^"]+"\‌​s*)?href="([^"]+)"(?:type="[^"]+"\s*)?(?:\s*rel="(?:shortcut\‌​s+)?icon"\s*)?(?:t‌​ype="[^"]+"\s*)?\s*\/? >/';
             $preg_str = '/(<link\s+(?:[^\>]*)(?:rel="(?:shortcut\s+)?icon"\s*)(?:[^>]*)?href="([^"]+)"(?:[^>]*)?>)/is';
+            $preg_apple = '/(<link\s+(?:[^\>]*)(?:rel="apple-touch-icon-precomposed"\s*)(?:[^>]*)?href="([^"]+)"(?:[^>]*)?>)/is';
             if (preg_match($preg_str, $request['body'], $matches))
             {
-               $favi = $matches[2];              
-            } 
-            //error_log(print_r($request['body'], true));
+                $favi = $matches[2];              
+            } else if (preg_match($preg_apple, $request['body'], $matches)) {
+                $favi = $matches[2]; 
+            }
         }
         return $favi;
     }
