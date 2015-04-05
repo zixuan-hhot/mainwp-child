@@ -943,10 +943,10 @@ class MainWPHelper
     {
         return preg_match('/' . $pPrefix . '(.*).(zip|tar|tar.gz|tar.bz2)' . $pSuffix . '$/', $pFileName);
     }
-    
+
     public static function parse_query($var)
     {
-     
+
       $var  = parse_url($var, PHP_URL_QUERY);
       $var  = html_entity_decode($var);
       $var  = explode('&', $var);
