@@ -65,8 +65,7 @@ class MainWPChild
         'wordfence' => 'wordfence',
         'delete_backup' => 'delete_backup',
         'update_values' => 'update_values',
-        'ithemes' => 'ithemes',
-        'multistores' => 'multistores',
+        'ithemes' => 'ithemes',        
         'updraftplus' => 'updraftplus'        
     );
 
@@ -790,7 +789,6 @@ class MainWPChild
 
         new MainWPChildIThemesSecurity();
 
-        MainWPChildWooCommerceMultiStores::Instance()->init();
         MainWPChildUpdraftplusBackups::Instance()->updraftplus_init();                    
       
         //Call the function required
@@ -4076,9 +4074,6 @@ class MainWPChild
         MainWPChildIThemesSecurity::Instance()->action();
     }
 
-    function multistores() {
-        MainWPChildWooCommerceMultiStores::Instance()->action();
-    }
 
     function updraftplus() {
         MainWPChildUpdraftplusBackups::Instance()->action();
