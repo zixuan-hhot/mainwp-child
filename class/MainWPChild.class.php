@@ -2536,7 +2536,7 @@ class MainWPChild
 
         $last_post = wp_get_recent_posts(array( 'numberposts' => absint('1')));
         if (isset($last_post[0])) $last_post = $last_post[0];
-        if (isset($last_post)) $information['last_post_gmt'] = strtotime($last_post['post_modified_gmt']);
+        if (isset($last_post) && isset($last_post['post_modified_gmt'])) $information['last_post_gmt'] = strtotime($last_post['post_modified_gmt']);
         $information['mainwpdir'] = (MainWPHelper::validateMainWPDir() ? 1 : -1);
         $information['uniqueId'] = get_option('mainwp_child_uniqueId', '');
         if ($exit) MainWPHelper::write($information);
