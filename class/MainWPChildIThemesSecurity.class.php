@@ -138,9 +138,9 @@ class MainWPChildIThemesSecurity
         $rewrites_changed = false;
                 
         if (isset($settings['itsec_global'])) { 
-            $old_settings = get_site_option( 'itsec_global' );
-            // keep current value
-            $settings['itsec_global']['log_location'] = $old_settings['log_location'];        
+//            $old_settings = get_site_option( 'itsec_global' );
+//            // keep current value
+//            $settings['itsec_global']['log_location'] = $old_settings['log_location'];        
             if (update_site_option('itsec_global', $settings['itsec_global'])) {                
                 if (isset( $settings['itsec_global']['write_files'] ) && $settings['itsec_global']['write_files'] === true) {
                     add_site_option( 'itsec_rewrites_changed', true );
