@@ -2555,6 +2555,8 @@ class MainWPChild
                 $favi = $matches[2];
             } else if (file_exists(ABSPATH . 'favicon.ico')) {
                 $favi = 'favicon.ico';
+            } else if (file_exists(ABSPATH . 'favicon.png')) {
+                $favi = 'favicon.png';
             }
         }
         return $favi;
