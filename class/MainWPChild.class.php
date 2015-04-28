@@ -1134,6 +1134,11 @@ class MainWPChild
             }
             if (count($plugins) > 0)
             {
+                //Fix bug
+                global $wp_current_filter;
+                $wp_current_filter[] = 'load-update.php';
+                wp_update_plugins();
+                
                 //@see wp-admin/update.php
                 $upgrader = new Plugin_Upgrader(new Bulk_Plugin_Upgrader_Skin(compact('nonce', 'url')));
                 $result = $upgrader->bulk_upgrade($plugins);
