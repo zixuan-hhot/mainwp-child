@@ -2457,7 +2457,7 @@ class MainWPChild
 
         //Directory listings!
         $information['directories'] = $this->scanDir(ABSPATH, 3);
-        $cats = get_categories(array('hide_empty' => 0, 'name' => 'select_name', 'hierarchical' => true));
+        $cats = get_categories(array('hide_empty' => 0, 'hierarchical' => true));
         $categories = array();
         foreach ($cats as $cat)
         {
