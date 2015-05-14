@@ -187,17 +187,17 @@ class MainWPChildBackUpWordPress
     }
     
     function reload_backups() {  
-        
-        $scheduleIds = isset($_POST['schedule_ids']) ? $_POST['schedule_ids'] : array();   
-        HM\BackUpWordPress\Schedules::get_instance()->refresh_schedules();         
-        
-        if (empty($scheduleIds)) {            
-            $schedules = HM\BackUpWordPress\Schedules::get_instance()->get_schedules();            
+
+        $scheduleIds = isset($_POST['schedule_ids']) ? $_POST['schedule_ids'] : array();
+        HM\BackUpWordPress\Schedules::get_instance()->refresh_schedules();
+
+        if (empty($scheduleIds)) {
+            $schedules = HM\BackUpWordPress\Schedules::get_instance()->get_schedules();
             foreach($schedules as $sch) {
                 $scheduleIds[] = $sch->get_id();
-            }            
+            }
         }
-        
+
         if (empty($scheduleIds))
             return array('error' => __("Not found schedules.", 'mainwp-child'));
         
