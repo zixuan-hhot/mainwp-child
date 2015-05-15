@@ -483,6 +483,14 @@ class MainWPChildUpdraftplusBackups
     
     private function get_updraft_data() {        
         global $updraftplus;
+        
+        if (empty($updraftplus) && class_exists('UpdraftPlus')) {
+            $updraftplus = new UpdraftPlus();            
+        }
+        
+        if (empty($updraftplus))
+            return false;
+        
         // UNIX timestamp
         $next_scheduled_backup = wp_next_scheduled('updraft_backup');        
         $next_scheduled_backup_gmt = $next_scheduled_backup_database_gmt = 0;        
