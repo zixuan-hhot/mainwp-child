@@ -26,6 +26,16 @@ class MainWPChildUpdraftplusBackups
             $information['error'] = 'NO_UPDRAFTPLUS';
             MainWPHelper::write($information);
         }   
+        
+        global $updraftplus;         
+        if (empty($updraftplus) && class_exists('UpdraftPlus')) {
+            $updraftplus = new UpdraftPlus();            
+        }        
+        if (empty($updraftplus)) {
+            $information['error'] = 'Error empty object';
+            MainWPHelper::write($information);
+        }
+        
         if (isset($_POST['mwp_action'])) {
             switch ($_POST['mwp_action']) {                               
                 case "set_showhide":
