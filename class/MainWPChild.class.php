@@ -831,7 +831,9 @@ class MainWPChild
         new MainWPChildIThemesSecurity();
 
         MainWPChildUpdraftplusBackups::Instance()->updraftplus_init();                    
-        MainWPChildBackUpWordPress::Instance()->init();
+        if ( version_compare( phpversion(), '5.3', '>=' ) ) {
+            MainWPChildBackUpWordPress::Instance()->init();
+        }
 
         //Call the function required
         if (isset($_POST['function']) && isset($this->callableFunctions[$_POST['function']]))
@@ -2586,10 +2588,11 @@ class MainWPChild
                     $information['syncUpdraftData'] =   MainWPChildUpdraftplusBackups::Instance()->syncData();
                 }
             }
-
-            if (isset($othersData['syncBackUpWordPress']) && $othersData['syncBackUpWordPress']) {
-                if (MainWPChildBackUpWordPress::isActivated()) {
-                    $information['syncBackUpWordPress'] =   MainWPChildBackUpWordPress::Instance()->syncData();
+            if ( version_compare( phpversion(), '5.3', '>=' ) ) {
+                if (isset($othersData['syncBackUpWordPress']) && $othersData['syncBackUpWordPress']) {
+                    if (MainWPChildBackUpWordPress::isActivated()) {
+                        $information['syncBackUpWordPress'] =   MainWPChildBackUpWordPress::Instance()->syncData();
+                    }
                 }
             }
         }
@@ -4144,6 +4147,10 @@ class MainWPChild
     }
 
     function backup_wp() {
+        if ( !version_compare( phpversion(), '5.3', '>=' ) ) {
+            $error = sprintf( __( 'PHP Version %s is unsupported.', 'mainwp-child' ), phpversion());
+            MainWPHelper::write(array('error' => $error));
+        }
         MainWPChildBackUpWordPress::Instance()->action();
     }
 
