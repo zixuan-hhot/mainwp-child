@@ -147,6 +147,9 @@ class MainWPHelper
         $foundMatches = preg_match_all('/(<a[^>]+href=\"(.*?)\"[^>]*>)?(<img[^>\/]*src=\"((.*?)(png|gif|jpg|jpeg))\")/ix', $new_post['post_content'], $matches, PREG_SET_ORDER);              
         if (($foundMatches > 0 || ($is_robot_post && isset($wpr_options['wpr_save_images']) && $wpr_options['wpr_save_images'] == "Yes")) && (!$is_ezine_post))
         {
+            
+            error_log(print_r($matches, true));
+            
             //We found images, now to download them so we can start balbal
             foreach ($matches as $match)
             {
@@ -169,9 +172,17 @@ class MainWPHelper
                 $localUrl = $downloadfile['url'];
                 $linkToReplaceWith = dirname($localUrl);
                 if ($hrefLink != '')
-                {
-                    $lnkToReplace = dirname($hrefLink);
-                    if ($lnkToReplace != 'http:' && $lnkToReplace != 'https:') $new_post['post_content'] = str_replace($lnkToReplace, $linkToReplaceWith, $new_post['post_content']);
+                {                    
+                    $server = get_option('mainwp_child_server');
+                    $serverHost = parse_url($server, PHP_URL_HOST);                                                      
+                    if (!empty($serverHost) && strpos($hrefLink, $serverHost) !== false) {
+                        $serverHref = "href=\"" .$serverHost; 
+                        $replaceServerHref = "href=\"" .parse_url($localUrl, PHP_URL_SCHEME) . "://" . parse_url($localUrl, PHP_URL_HOST);                                                 
+                        $new_post['post_content'] = str_replace($serverHref, $replaceServerHref, $new_post['post_content']);
+                    } else {
+                        $lnkToReplace = dirname($hrefLink);                        
+                        if ($lnkToReplace != 'http:' && $lnkToReplace != 'https:') $new_post['post_content'] = str_replace($lnkToReplace, $linkToReplaceWith, $new_post['post_content']);                        
+                    }
                 }
 
                 $lnkToReplace = dirname($imgUrl);
