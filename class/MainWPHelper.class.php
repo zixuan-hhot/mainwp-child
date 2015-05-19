@@ -174,12 +174,12 @@ class MainWPHelper
                 if ($hrefLink != '')
                 {                    
                     $server = get_option('mainwp_child_server');
-                    $serverHost = parse_url($server, PHP_URL_HOST);                                                      
+                    $serverHost = parse_url($server, PHP_URL_HOST);                     
                     if (!empty($serverHost) && strpos($hrefLink, $serverHost) !== false) {
                         $serverHref = "href=\"" .$serverHost; 
                         $replaceServerHref = "href=\"" .parse_url($localUrl, PHP_URL_SCHEME) . "://" . parse_url($localUrl, PHP_URL_HOST);                                                 
                         $new_post['post_content'] = str_replace($serverHref, $replaceServerHref, $new_post['post_content']);
-                    } else {
+                    } if (strpos($hrefLink, "http") !== false) {
                         $lnkToReplace = dirname($hrefLink);                        
                         if ($lnkToReplace != 'http:' && $lnkToReplace != 'https:') $new_post['post_content'] = str_replace($lnkToReplace, $linkToReplaceWith, $new_post['post_content']);                        
                     }
