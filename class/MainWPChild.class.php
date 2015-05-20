@@ -2614,8 +2614,13 @@ class MainWPChild
         $request = wp_remote_get( $url, array('timeout' => 50));
         $favi = "";
         if (is_array($request) && isset($request['body'])) {
-            $preg_str = '/(<link\s+(?:[^\>]*)(?:rel="(?:shortcut\s+)?icon"\s*)(?:[^>]*)?href="([^"]+)"(?:[^>]*)?>)/is';
-            if (preg_match($preg_str, $request['body'], $matches))
+            // to fix bug
+            $preg_str1 = '/(<link\s+(?:[^\>]*)(?:rel="shortcut\s+icon"\s*)(?:[^>]*)?href="([^"]+)"(?:[^>]*)?>)/is';
+            $preg_str2 = '/(<link\s+(?:[^\>]*)(?:rel="(?:shortcut\s+)?icon"\s*)(?:[^>]*)?href="([^"]+)"(?:[^>]*)?>)/is';
+            if (preg_match($preg_str1, $request['body'], $matches))
+            {
+                $favi = $matches[2];
+            } else if (preg_match($preg_str2, $request['body'], $matches))
             {
                 $favi = $matches[2];
             } else if (file_exists(ABSPATH . 'favicon.ico')) {
