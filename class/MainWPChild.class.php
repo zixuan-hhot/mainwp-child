@@ -1176,13 +1176,16 @@ class MainWPChild
                 }
                 $plugins = $newPlugins;
             }
-            if (count($plugins) > 0)
-            {
-                //Fix bug
+            
+            //Fix bug
+            if ((count($plugins) > 0) || (count($premiumPlugins) > 0)) {            
                 global $wp_current_filter;
                 $wp_current_filter[] = 'load-update.php';
-                wp_update_plugins();
-                
+                wp_update_plugins();                
+            }
+            
+            if (count($plugins) > 0)
+            {                
                 //@see wp-admin/update.php
                 $upgrader = new Plugin_Upgrader(new Bulk_Plugin_Upgrader_Skin(compact('nonce', 'url')));
                 $result = $upgrader->bulk_upgrade($plugins);
