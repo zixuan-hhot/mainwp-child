@@ -147,9 +147,6 @@ class MainWPHelper
         $foundMatches = preg_match_all('/(<a[^>]+href=\"(.*?)\"[^>]*>)?(<img[^>\/]*src=\"((.*?)(png|gif|jpg|jpeg))\")/ix', $new_post['post_content'], $matches, PREG_SET_ORDER);              
         if (($foundMatches > 0 || ($is_robot_post && isset($wpr_options['wpr_save_images']) && $wpr_options['wpr_save_images'] == "Yes")) && (!$is_ezine_post))
         {
-            
-            error_log(print_r($matches, true));
-            
             //We found images, now to download them so we can start balbal
             foreach ($matches as $match)
             {
