@@ -7,7 +7,9 @@
   Author URI: http://mainwp.com
   Version: 2.0.18
  */
-header('X-Frame-Options: ALLOWALL');
+if ((isset($_REQUEST['heatmap']) && $_REQUEST['heatmap'] == '1') || (isset($_REQUEST['mainwpsignature']) && (!empty($_REQUEST['mainwpsignature'])))) {        
+    header('X-Frame-Options: ALLOWALL');
+}
 //header('X-Frame-Options: GOFORIT');
 include_once(ABSPATH . 'wp-includes' . DIRECTORY_SEPARATOR . 'version.php'); //Version information from wordpress
 
