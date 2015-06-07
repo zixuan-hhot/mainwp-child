@@ -2371,7 +2371,11 @@ class MainWPChild
         $information['nossl'] = (get_option('mainwp_child_nossl') == 1 ? 1 : 0);
 
         include_once(ABSPATH . '/wp-admin/includes/update.php');
-
+        
+        $timeout = 3 * 60 * 60; // 3minutes
+        @set_time_limit($timeout);
+        @ini_set('max_execution_time', $timeout);       
+        
         //Check for new versions
         if ($this->filterFunction != null) add_filter( 'pre_site_transient_update_core', $this->filterFunction, 99 );
         if ($this->filterFunction != null) add_filter( 'pre_transient_update_core', $this->filterFunction, 99 );
