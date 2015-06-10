@@ -184,7 +184,8 @@ class MainWPChildUpdraftplusBackups
                 'updraft_copycom',
                 'updraft_sftp_settings',
                 'updraft_webdav_settings',
-                'updraft_dreamobjects'            
+                'updraft_dreamobjects',
+                'updraft_onedrive'
             );
     } 
         
@@ -210,6 +211,14 @@ class MainWPChildUpdraftplusBackups
                         } else if ($key == "updraft_googledrive") {
                              if (isset($settings[$key])) {
                                 $opts = UpdraftPlus_Options::get_updraft_option('updraft_googledrive');
+                                $opts['clientid'] = $settings[$key]['clientid'];
+                                $opts['secret'] = $settings[$key]['secret'];
+                                $opts['folder'] = $settings[$key]['folder'];
+                                UpdraftPlus_Options::update_updraft_option($key, $opts);
+                             }
+                        } else if ($key == "updraft_onedrive") {
+                             if (isset($settings[$key])) {
+                                $opts = UpdraftPlus_Options::get_updraft_option('updraft_onedrive');
                                 $opts['clientid'] = $settings[$key]['clientid'];
                                 $opts['secret'] = $settings[$key]['secret'];
                                 $opts['folder'] = $settings[$key]['folder'];

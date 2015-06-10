@@ -1,14 +1,14 @@
 <?php
 
-class MainWPChildBackUpWordPress
+class MainWPChildWPRocket
 {   
     public static $instance = null;   
     
     static function Instance() {        
-        if (MainWPChildBackUpWordPress::$instance == null) {
-            MainWPChildBackUpWordPress::$instance = new MainWPChildBackUpWordPress();
+        if (MainWPChildWPRocket::$instance == null) {
+            MainWPChildWPRocket::$instance = new MainWPChildWPRocket();
         }
-        return MainWPChildBackUpWordPress::$instance;
+        return MainWPChildWPRocket::$instance;
     }    
     
     public function __construct() {                
@@ -29,8 +29,8 @@ class MainWPChildBackUpWordPress
     }
     
     function remove_update_nag($value) {
-        if (isset($value->response['backupwordpress/backupwordpress.php']))
-            unset($value->response['backupwordpress/backupwordpress.php']);        
+        if (isset($value->response['wp-rocket/wp-rocket.php']))
+            unset($value->response['wp-rocket/wp-rocket.php']);        
         return $value;
     }
     
