@@ -67,8 +67,7 @@ class MainWPChild
         'update_values' => 'update_values',
         'ithemes' => 'ithemes',        
         'updraftplus' => 'updraftplus',
-        'backup_wp' => 'backup_wp',
-        'wprocket' => 'wprocket'
+        'backup_wp' => 'backup_wp'        
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -4172,10 +4171,6 @@ class MainWPChild
             MainWPHelper::write(array('error' => $error));
         }
         MainWPChildBackUpWordPress::Instance()->action();
-    }
-
-    function wprocket() {     
-        MainWPChildWPRocket::Instance()->action();
     }
 
     function delete_backup()
