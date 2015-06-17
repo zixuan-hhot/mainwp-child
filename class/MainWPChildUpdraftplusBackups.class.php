@@ -12,7 +12,7 @@ class MainWPChildUpdraftplusBackups
     }    
     
     public function __construct() {                
-        
+      
     }
     
     public function init()
@@ -200,35 +200,38 @@ class MainWPChildUpdraftplusBackups
             if (class_exists('UpdraftPlus_Options')) {
                 foreach($keys as $key) {
                     if (isset($settings[$key])) {
-                        if ($key == "updraft_dropbox") {
-                            if (isset($settings[$key])) {
-                                $opts = UpdraftPlus_Options::get_updraft_option('updraft_dropbox');
-                                $opts['appkey'] = $settings[$key]['appkey'];
-                                $opts['secret'] = $settings[$key]['secret'];
-                                $opts['folder'] = $settings[$key]['folder'];
-                                UpdraftPlus_Options::update_updraft_option($key, $opts);
+                        if ($key == "updraft_dropbox") {                           
+                            $opts = UpdraftPlus_Options::get_updraft_option('updraft_dropbox');
+                            $opts['appkey'] = $settings[$key]['appkey'];
+                            $opts['secret'] = $settings[$key]['secret'];
+                            $opts['folder'] = $settings[$key]['folder'];
+                            UpdraftPlus_Options::update_updraft_option($key, $opts);                           
+                        } else if ($key == "updraft_googledrive") {                            
+                            $opts = UpdraftPlus_Options::get_updraft_option('updraft_googledrive');
+                            $opts['clientid'] = $settings[$key]['clientid'];
+                            $opts['secret'] = $settings[$key]['secret'];
+                            $opts['folder'] = $settings[$key]['folder'];
+                            UpdraftPlus_Options::update_updraft_option($key, $opts);                             
+                        } else if ($key == "updraft_onedrive") {                            
+                            $opts = UpdraftPlus_Options::get_updraft_option('updraft_onedrive');
+                            $opts['clientid'] = $settings[$key]['clientid'];
+                            $opts['secret'] = $settings[$key]['secret'];
+                            $opts['folder'] = $settings[$key]['folder'];
+                            UpdraftPlus_Options::update_updraft_option($key, $opts);                            
+                        } else if ($key == "updraft_email") { 
+                            $value = $settings[$key];
+                            // free version
+                            if (!is_array($value)) {                                                          
+                                if (!empty($value)) {
+                                    $value = htmlspecialchars(get_bloginfo('admin_email'));                                                                   
+                                }
                             }
-                        } else if ($key == "updraft_googledrive") {
-                             if (isset($settings[$key])) {
-                                $opts = UpdraftPlus_Options::get_updraft_option('updraft_googledrive');
-                                $opts['clientid'] = $settings[$key]['clientid'];
-                                $opts['secret'] = $settings[$key]['secret'];
-                                $opts['folder'] = $settings[$key]['folder'];
-                                UpdraftPlus_Options::update_updraft_option($key, $opts);
-                             }
-                        } else if ($key == "updraft_onedrive") {
-                             if (isset($settings[$key])) {
-                                $opts = UpdraftPlus_Options::get_updraft_option('updraft_onedrive');
-                                $opts['clientid'] = $settings[$key]['clientid'];
-                                $opts['secret'] = $settings[$key]['secret'];
-                                $opts['folder'] = $settings[$key]['folder'];
-                                UpdraftPlus_Options::update_updraft_option($key, $opts);
-                             }
+                            UpdraftPlus_Options::update_updraft_option($key, $value);                                                                                  
                         } else {
                             UpdraftPlus_Options::update_updraft_option($key, $settings[$key]);                        
                         }
                         $updated = true;
-                    }
+                    } 
                 }
                 global $updraftplus;
                 if ($settings['updraft_interval']) {
