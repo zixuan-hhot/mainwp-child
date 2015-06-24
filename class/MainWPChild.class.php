@@ -333,7 +333,7 @@ class MainWPChild
                 $child_menu_icon = 'data:image/png+xml;base64,' . base64_encode(file_get_contents($this->plugin_dir . '/images/mainwpicon.png'));
             }
             
-            add_menu_page($child_menu_name, $child_menu_name, 'read', $mainwp_child_menu_slug, false, $child_menu_icon, '80.00001');
+            add_menu_page($child_menu_name, $child_menu_name, 'manage_options', $mainwp_child_menu_slug, false, $child_menu_icon, '80.00001');
 
             if (!get_option('mainwp_branding_remove_setting') || $cancelled_branding)
             {
