@@ -843,14 +843,14 @@ class MainWPChildUpdraftplusBackups
     }
              
     public function historystatus($remotescan = null, $rescan = null ) {
-        global $updraftplus_admin, $updraftplus;
-        if (empty($updraftplus_admin)) require_once(UPDRAFTPLUS_DIR.'/admin.php');
-
+        global $updraftplus;
+        
         $remotescan = ($remotescan !== null) ? $remotescan : $_POST['remotescan'];
         $rescan = ($rescan !== null) ? $rescan : $_POST['rescan']; 
         
-        if ($rescan) $messages = $updraftplus_admin->rebuild_backup_history($remotescan);
-
+        if ($rescan) 
+            $messages = $this->rebuildBackupHistory($remotescan);   
+        
         $backup_history = UpdraftPlus_Options::get_updraft_option('updraft_backup_history');
         $backup_history = (is_array($backup_history)) ? $backup_history : array();
         $output = $this->existing_backup_table($backup_history);
@@ -1166,7 +1166,7 @@ class MainWPChildUpdraftplusBackups
         $backup_success = $this->restore_backup($_REQUEST['backup_timestamp']);
         if (empty($updraftplus->errors) && $backup_success === true) {
                 // If we restored the database, then that will have out-of-date information which may confuse the user - so automatically re-scan for them.
-                $updraftplus_admin->rebuild_backup_history();
+                $this->rebuildBackupHistory();
                 echo '<p><strong>';
                 $updraftplus->log_e('Restore successful!');
                 echo '</strong></p>';
@@ -2240,13 +2240,16 @@ ENDHERE;
         }
     }
 
-//    private function rebuildBackupHistory() {
-//        global $updraftplus_admin;
-//        $messages = $updraftplus_admin->rebuild_backup_history();
-//        $out['updraft_backup_history'] = UpdraftPlus_Options::get_updraft_option('updraft_backup_history');   
-//        $out['messages'] = $messages;
-//        return $out;
-//    }
+    private function rebuildBackupHistory($remotescan = false) {
+        global $updraftplus_admin, $updraftplus;
+        $messages = null;
+        if (method_exists($updraftplus, 'rebuild_backup_history')) {
+            $messages = $updraftplus->rebuild_backup_history($remotescan);
+        } else if (method_exists($updraftplus_admin, 'rebuild_backup_history')) {           
+            $messages = $updraftplus_admin->rebuild_backup_history($remotescan);
+        }   
+        return $messages;
+    }
 
     private function forceScheduledResumption() {
         global $updraftplus;
