@@ -234,10 +234,18 @@ class MainWPChildUpdraftplusBackups
                     } 
                 }
                 global $updraftplus;
-                if ($settings['updraft_interval']) {
+                if (isset($settings['updraft_interval'])) {         
+                    // fix for premium version
+                    $_POST['updraft_interval'] = $settings['updraft_interval'];
+                    $_POST['updraft_startday_files'] = $settings['updraft_startday_files'];
+                    $_POST['updraft_starttime_files'] = $settings['updraft_starttime_files'];                    
                     $updraftplus->schedule_backup($settings['updraft_interval']);
                 }
-                if ($settings['updraft_interval_database']) {
+                if (isset($settings['updraft_interval_database'])) {
+                    // fix for premium version
+                    $_POST['updraft_interval_database'] = $settings['updraft_interval_database'];
+                    $_POST['updraft_startday_database'] = $settings['updraft_startday_database'];
+                    $_POST['updraft_starttime_database'] = $settings['updraft_starttime_database'];                    
                     $updraftplus->schedule_backup_database($settings['updraft_interval_database']);
                 }
                 
