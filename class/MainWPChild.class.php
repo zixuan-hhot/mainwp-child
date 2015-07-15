@@ -68,7 +68,8 @@ class MainWPChild
         'ithemes' => 'ithemes',        
         'updraftplus' => 'updraftplus',
         'backup_wp' => 'backup_wp',
-        'backwpup' => 'backwpup'
+        'backwpup' => 'backwpup',        
+        'wp_rocket' => 'wp_rocket'
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -841,7 +842,9 @@ class MainWPChild
         if ( version_compare( phpversion(), '5.3', '>=' ) ) {
             MainWPChildBackUpWordPress::Instance()->init();
         }
-
+        
+        MainWPChildWPRocket::Instance()->init();
+             
         MainWPChildBackWPup::Instance()->init();
 
         //Call the function required
@@ -4211,6 +4214,10 @@ class MainWPChild
             MainWPHelper::write(array('error' => $error));
         }
         MainWPChildBackUpWordPress::Instance()->action();
+    }
+    
+    function wp_rocket() {     
+        MainWPChildWPRocket::Instance()->action();
     }
 
     function backwpup() {
