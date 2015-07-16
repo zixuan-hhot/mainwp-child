@@ -431,7 +431,7 @@ class MainWPClientReport
                                 
                 switch ($data) {
                     case "date":
-                        $token_values[$token] = get_date_from_gmt( $record->created, 'Y/m/d' ) . ' ' . get_date_from_gmt( $record->created, 'h:i:s A' ); //MainWPHelper::formatTimestamp(strtotime($record->created));                            
+                        $token_values[$token] = MainWPHelper::formatTimestamp(MainWPHelper::getTimestamp(strtotime($record->created)));
                         break;
                     case "area":                        
                         $data = "sidebar_name";  
