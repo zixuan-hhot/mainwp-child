@@ -1291,9 +1291,20 @@ class MainWPChild
 
             if (count($themes) > 0)
             {
+                // To fix: optimizePressTheme update 
+                $addFilterToFixUpdate_optimizePressTheme = false;
+                if (in_array('optimizePressTheme', $themes)) {
+                    $addFilterToFixUpdate_optimizePressTheme = true;
+                    add_filter('site_transient_update_themes', array($this, 'hookFixOptimizePressThemeUpdate'), 99);
+                }
+                
                 //@see wp-admin/update.php
                 $upgrader = new Theme_Upgrader(new Bulk_Theme_Upgrader_Skin(compact('nonce', 'url')));
                 $result = $upgrader->bulk_upgrade($themes);
+                
+                if ($addFilterToFixUpdate_optimizePressTheme)
+                    remove_filter( 'site_transient_update_themes', array($this, 'hookFixOptimizePressThemeUpdate'), 99 );
+                
                 if (!empty($result))
                 {
                     foreach ($result as $theme => $info)
@@ -1419,6 +1430,38 @@ class MainWPChild
         MainWPHelper::write($information);
     }
 
+    function hookFixOptimizePressThemeUpdate($transient) {
+        if (!defined('OP_FUNC')) {
+            return $transient;
+        }
+
+        $theme_slug = 'optimizePressTheme';
+
+        if (!function_exists('op_sl_update')) {
+            require_once OP_FUNC.'options.php';
+            require_once OP_FUNC.'sl_api.php';
+        }
+        $apiResponse = op_sl_update('theme');
+
+        if (is_wp_error($apiResponse)) {
+            return $transient;
+        }
+
+        $obj                = new stdClass();
+        $obj->slug          = $theme_slug;
+        $obj->new_version   = $apiResponse->new_version;
+        $obj->url           = $apiResponse->url;
+        $obj->package       = $apiResponse->s3_package;
+        $obj->sections      = array(
+            'description' => $apiResponse->section->description,
+            'changelog' => $apiResponse->section->changelog,
+        );
+
+        $transient->response[$theme_slug] = (array) $obj;
+
+        return $transient;
+    }
+    
     //This will register the current wp - thus generating the public key etc..
     function registerSite()
     {
