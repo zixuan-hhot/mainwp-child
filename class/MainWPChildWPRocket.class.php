@@ -55,8 +55,18 @@ class MainWPChildWPRocket
             wp_redirect(get_option('siteurl') . '/wp-admin/index.php'); 
             exit();
         }
-    }   
+    } 
     
+    public function all_plugins($plugins) {
+        foreach ($plugins as $key => $value)
+        {
+            $plugin_slug = basename($key, '.php');
+            if ($plugin_slug == 'wp-rocket')
+                unset($plugins[$key]);
+        }
+        return $plugins;       
+    }
+        
     public function action() {        
         $information = array();          
         if (!self::isActivated()) {

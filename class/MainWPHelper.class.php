@@ -90,7 +90,7 @@ class MainWPHelper
         global $current_user;        
         $wprocket_fields = array( 'lazyload', 'lazyload_iframes', 'minify_html', 'minify_css', 'minify_js', 'cdn' );     
         $wprocket_activated = false;
-        if (MainWPChildWPRocket::isActivated('get_rocket_option')) {
+        if (MainWPChildWPRocket::isActivated()) {
             if (function_exists('get_rocket_option')) {
                 $wprocket_activated = true;
                 foreach ( $wprocket_fields as $field ) {
