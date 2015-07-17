@@ -2676,6 +2676,16 @@ class MainWPChild
                     }
                 }
             }
+            
+            if (isset($othersData['syncWPRocketData']) && ($othersData['syncWPRocketData'] == 'yes')) {                
+                $data = array();                
+                if (MainWPChildWPRocket::isActivated()){                    
+                    $boxes = get_user_meta( $GLOBALS['current_user']->ID, 'rocket_boxes', true );                    
+                    $data['rocket_boxes'] = $boxes;                    
+                }         
+                $information['syncWPRocketData'] =   $data;
+            }
+            
         }
 
         $information['faviIcon'] = $this->get_favicon();
