@@ -7,7 +7,7 @@ Author URI: https://mainwp.com
 Plugin URI: https://mainwp.com
 Requires at least: 3.6
 Tested up to: 4.2.2
-Stable tag: 2.0.21
+Stable tag: 2.0.22
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,11 @@ To see full documentation and FAQs please visit [MainWP Documentation](http://do
 10. The Extension Screen
 
 == Changelog ==
+
+= 2.0.22 - 7-22-15 =
+* Fixed: Bug where the OptmizePress theme has not been updated properly
+* Fixed: Bug where the Client Report extenison recored incorrect time 
+* Added: Support for the upcomming extension
 
 = 2.0.21 - 7-9-15 =
 * Fixed: Bug with time schedule for the UpdraftPlus extension
