@@ -3059,115 +3059,6 @@ class MainWPChild
 		}
     }
 
-    // function get_next_time_of_post_to_post()
-    // {
-        // /** @var $wpdb wpdb */
-        // global $wpdb;
-		// try
-		// {
-			// $ct = current_time('mysql');
-			// $next_post = $wpdb->get_row("
-				// SELECT *
-				// FROM $wpdb->posts p JOIN $wpdb->postmeta pm ON p.ID=pm.post_id
-				// WHERE
-					// pm.meta_key='_ezine_keyword' AND
-					// p.post_status='future' AND
-					// p.post_type='post' AND
-					// p.post_date>'$ct'
-				// ORDER BY p.post_date
-				// LIMIT 1");
-
-			// if (!$next_post)
-			// {
-				// $information['error'] =  "Can not get next schedule post";
-			// }
-			// else
-			// {
-				// $information['next_post_date'] =  $next_post->post_date;
-				// $information['next_post_id'] =  $next_post->ID;
-
-				// $next_posts = $wpdb->get_results("
-				// SELECT DISTINCT  `ID`
-					// FROM $wpdb->posts p
-					// JOIN $wpdb->postmeta pm ON p.ID = pm.post_id
-					// WHERE pm.meta_key =  '_ezine_keyword'
-					// AND p.post_status =  'future'
-					// AND p.post_date > NOW( )
-					// ORDER BY p.post_date
-				// ");
-
-				// if (!$next_posts)
-					// $information['error'] =  "Can not get all next schedule post";
-				// else
-					// $information['next_posts'] =  $next_posts;
-
-			// }
-
-			// MainWPHelper::write($information);
-		// }
-		// catch (Exception $e)
-		// {
-			// $information['error'] = $e->getMessage();
-			// MainWPHelper::write($information);
-		// }
-    // }
-
-    // function get_next_time_of_page_to_post()
-    // {
-        // /** @var $wpdb wpdb */
-        // global $wpdb;
-		// try
-		// {
-
-			// $ct = current_time('mysql');
-			// $next_post = $wpdb->get_row("
-				// SELECT *
-				// FROM $wpdb->posts p JOIN $wpdb->postmeta pm ON p.ID=pm.post_id
-				// WHERE
-					// pm.meta_key='_ezine_keyword' AND
-					// p.post_status='future' AND
-					// p.post_type='page' AND
-					// p.post_date>'$ct'
-				// ORDER BY p.post_date
-				// LIMIT 1");
-
-			// if (!$next_post)
-			// {
-				// $information['error'] =  "Can not get next schedule post";
-			// }
-			// else
-			// {
-
-				// $information['next_post_date'] =  $next_post->post_date;
-				// $information['next_post_id'] =  $next_post->ID;
-
-				 // $next_posts = $wpdb->get_results("
-					// SELECT DISTINCT  `ID`
-						// FROM $wpdb->posts p
-						// JOIN $wpdb->postmeta pm ON p.ID = pm.post_id
-						// WHERE pm.meta_key =  '_ezine_keyword'
-						// AND p.post_status =  'future'
-						// AND p.post_date > NOW( )
-						// ORDER BY p.post_date
-					// ");
-
-				// if (!$next_posts)
-					// $information['error'] =  "Can not get all next schedule post";
-				// else
-					// $information['next_posts'] =  $next_posts;
-
-			// }
-
-			// MainWPHelper::write($information);
-		// }
-		// catch (Exception $e)
-		// {
-			// $information['error'] = $e->getMessage();
-			// MainWPHelper::write($information);
-		// }
-
-    // }
-
     function get_all_pages()
     {
         $this->get_all_posts_by_type('page');
@@ -3961,10 +3852,10 @@ class MainWPChild
             }
         }
 
-        if (in_array('optimize', $maint_options))
-        {
-            $this->maintenance_optimize();
-        }        
+//        if (in_array('optimize', $maint_options))
+//        {
+//            $this->maintenance_optimize();
+//        }        
         if (!isset($information['status'])) $information['status'] = 'SUCCESS';
         MainWPHelper::write($information);
     }
