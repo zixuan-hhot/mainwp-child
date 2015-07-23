@@ -3852,10 +3852,10 @@ class MainWPChild
             }
         }
 
-//        if (in_array('optimize', $maint_options))
-//        {
-//            $this->maintenance_optimize();
-//        }        
+        if (in_array('optimize', $maint_options))
+        {
+            $this->maintenance_optimize();
+        }        
         if (!isset($information['status'])) $information['status'] = 'SUCCESS';
         MainWPHelper::write($information);
     }
