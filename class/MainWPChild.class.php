@@ -2434,7 +2434,9 @@ class MainWPChild
         if ($exit) $this->updateExternalSettings();
 
         MainWPHelper::update_option('mainwp_child_branding_disconnected', '', 'yes');
-
+        if (isset($_POST['server']))
+            MainWPHelper::update_option('mainwp_child_server', $_POST['server']);        
+ 
         $information['version'] = $this->version;
         $information['wpversion'] = $wp_version;
         $information['siteurl'] = get_option('siteurl');
