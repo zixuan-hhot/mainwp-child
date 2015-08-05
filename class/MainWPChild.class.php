@@ -69,7 +69,7 @@ class MainWPChild
         'updraftplus' => 'updraftplus',
         'backup_wp' => 'backup_wp',
         'backwpup' => 'backwpup',        
-        'wp_rocket' => 'wp_rocket'
+        'wp_rocket' => 'wp_rocket'        
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -92,7 +92,7 @@ class MainWPChild
     public function __construct($plugin_file)
     {			
         $this->update();
-
+              
         $this->filterFunction = create_function( '$a', 'if ($a == null) { return false; } return $a;' );
         $this->plugin_dir = dirname($plugin_file);
         $this->plugin_slug = plugin_basename($plugin_file);
@@ -115,7 +115,10 @@ class MainWPChild
 		
         MainWPClone::init();
         MainWPChildServerInformation::init();  
-        MainWPClientReport::init();
+        MainWPClientReport::init();             
+        MainWPChildPluginsCheck::Instance();
+        MainWPChildThemesCheck::Instance();
+        
         $this->run_saved_snippets();
 
         if (!get_option('mainwp_child_pubkey'))
@@ -846,8 +849,8 @@ class MainWPChild
         MainWPChildWPRocket::Instance()->init();
              
         MainWPChildBackWPup::Instance()->init();
-
-        //Call the function required
+      
+            //Call the function required
         if (isset($_POST['function']) && isset($this->callableFunctions[$_POST['function']]))
         {
             call_user_func(array($this, ($auth ? $this->callableFunctions[$_POST['function']]
@@ -2435,8 +2438,18 @@ class MainWPChild
 
         MainWPHelper::update_option('mainwp_child_branding_disconnected', '', 'yes');
         if (isset($_POST['server']))
-            MainWPHelper::update_option('mainwp_child_server', $_POST['server']);        
- 
+            MainWPHelper::update_option('mainwp_child_server', $_POST['server']); 
+        
+        if (isset($_POST['numberdaysOutdatePluginTheme']) && !empty($_POST['numberdaysOutdatePluginTheme'])) {
+            $days_outdate = get_option( 'mainwp_child_plugintheme_days_outdate', 365 );
+            if ($days_outdate != $_POST['numberdaysOutdatePluginTheme']) {
+                $days_outdate = $_POST['numberdaysOutdatePluginTheme'];
+                MainWPHelper::update_option('mainwp_child_plugintheme_days_outdate', $days_outdate); 
+                MainWPChildPluginsCheck::Instance()->cleanup_deactivation(false);
+                MainWPChildThemesCheck::Instance()->cleanup_deactivation(false);
+            }
+        }
+        
         $information['version'] = $this->version;
         $information['wpversion'] = $wp_version;
         $information['siteurl'] = get_option('siteurl');
@@ -2697,6 +2710,9 @@ class MainWPChild
         if (isset($last_post) && isset($last_post['post_modified_gmt'])) $information['last_post_gmt'] = strtotime($last_post['post_modified_gmt']);
         $information['mainwpdir'] = (MainWPHelper::validateMainWPDir() ? 1 : -1);
         $information['uniqueId'] = get_option('mainwp_child_uniqueId', '');
+        $information['plugins_outdate_info'] = MainWPChildPluginsCheck::Instance()->get_plugins_outdate_info();
+        $information['themes_outdate_info'] = MainWPChildThemesCheck::Instance()->get_themes_outdate_info();
+        
         if ($exit) MainWPHelper::write($information);
 
         return $information;
@@ -3574,7 +3590,7 @@ class MainWPChild
         foreach ($to_delete as $delete)
         {  
             delete_option($delete);           
-        }
+        }         
     }
 
     function deactivation()
@@ -4169,8 +4185,8 @@ class MainWPChild
     function backwpup() {
         MainWPChildBackWPup::Instance()->action();
     }
-
-
+    
+  
     function delete_backup()
     {
         $dirs = MainWPHelper::getMainWPDir('backup');
