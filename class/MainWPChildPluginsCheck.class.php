@@ -51,14 +51,8 @@ class MainWPChildPluginsCheck
     
     private function cleanup_basic()
     {
-        //Legacy
-        wp_clear_scheduled_hook( 'mainwp_child_plugin_health_check' );
-        wp_clear_scheduled_hook( 'mainwp_child_plugin_health_check_batch' );
-        delete_transient( 'mainwp_child_plugin_health_check' );
-
         wp_clear_scheduled_hook( $this->cron_name_daily );
         wp_clear_scheduled_hook( $this->cron_name_batching );
-
         delete_transient( $this->tran_name_plugins_to_batch );
     }
 
@@ -137,8 +131,25 @@ class MainWPChildPluginsCheck
 
     }
 
-    public function get_plugins_outdate_info() {
-        return get_transient( $this->tran_name_plugin_timestamps );
+    public function get_plugins_outdate_info() {        
+        $plugins_outdate = get_transient( $this->tran_name_plugin_timestamps );
+        if( ! function_exists( 'get_plugins' ) )
+        {
+            require_once ABSPATH . '/wp-admin/includes/plugin.php';
+        }        
+        $plugins = get_plugins();        
+        $update = false;
+        foreach($plugins_outdate as $slug => $v) {
+            if (!isset($plugins[$slug])) {
+                unset($plugins_outdate[$slug]);
+                $update = true;
+            }            
+        }
+        if ($update) {
+              set_transient( $this->tran_name_plugin_timestamps, $plugins_outdate, DAY_IN_SECONDS );
+        }
+        return $plugins_outdate;
+        
     }
     
     public function change_plugin_row_meta( $plugin_meta, $plugin_file, $plugin_data, $status )

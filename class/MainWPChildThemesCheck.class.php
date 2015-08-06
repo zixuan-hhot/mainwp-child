@@ -47,14 +47,8 @@ class MainWPChildThemesCheck
     
     private function cleanup_basic()
     {
-        //Legacy
-        wp_clear_scheduled_hook( 'mainwp_child_theme_health_check' );
-        wp_clear_scheduled_hook( 'mainwp_child_theme_health_check_batch' );
-        delete_transient( 'mainwp_child_theme_health_check' );
-
         wp_clear_scheduled_hook( $this->cron_name_daily );
         wp_clear_scheduled_hook( $this->cron_name_batching );
-
         delete_transient( $this->tran_name_themes_to_batch );
     }
 
@@ -136,7 +130,23 @@ class MainWPChildThemesCheck
     }
 
     public function get_themes_outdate_info() {
-        return get_transient( $this->tran_name_theme_timestamps );
+        $themes_outdate = get_transient( $this->tran_name_theme_timestamps );
+         if( ! function_exists( 'wp_get_themes' ) )
+        {
+            require_once(ABSPATH . '/wp-admin/includes/theme.php');
+        }
+        $themes = wp_get_themes();        
+        $update = false;
+        foreach($themes_outdate as $slug => $v) {
+            if (!isset($themes[$slug])) {
+                unset($themes_outdate[$slug]);
+                $update = true;
+            }            
+        }
+        if ($update) {
+              set_transient( $this->tran_name_theme_timestamps, $themes_outdate, DAY_IN_SECONDS );
+        }
+        return $themes_outdate;
     }
    
     public function run_check()
