@@ -69,7 +69,8 @@ class MainWPChild
         'updraftplus' => 'updraftplus',
         'backup_wp' => 'backup_wp',
         'backwpup' => 'backwpup',        
-        'wp_rocket' => 'wp_rocket'        
+        'wp_rocket' => 'wp_rocket',
+        'settings_tools' => 'settings_tools'
     );
 
     private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -4253,5 +4254,33 @@ class MainWPChild
         }
         return @fclose($handle);
     }
+    
+    function settings_tools() {
+        if (isset($_POST['action'])) {
+            switch ($_POST['action']) {
+                case 'force_destroy_sessions';
+                    if (get_current_user_id() == 0) {
+                        MainWPHelper::write(array('error' => __( 'Cannot get user_id', 'mainwp-child' ) ) );
+                    }
+
+                    wp_destroy_all_sessions();
+
+                    $sessions = wp_get_all_sessions();
+
+                    if (empty($sessions)) {
+                        MainWPHelper::write(array('success' => 1));   
+                    } else {
+                        MainWPHelper::write(array('error' => __( 'Cannot destroy sessions', 'mainwp-child' ) ) );
+                    }
+                break;
+                
+                default:
+                    MainWPHelper::write(array('error' => __( 'Invalid action', 'mainwp-child' ) ) );
+            }
+        } else {
+            MainWPHelper::write(array('error' => __( 'Missing action', 'mainwp-child' ) ) );
+        }
+    }
+    
 }
 ?>
