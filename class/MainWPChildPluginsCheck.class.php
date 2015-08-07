@@ -23,7 +23,7 @@ class MainWPChildPluginsCheck
 
     private $tran_name_plugins_to_batch = 'mainwp_child_tran_name_plugins_to_batch';
 
-    private $option_name_last_daily_run = 'mainwp_child_option_name_last_daily_run';
+    private $option_name_last_daily_run = 'mainwp_child_plugin_last_daily_run';
     
     public static function Instance() {        
         if (MainWPChildPluginsCheck::$instance === null) {
