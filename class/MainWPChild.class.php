@@ -88,7 +88,7 @@ class MainWPChild
 
     private $filterFunction = null;
     private $branding = "MainWP";
-    private $branding_robust = "MainWP";
+    private $branding_robust = "MainWP";    
 
     public function __construct($plugin_file)
     {			
@@ -334,21 +334,23 @@ class MainWPChild
             if ((is_array($branding_header) && !empty($branding_header['name'])) && !$cancelled_branding) {
                 $this->branding = $child_menu_name = stripslashes($branding_header['name']);
                 $child_menu_icon = "";
+                $child_page_title = $child_menu_name . " Settings";                
             } else {
                 $child_menu_name = "MainWP Child";
                 $child_menu_icon = 'data:image/png+xml;base64,' . base64_encode(file_get_contents($this->plugin_dir . '/images/mainwpicon.png'));
+                $child_page_title = "MainWPSettings";                
             }
             
             add_menu_page($child_menu_name, $child_menu_name, 'manage_options', $mainwp_child_menu_slug, false, $child_menu_icon, '80.00001');
 
             if (!get_option('mainwp_branding_remove_setting') || $cancelled_branding)
             {
-                add_submenu_page('mainwp_child_tab', 'MainWPSettings',  __($this->branding . ' Settings','mainwp-child') , 'manage_options', 'mainwp_child_tab', array(&$this, 'settings'));
+                add_submenu_page('mainwp_child_tab', $child_page_title,  __($this->branding . ' Settings','mainwp-child') , 'manage_options', 'mainwp_child_tab', array(&$this, 'settings'));
             }
 
             if (!get_option('mainwp_branding_remove_server_info') || $cancelled_branding)
             {
-                add_submenu_page($mainwp_child_menu_slug, 'MainWPSettings',  __($this->branding . ' Server Information','mainwp-child') , 'manage_options', 'MainWPChildServerInformation', array('MainWPChildServerInformation', 'renderPage'));
+                add_submenu_page($mainwp_child_menu_slug, $child_page_title,  __($this->branding . ' Server Information','mainwp-child') , 'manage_options', 'MainWPChildServerInformation', array('MainWPChildServerInformation', 'renderPage'));
             }
             
             if (!get_option('mainwp_branding_remove_restore') || $cancelled_branding)
@@ -373,8 +375,8 @@ class MainWPChild
 
     function admin_init(){
            MainWPChildBranding::admin_init();
-    }
-
+    }    
+    
     function settings()
     {
         if (isset($_POST['submit']))
