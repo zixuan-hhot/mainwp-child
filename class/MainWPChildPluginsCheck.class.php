@@ -133,6 +133,8 @@ class MainWPChildPluginsCheck
 
     public function get_plugins_outdate_info() {        
         $plugins_outdate = get_transient( $this->tran_name_plugin_timestamps );
+        if (!is_array($plugins_outdate))
+            $plugins_outdate = array();
         if( ! function_exists( 'get_plugins' ) )
         {
             require_once ABSPATH . '/wp-admin/includes/plugin.php';
