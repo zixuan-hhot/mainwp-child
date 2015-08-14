@@ -2723,7 +2723,8 @@ class MainWPChild
 
     function get_favicon() {
         $url = site_url();
-        $request = wp_remote_get( $url, array('timeout' => 50));
+        $request = wp_remote_get( $url, array('timeout' => 20));
+        
         $favi = "";
         if (is_array($request) && isset($request['body'])) {
             // to fix bug
@@ -2735,7 +2736,11 @@ class MainWPChild
             } else if (preg_match($preg_str2, $request['body'], $matches))
             {
                 $favi = $matches[2];
-            } else if (file_exists(ABSPATH . 'favicon.ico')) {
+            } 
+        }
+        
+        if (empty($favi)) {
+            if (file_exists(ABSPATH . 'favicon.ico')) {
                 $favi = 'favicon.ico';
             } else if (file_exists(ABSPATH . 'favicon.png')) {
                 $favi = 'favicon.png';
