@@ -3582,7 +3582,7 @@ class MainWPChild
 
     function activation()
     {
-            $to_delete = array('mainwp_child_pubkey', 'mainwp_child_nonce', 'mainwp_child_nossl', 'mainwp_child_nossl_key', 'mainwp_child_uniqueId');
+            $to_delete = array('mainwp_child_pubkey', 'mainwp_child_nonce', 'mainwp_child_nossl', 'mainwp_child_nossl_key');
             foreach ($to_delete as $delete)
             {
                 if (get_option($delete))
