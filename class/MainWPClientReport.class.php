@@ -300,7 +300,7 @@ class MainWPClientReport
                                     if ($action != $record->action)
                                         continue;
 
-                                    if ($context == "comments" && $record->context != "page" && $record->context != "post")
+                                    if ($context === "comments" && $record->connector !== "comments")                    
                                         continue;
                                     else if ($context == "media" && $record->connector != "media")
                                         continue;
@@ -313,6 +313,14 @@ class MainWPClientReport
                                         $context !== "widgets" && $context !== "menus" &&
                                         $record->context != $context)
                                         continue;
+                                    
+                                    if ($action == 'updated' && ($context == 'post' || $context == 'page')) {
+                                        $new_status = $this->get_stream_meta_data($record, 'new_status');
+                                        if ($new_status == 'draft') // avoid auto save post
+                                            continue;
+                                    }
+
+                                    
                                 }
                                 
                                 $count++;
@@ -403,8 +411,8 @@ class MainWPClientReport
             } else {            
                 if ($action !== $record->action)
                     continue;        
-
-                if ($context === "comments" && $record->context !== "page" && $record->context !== "post")
+                                    
+                if ($context === "comments" && $record->connector !== "comments")
                     continue;
                 else if ($context === "media" && $record->connector !== "media")
                     continue;
@@ -418,7 +426,13 @@ class MainWPClientReport
                 if ($context !== "comments" && $context !== "media" && 
                     $context !== "widgets" && $context !== "menus" &&                     
                     $record->context !== $context)
-                    continue;   
+                    continue; 
+                
+                if ($action == 'updated' && ($context == 'post' || $context == 'page')) {
+                    $new_status = $this->get_stream_meta_data($record, 'new_status');
+                    if ($new_status == 'draft') // avoid auto save post
+                        continue;
+                }                
             }
             
             $token_values = array();
