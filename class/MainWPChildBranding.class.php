@@ -582,6 +582,8 @@ class MainWPChildBranding
 
     function contact_support()
     {       
+       if (current_user_can( 'subscriber' ))
+            return false;
     ?>
     <style>  
         .mainwp_info-box-yellow {
@@ -666,6 +668,9 @@ class MainWPChildBranding
      */
     public function add_support_button_in_top_admin_bar($wp_admin_bar)
     {
+        if (current_user_can( 'subscriber' ))
+            return false;
+        
         if (isset($_GET['from_page']))
             $href = admin_url('admin.php?page=ContactSupport&from_page=' . urlencode (esc_url($_GET['from_page'])));
         else {                         
