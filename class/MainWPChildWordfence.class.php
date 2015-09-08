@@ -3,7 +3,7 @@
 class MainWPChildWordfence
 {   
     public static $instance = null;   
-    private static $wfLog = false;
+    private static $wfLog = false;  
     
     public static $options_filter = array(
             'alertEmails',
@@ -41,7 +41,8 @@ class MainWPChildWordfence
             'scansEnabled_heartbleed',
             'scansEnabled_highSense',
             'scansEnabled_malware',
-            'scansEnabled_oldVersions',            
+            'scansEnabled_oldVersions',
+            'scansEnabled_options',
             'scansEnabled_passwds',
             'scansEnabled_plugins',
             'scansEnabled_posts',
@@ -49,7 +50,7 @@ class MainWPChildWordfence
             'scansEnabled_themes',
             'scheduledScansEnabled',
             'securityLevel',
-            //'scheduleScan', // filtered this
+            //'scheduleScan' // filtered this
             'blockFakeBots',
             'neverBlockBG',
             'maxGlobalRequests',
@@ -64,17 +65,16 @@ class MainWPChildWordfence
             'max404Humans_action',
             'maxScanHits',
             'maxScanHits_action',
-            'blockedTime',      
+            'blockedTime',
             'liveTraf_ignorePublishers',
             'liveTraf_ignoreUsers',
             'liveTraf_ignoreIPs',
             'liveTraf_ignoreUA',
-            
+        
             'whitelisted',
             'bannedURLs',
             'other_hideWPVersion',
             'other_noAnonMemberComments',
-            "other_blockBadPOST",
             'other_scanComments',
             'other_pwStrengthOnUpdate',
             'other_WFNet',
@@ -87,18 +87,11 @@ class MainWPChildWordfence
             'startScansRemotely',
             'disableConfigCaching',
             'addCacheComment',
-            'disableCodeExecutionUploads',
-            //'isPaid',
+            'isPaid',        
             "advancedCommentScanning", 
             "checkSpamIP", 
             "spamvertizeCheck", 
-            'scansEnabled_public',
-            'email_summary_enabled',
-            'email_summary_dashboard_widget_enabled',
-            'ssl_verify',
-            'email_summary_interval',
-            'email_summary_excluded_directories',
-            'allowed404s',   
+            'scansEnabled_public'
         );
 
      
@@ -569,27 +562,7 @@ class MainWPChildWordfence
 		} else if($opts['autoUpdate'] == '0'){
 			wfConfig::disableAutoUpdate();
 		}
-                 
-                try {
-			if ($opts['disableCodeExecutionUploads']) {
-				wfConfig::disableCodeExecutionForUploads();
-			} else {
-				wfConfig::removeCodeExecutionProtectionForUploads();
-			}
-		} catch (wfConfigException $e) {                    
-			return array('error' => $e->getMessage());
-		}
-                
-                if (!empty($opts['email_summary_enabled'])) {
-			wfConfig::set('email_summary_enabled', 1);
-			wfConfig::set('email_summary_interval', $opts['email_summary_interval']);
-			wfConfig::set('email_summary_excluded_directories', $opts['email_summary_excluded_directories']);
-			wfActivityReport::scheduleCronJob();
-		} else {
-			wfConfig::set('email_summary_enabled', 0);
-			wfActivityReport::disableCronJob();
-		}
-                
+                                
                 $sch = isset($opts['scheduleScan']) ? $opts['scheduleScan'] : "";     
                 
                 if ($sch != get_option('mainwp_child_wordfence_cron_time')) {
