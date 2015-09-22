@@ -459,8 +459,8 @@ class MainWPChild
 
             $rules = null;
             if ((get_option('heatMapsIndividualOverrideSetting') != '1' && get_option('heatMapEnabled') !== '0') || 
-                (get_option('heatMapsIndividualOverrideSetting') == '1' && get_option('heatMapsIndividualDisable') != '1')
-                )
+                (get_option('heatMapsIndividualOverrideSetting') == '1' && get_option('heatMapsIndividualDisable') != '1') || 
+				 get_option('mainwp_kwl_enable_statistic'))                
             {
                 //Heatmap enabled
                 //Make the plugin invisible, except heatmap
@@ -3680,7 +3680,7 @@ class MainWPChild
 //            if (file_exists(ABSPATH . '/wp-admin/includes/deprecated.php')) include_once(ABSPATH . '/wp-admin/includes/deprecated.php');
             if (file_exists(ABSPATH . '/wp-admin/includes/screen.php')) include_once(ABSPATH . '/wp-admin/includes/screen.php');
             if (file_exists(ABSPATH . '/wp-admin/includes/template.php')) include_once(ABSPATH . '/wp-admin/includes/template.php');
-            $creds = request_filesystem_credentials('test', '', false, false, $extra_fields = null);
+            $creds = request_filesystem_credentials('test', '', false, false, $extra_fields = null);			
             ob_end_clean();
             if (empty($creds))
             {
