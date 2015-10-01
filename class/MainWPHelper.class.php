@@ -303,6 +303,9 @@ class MainWPHelper
         $post_to_only_existing_categories = false;
         foreach ($post_custom as $meta_key => $meta_values)
         {
+			if (strpos($meta_key, "_mainwp_spinner_") === 0) 
+				continue; // not save			
+			
             if (!in_array($meta_key, $not_allowed))
             {
                 foreach ($meta_values as $meta_value)

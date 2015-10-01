@@ -176,7 +176,7 @@ class MainWPChild
         add_action('admin_init', array(&$this, 'admin_init'));
         add_action('init', array(&$this, 'localization'));
 
-        if (is_admin()) {
+        if (is_admin()) {			
             MainWPHelper::update_option('mainwp_child_plugin_version', $this->version, 'yes');
         }
 
@@ -249,7 +249,10 @@ class MainWPChild
                 }
                 MainWPHelper::update_option('mainwp_security', $security, 'yes');
             }
-        }
+        } else if ($update_version == '2.0.29') {
+			MainWPChildPluginsCheck::Instance()->cleanup_deactivation(false);
+			MainWPChildThemesCheck::Instance()->cleanup_deactivation(false);			
+		}
 
         MainWPHelper::update_option('mainwp_child_update_version', $this->update_version, 'yes');
     }

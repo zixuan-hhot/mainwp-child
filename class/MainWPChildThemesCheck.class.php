@@ -243,7 +243,7 @@ class MainWPChildThemesCheck
         if( 0 === count( $all_themes ) )
         {
             delete_transient( $this->tran_name_themes_to_batch );
-            wp_schedule_single_event( time() + DAY_IN_SECONDS, $this->cron_name_daily );
+            //wp_schedule_single_event( time() + DAY_IN_SECONDS, $this->cron_name_daily );
         }
         else
         {
