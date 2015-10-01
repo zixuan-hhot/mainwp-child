@@ -397,18 +397,27 @@ class MainWPHeatmapTracker
 		
                 
         if ( is_array($request) )
-        {
-    		$clicks = ( ! empty($request['body']) ) ? json_decode($request['body']) : array();
-    		$clickData = array();
-    		foreach ( $clicks as $click )
-    		{
-    			$clickData[] = array(
-    				'x' => $click->x,
-    				'y' => $click->y,
-    				'w' => $click->w,
-    				'h' => $click->h
-    			);
-    		}
+        {			
+			$clicks = array();			
+			if (! empty($request['body']) ) {
+				if (preg_match('/<heatmap>(.*)<\/heatmap>/', $request['body'], $results) > 0) {
+					$result = $results[1];
+					$clicks = json_decode($result);
+				}           
+			}			
+    		$clickData = array();			
+			if ( is_array( $clicks ) ) {
+				foreach ( $clicks as $click )
+				{
+					$clickData[] = array(
+						'x' => $click->x,
+						'y' => $click->y,
+						'w' => $click->w,
+						'h' => $click->h
+					);
+				}
+			}
+			
     		?>
     		var heatmapClick = <?php echo json_encode($clickData) ?>;
     		var heatmapError = 0;
