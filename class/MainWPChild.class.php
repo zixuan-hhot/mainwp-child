@@ -249,7 +249,7 @@ class MainWPChild
                 }
                 MainWPHelper::update_option('mainwp_security', $security, 'yes');
             }
-        } else if ($update_version == '2.0.29') {
+        } else if ($update_version == '1.2') {
 			MainWPChildPluginsCheck::Instance()->cleanup_deactivation(false);
 			MainWPChildThemesCheck::Instance()->cleanup_deactivation(false);			
 		}
