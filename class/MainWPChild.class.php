@@ -79,7 +79,7 @@ if (isset($_GET['skeleton_keyuse_nonce_key']) && isset($_GET['skeleton_keyuse_no
 class MainWPChild
 {
     private $version = '2.0.29';
-    private $update_version = '1.2';
+    private $update_version = '1.3';
 
     private $callableFunctions = array(
         'stats' => 'getSiteStats',
