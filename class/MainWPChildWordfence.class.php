@@ -38,11 +38,11 @@ class MainWPChildWordfence
             'scansEnabled_diskSpace',
             'scansEnabled_dns',
             'scansEnabled_fileContents',
+	        'scansEnabled_database',
             'scansEnabled_heartbleed',
             'scansEnabled_highSense',
             'scansEnabled_malware',
             'scansEnabled_oldVersions',
-            'scansEnabled_options',
             'scansEnabled_passwds',
             'scansEnabled_plugins',
             'scansEnabled_posts',
@@ -50,7 +50,7 @@ class MainWPChildWordfence
             'scansEnabled_themes',
             'scheduledScansEnabled',
             'securityLevel',
-            //'scheduleScan' // filtered this
+            //'scheduleScan' // NOTE: filtered, not save
             'blockFakeBots',
             'neverBlockBG',
             'maxGlobalRequests',
@@ -75,6 +75,7 @@ class MainWPChildWordfence
             'bannedURLs',
             'other_hideWPVersion',
             'other_noAnonMemberComments',
+            "other_blockBadPOST",
             'other_scanComments',
             'other_pwStrengthOnUpdate',
             'other_WFNet',
@@ -87,11 +88,18 @@ class MainWPChildWordfence
             'startScansRemotely',
             'disableConfigCaching',
             'addCacheComment',
-            'isPaid',        
+            'disableCodeExecutionUploads',
+            //'isPaid',
             "advancedCommentScanning", 
             "checkSpamIP", 
             "spamvertizeCheck", 
-            'scansEnabled_public'
+            'scansEnabled_public',
+            'email_summary_enabled',
+            'email_summary_dashboard_widget_enabled',
+            'ssl_verify',
+            'email_summary_interval',
+            'email_summary_excluded_directories',
+            'allowed404s',
         );
 
      
@@ -167,9 +175,6 @@ class MainWPChildWordfence
                 break;
                 case "reverse_lookup":
                     $information = $this->reverse_lookup();
-                break;
-                case "update_live_traffic":
-                    $information = $this->update_live_traffic();
                 break;
                 case "block_ip":
                     $information = $this->block_ip();
@@ -502,7 +507,7 @@ class MainWPChildWordfence
 			);
 	}
         
-        function save_setting() {
+    function save_setting() {
             MainWPHelper::update_option('mainwp_wordfence_ext_enabled', "Y", 'yes');
             $settings = unserialize(base64_decode($_POST['settings']));
             if (is_array($settings) && count($settings) > 0) {
@@ -524,47 +529,71 @@ class MainWPChildWordfence
                 
                 if(sizeof($invalidUsers) > 0){
                        // return array('errorMsg' => "The following users you selected to ignore in live traffic reports are not valid on this system: " . htmlentities(implode(', ', $invalidUsers)) );
-                    $result['invalid_users'] = htmlentities(implode(', ', $invalidUsers)); 
+                    $result['invalid_users'] = htmlentities(implode(', ', $invalidUsers));
                 }
-                
+
                 if(sizeof($validUsers) > 0){
                         $opts['liveTraf_ignoreUsers'] = implode(',', $validUsers);
                 } else {
                         $opts['liveTraf_ignoreUsers'] = '';
                 }
 
-                if(! $opts['other_WFNet']){	
-			$wfdb = new wfDB();
-			global $wpdb;
-			$p = $wpdb->base_prefix;
-			$wfdb->queryWrite("delete from $p"."wfBlocks where wfsn=1 and permanent=0");
-		}
-                
+                if(! $opts['other_WFNet']){
+                    $wfdb = new wfDB();
+                    global $wpdb;
+                    $p = $wpdb->base_prefix;
+                    $wfdb->queryWrite("delete from $p"."wfBlocks where wfsn=1 and permanent=0");
+                }
+
                 $regenerateHtaccess = false;
-		if(wfConfig::get('bannedURLs', false) != $opts['bannedURLs']){
-			$regenerateHtaccess = true;
-		}
-                
+                if(wfConfig::get('bannedURLs', false) != $opts['bannedURLs']){
+                    $regenerateHtaccess = true;
+                }
+
                 foreach($opts as $key => $val){
                     if (in_array($key, self::$options_filter)) {
                         if($key != 'apiKey'){ //Don't save API key yet
                             wfConfig::set($key, $val);
                         }
                     }
-		}
-                
+                }
+
                 if($regenerateHtaccess){
-			wfCache::addHtaccessCode('add');
-		}
-                
-		if($opts['autoUpdate'] == '1'){
-			wfConfig::enableAutoUpdate();
-		} else if($opts['autoUpdate'] == '0'){
-			wfConfig::disableAutoUpdate();
-		}
-                                
-                $sch = isset($opts['scheduleScan']) ? $opts['scheduleScan'] : "";     
-                
+                    wfCache::addHtaccessCode('add');
+                }
+
+                if($opts['autoUpdate'] == '1'){
+                    wfConfig::enableAutoUpdate();
+                } else if($opts['autoUpdate'] == '0'){
+                    wfConfig::disableAutoUpdate();
+                }
+
+                if (isset($opts['disableCodeExecutionUploads'])) {
+                    try {
+                        if ( $opts['disableCodeExecutionUploads'] ) {
+                            wfConfig::disableCodeExecutionForUploads();
+                        } else {
+                            wfConfig::removeCodeExecutionProtectionForUploads();
+                        }
+                    } catch ( wfConfigException $e ) {
+                        return array( 'error' => $e->getMessage() );
+                    }
+                }
+
+                if (isset($opts['email_summary_enabled'])) {
+                    if ( ! empty( $opts['email_summary_enabled'] ) ) {
+                        wfConfig::set( 'email_summary_enabled', 1 );
+                        wfConfig::set( 'email_summary_interval', $opts['email_summary_interval'] );
+                        wfConfig::set( 'email_summary_excluded_directories', $opts['email_summary_excluded_directories'] );
+                        wfActivityReport::scheduleCronJob();
+                    } else {
+                        wfConfig::set( 'email_summary_enabled', 0 );
+                        wfActivityReport::disableCronJob();
+                    }
+                }
+
+                $sch = isset($opts['scheduleScan']) ? $opts['scheduleScan'] : "";
+
                 if ($sch != get_option('mainwp_child_wordfence_cron_time')) {
                     update_option('mainwp_child_wordfence_cron_time', $sch);
                     $sched = wp_next_scheduled('mainwp_child_wordfence_cron_scan');
@@ -572,71 +601,63 @@ class MainWPChildWordfence
                         wp_unschedule_event($sched, 'mainwp_child_wordfence_cron_scan');
                     }
                 }
-                
-                $result['cacheType'] = wfConfig::get('cacheType');                  
-                $result['paidKeyMsg'] = false; 
+
+                $result['cacheType'] = wfConfig::get('cacheType');
+                $result['paidKeyMsg'] = false;
                 $apiKey = trim($_POST['apiKey']);
-                if(! $apiKey){ //Empty API key (after trim above), then try to get one.
-			$api = new wfAPI('', wfUtils::getWPVersion());
-			try {
-				$keyData = $api->call('get_anon_api_key');
-				if($keyData['ok'] && $keyData['apiKey']){
-					wfConfig::set('apiKey', $keyData['apiKey']);
-					wfConfig::set('isPaid', 0);
-                                        $result['apiKey'] = $keyData['apiKey'];
-                                        $result['isPaid'] = 0;
-                                        $reload = 'reload';
-				} else {
-					throw new Exception("We could not understand the Wordfence server's response because it did not contain an 'ok' and 'apiKey' element.");
-				}
-			} catch(Exception $e){
-				$result['error'] = "Your options have been saved, but we encountered a problem. You left your API key blank, so we tried to get you a free API key from the Wordfence servers. However we encountered a problem fetching the free key: " . htmlentities($e->getMessage()) ;
-                                return $result;
-			}
-		} else if($apiKey != wfConfig::get('apiKey')){
-			$api = new wfAPI($apiKey, wfUtils::getWPVersion());
-			try {
-				$res = $api->call('check_api_key', array(), array());
-				if($res['ok'] && isset($res['isPaid'])){
-					wfConfig::set('apiKey', $apiKey);					
-					wfConfig::set('isPaid', $res['isPaid']); //res['isPaid'] is boolean coming back as JSON and turned back into PHP struct. Assuming JSON to PHP handles bools.
-                                        $result['apiKey'] = $apiKey;
-                                        $result['isPaid'] = $res['isPaid'];
-					if($res['isPaid']){
-                                            $result['paidKeyMsg'] = true;
-					}
-                                        $reload = 'reload';
-				} else {
-					throw new Exception("We could not understand the Wordfence API server reply when updating your API key.");
-				}
-			} catch (Exception $e){
-                                $result['error'] = "Your options have been saved. However we noticed you changed your API key and we tried to verify it with the Wordfence servers and received an error: " . htmlentities($e->getMessage());
-				return $result;
-			}
-		} else {
+
+                if (! $apiKey){ //Empty API key (after trim above), then try to get one.
+                    $api = new wfAPI('', wfUtils::getWPVersion());
                     try {
-			$api = new wfAPI($apiKey, wfUtils::getWPVersion());
-			$res = $api->call('ping_api_key', array(), array());
+                        $keyData = $api->call('get_anon_api_key');
+                        if($keyData['ok'] && $keyData['apiKey']){
+                            wfConfig::set('apiKey', $keyData['apiKey']);
+                            wfConfig::set('isPaid', 0);
+                                                $result['apiKey'] = $keyData['apiKey'];
+                                                $result['isPaid'] = 0;
+                                                $reload = 'reload';
+                        } else {
+                            throw new Exception("We could not understand the Wordfence server's response because it did not contain an 'ok' and 'apiKey' element.");
+                        }
+                    } catch(Exception $e){
+                        $result['error'] = "Your options have been saved, but we encountered a problem. You left your API key blank, so we tried to get you a free API key from the Wordfence servers. However we encountered a problem fetching the free key: " . htmlentities($e->getMessage()) ;
+                                        return $result;
+                    }
+                } else if($apiKey != wfConfig::get('apiKey')){
+                    $api = new wfAPI($apiKey, wfUtils::getWPVersion());
+                    try {
+                        $res = $api->call('check_api_key', array(), array());
+                        if($res['ok'] && isset($res['isPaid'])){
+                            wfConfig::set('apiKey', $apiKey);
+                            wfConfig::set('isPaid', $res['isPaid']); //res['isPaid'] is boolean coming back as JSON and turned back into PHP struct. Assuming JSON to PHP handles bools.
+                                                $result['apiKey'] = $apiKey;
+                                                $result['isPaid'] = $res['isPaid'];
+                            if($res['isPaid']){
+                                                    $result['paidKeyMsg'] = true;
+                            }
+                                                $reload = 'reload';
+                        } else {
+                            throw new Exception("We could not understand the Wordfence API server reply when updating your API key.");
+                        }
                     } catch (Exception $e){
-                        $result['error'] = "Your options have been saved. However we noticed you do not change your API key and we tried to verify it with the Wordfence servers and received an error: " . htmlentities($e->getMessage());
+                                        $result['error'] = "Your options have been saved. However we noticed you changed your API key and we tried to verify it with the Wordfence servers and received an error: " . htmlentities($e->getMessage());
                         return $result;
                     }
-		}
+                } else {
+                        try {
+                            $api = new wfAPI($apiKey, wfUtils::getWPVersion());
+                            $res = $api->call('ping_api_key', array(), array());
+                        } catch (Exception $e){
+                            $result['error'] = "Your options have been saved. However we noticed you do not change your API key and we tried to verify it with the Wordfence servers and received an error: " . htmlentities($e->getMessage());
+                            return $result;
+                        }
+                }
                 $result['ok'] = 1;
                 $result['reload'] = $reload;                        
-		return $result;
+		        return $result;
             }
         }
-        
-        function update_live_traffic() {
-//            if (isset($_POST['liveTrafficEnabled'])) {
-//                wfConfig::set('liveTrafficEnabled', $_POST['liveTrafficEnabled']);
-//                return array(
-//                    'ok' => 1                    
-//                );
-//            }
-        }
-        
+
         function ticker() {
             $wfdb = new wfDB();
             global $wpdb;
