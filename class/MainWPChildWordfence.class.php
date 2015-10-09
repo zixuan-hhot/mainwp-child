@@ -130,6 +130,7 @@ class MainWPChildWordfence
             MainWPHelper::write($information);
         }   
         if (isset($_POST['mwp_action'])) {
+	        MainWPHelper::update_option('mainwp_wordfence_ext_enabled', "Y", 'yes');
             switch ($_POST['mwp_action']) {
                 case "start_scan":
                     $information = $this->start_scan();
@@ -187,7 +188,13 @@ class MainWPChildWordfence
                 break;   
                 case "downgrade_license":
                     $information = $this->downgrade_license();
-                break;            
+                break;
+	            case "import_settings":
+		            $information = $this->import_settings();
+		            break;
+	            case "export_settings":
+		            $information = $this->export_settings();
+		            break;
             }        
         }
         MainWPHelper::write($information);
@@ -213,7 +220,6 @@ class MainWPChildWordfence
     }    
     
     function set_showhide() {
-        MainWPHelper::update_option('mainwp_wordfence_ext_enabled', "Y", 'yes');
         $hide = isset($_POST['showhide']) && ($_POST['showhide'] === "hide") ? 'hide' : "";
         MainWPHelper::update_option('mainwp_wordfence_hide_plugin', $hide);        
         $information['result'] = 'SUCCESS';
@@ -508,7 +514,6 @@ class MainWPChildWordfence
 	}
         
     function save_setting() {
-            MainWPHelper::update_option('mainwp_wordfence_ext_enabled', "Y", 'yes');
             $settings = unserialize(base64_decode($_POST['settings']));
             if (is_array($settings) && count($settings) > 0) {
                 $result = array();
@@ -658,6 +663,65 @@ class MainWPChildWordfence
             }
         }
 
+    public function export_settings(){
+        /** @var wpdb $wpdb */
+        global $wpdb;
+
+        $keys = wfConfig::getExportableOptionsKeys();
+        $export = array();
+        foreach($keys as $key){
+            $export[$key] = wfConfig::get($key, '');
+        }
+        $export['scanScheduleJSON'] = json_encode(wfConfig::get_ser('scanSched', array()));
+        $export['schedMode'] = wfConfig::get('schedMode', '');
+
+        // Any user supplied blocked IPs.
+        $export['_blockedIPs'] = $wpdb->get_results('SELECT *, HEX(IP) as IP FROM ' . $wpdb->base_prefix . 'wfBlocks WHERE wfsn = 0 AND permanent = 1');
+
+        // Any advanced blocking stuff too.
+        $export['_advancedBlocking'] = $wpdb->get_results('SELECT * FROM ' . $wpdb->base_prefix . 'wfBlocksAdv');
+
+        try {
+            $api = new wfAPI(wfConfig::get('apiKey'), wfUtils::getWPVersion());
+            $res = $api->call('export_options', array(), $export);
+            if($res['ok'] && $res['token']){
+                return array(
+                    'ok' => 1,
+                    'token' => $res['token'],
+                );
+            } else {
+                throw new Exception("Invalid response: " . var_export($res, true));
+            }
+        } catch(Exception $e){
+            return array('errorExport' => "An error occurred: " . $e->getMessage());
+        }
+    }
+
+    public function import_settings(){
+        $token = $_POST['token'];
+        try {
+            $totalSet = wordfence::importSettings($token);
+            return array(
+                'ok' => 1,
+                'totalSet' => $totalSet,
+	            'settings' => $this->get_settings()
+            );
+        } catch(Exception $e){
+            return array('errorImport' => "An error occurred: " . $e->getMessage());
+        }
+    }
+
+	function get_settings() {
+		$keys = wfConfig::getExportableOptionsKeys();
+		$settings = array();
+		foreach($keys as $key){
+			$settings[$key] = wfConfig::get($key, '');
+		}
+		$settings['apiKey'] = wfConfig::get('apiKey');  //get more apiKey
+		$settings['isPaid'] = wfConfig::get('isPaid');
+		return $settings;
+	}
+
         function ticker() {
             $wfdb = new wfDB();
             global $wpdb;
@@ -735,42 +799,42 @@ class MainWPChildWordfence
         }         
         
         public function load_static_panel(){
-		$mode = $_POST['mode'];
-		$wfLog = self::getLog();
-		if($mode == 'topScanners' || $mode == 'topLeechers'){
-			$results = $wfLog->getLeechers($mode);
-		} else if($mode == 'blockedIPs'){
-			$results = $wfLog->getBlockedIPs();
-		} else if($mode == 'lockedOutIPs'){
-			$results = $wfLog->getLockedOutIPs();
-		} else if($mode == 'throttledIPs'){
-			$results = $wfLog->getThrottledIPs();
+			$mode = $_POST['mode'];
+			$wfLog = self::getLog();
+			if($mode == 'topScanners' || $mode == 'topLeechers'){
+				$results = $wfLog->getLeechers($mode);
+			} else if($mode == 'blockedIPs'){
+				$results = $wfLog->getBlockedIPs();
+			} else if($mode == 'lockedOutIPs'){
+				$results = $wfLog->getLockedOutIPs();
+			} else if($mode == 'throttledIPs'){
+				$results = $wfLog->getThrottledIPs();
+			}
+			return array('ok' => 1, 'results' => $results);
 		}
-		return array('ok' => 1, 'results' => $results);
-	}
         
         public function downgrade_license(){
-		$api = new wfAPI('', wfUtils::getWPVersion());
-                $return = array();
-		try {
-                    $keyData = $api->call('get_anon_api_key');
-                    if($keyData['ok'] && $keyData['apiKey']){
-                            wfConfig::set('apiKey', $keyData['apiKey']);
-                            wfConfig::set('isPaid', 0);
-                            $return['apiKey'] = $keyData['apiKey'];
-                            $return['isPaid'] = 0;
-                            //When downgrading we must disable all two factor authentication because it can lock an admin out if we don't. 
-                            wfConfig::set_ser('twoFactorUsers', array());
-                    } else {
-                            throw new Exception("Could not understand the response we received from the Wordfence servers when applying for a free API key.");
-                    }
-		} catch(Exception $e){
-                    $return['errorMsg'] = "Could not fetch free API key from Wordfence: " . htmlentities($e->getMessage());
-                    return $return;
+			$api = new wfAPI('', wfUtils::getWPVersion());
+            $return = array();
+			try {
+	                    $keyData = $api->call('get_anon_api_key');
+	                    if($keyData['ok'] && $keyData['apiKey']){
+	                            wfConfig::set('apiKey', $keyData['apiKey']);
+	                            wfConfig::set('isPaid', 0);
+	                            $return['apiKey'] = $keyData['apiKey'];
+	                            $return['isPaid'] = 0;
+	                            //When downgrading we must disable all two factor authentication because it can lock an admin out if we don't.
+	                            wfConfig::set_ser('twoFactorUsers', array());
+	                    } else {
+	                            throw new Exception("Could not understand the response we received from the Wordfence servers when applying for a free API key.");
+	                    }
+			} catch(Exception $e){
+	                    $return['errorMsg'] = "Could not fetch free API key from Wordfence: " . htmlentities($e->getMessage());
+	                    return $return;
+			}
+	                $return['ok'] = 1;
+			return $return;
 		}
-                $return['ok'] = 1;
-		return $return;
-	}
         
 }
 
