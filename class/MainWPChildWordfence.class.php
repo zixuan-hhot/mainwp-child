@@ -314,9 +314,19 @@ class MainWPChildWordfence
                 'summary' => $i->getSummaryItems(),
                 'lastScanCompleted' => wfConfig::get('lastScanCompleted'),
                 'apiKey' => wfConfig::get('apiKey'),
-                'isPaid' => wfConfig::get('isPaid')
+                'isPaid' => wfConfig::get('isPaid'),
+                'lastscan_timestamp' => $this->get_lastscan()
         );
     }
+
+    function get_lastscan() {
+        global $wpdb;
+        $wfdb = new wfDB();
+        $p = $wpdb->base_prefix;
+	    $ctime = $wfdb->querySingle("SELECT MAX(ctime) FROM $p"."wfStatus WHERE msg LIKE '%SUM_PREP:Preparing a new scan.%'");
+	    return $ctime;
+    }
+
     function update_all_issues() {        
         $op = $_POST['op'];
         $i = new wfIssues();
