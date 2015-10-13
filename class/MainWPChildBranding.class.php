@@ -493,7 +493,7 @@ class MainWPChildBranding
         }      
     }
 
-    function custom_the_generator($generator, $type = "") {  
+    function custom_the_generator($generator, $type = "") {
         $extra_setting = $this->settings['extra_settings'];
         if (isset($extra_setting['site_generator'])) {               
             if (!empty($extra_setting['site_generator'])) {                  
@@ -524,10 +524,7 @@ class MainWPChildBranding
                         break;
                     case "export":
                         $generator = '<!-- generator="' . $extra_setting['site_generator'] . '" created="'. date('Y-m-d H:i') . '" -->';
-                        break;        
-                    default:
-                        $generator = '<meta name="generator" content="' . $extra_setting['site_generator'] . '">'; 
-                        break;                    
+                        break;
                 endswitch;                
                 return $generator;
             } 
