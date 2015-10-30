@@ -153,8 +153,8 @@ class MainWPClientReport
 
         // to fix bug
         $exclude_connector_posts = true;
-        if ( isset( $other_tokens['body'] ) && isset( $other_tokens['body']['section_token'] ) && is_array($other_tokens['body']['section_token']) ) {
-            foreach ($other_tokens['body']['section_token'] as $sec) {
+        if ( isset( $sections['body'] ) && isset( $sections['body']['section_token'] ) && is_array($sections['body']['section_token']) ) {
+            foreach ($sections['body']['section_token'] as $sec) {
                 if (strpos($sec, "[section.posts") !== false) {
                     $exclude_connector_posts = false;
                     break;
@@ -162,8 +162,8 @@ class MainWPClientReport
             }
         }
         if ($exclude_connector_posts) {
-            if ( isset( $other_tokens['header'] ) && isset( $other_tokens['header']['section_token'] ) && is_array($other_tokens['header']['section_token']) ) {
-                foreach ($other_tokens['header']['section_token'] as $sec) {
+            if ( isset( $sections['header'] ) && isset( $sections['header']['section_token'] ) && is_array($sections['header']['section_token']) ) {
+                foreach ($sections['header']['section_token'] as $sec) {
                     if (strpos($sec, "[section.posts") !== false) {
                         $exclude_connector_posts = false;
                         break;
@@ -172,9 +172,39 @@ class MainWPClientReport
             }
         }
         if ($exclude_connector_posts) {
-            if ( isset( $other_tokens['footer'] ) && isset( $other_tokens['footer']['section_token'] ) && is_array($other_tokens['footer']['section_token']) ) {
-                foreach ($other_tokens['footer']['section_token'] as $sec) {
+            if ( isset( $sections['footer'] ) && isset( $sections['footer']['section_token'] ) && is_array($sections['footer']['section_token']) ) {
+                foreach ($sections['footer']['section_token'] as $sec) {
                     if (strpos($sec, "[section.posts") !== false) {
+                        $exclude_connector_posts = false;
+                        break;
+                    }
+                }
+            }
+        }
+        if ($exclude_connector_posts) {
+            if ( isset( $other_tokens['body'] ) && is_array( $other_tokens['body'] ) ) {
+                foreach ( $other_tokens['body'] as $sec ) {
+                    if ( strpos( $sec, "[post." ) !== false ) {
+                        $exclude_connector_posts = false;
+                        break;
+                    }
+                }
+            }
+        }
+        if ($exclude_connector_posts) {
+            if ( isset( $other_tokens['header'] ) && is_array($other_tokens['header']) ) {
+                foreach ($other_tokens['header'] as $sec) {
+                    if (strpos($sec, "[post.") !== false) {
+                        $exclude_connector_posts = false;
+                        break;
+                    }
+                }
+            }
+        }
+        if ($exclude_connector_posts) {
+            if ( isset( $other_tokens['footer'] ) && is_array($other_tokens['footer']) ) {
+                foreach ($other_tokens['footer'] as $sec) {
+                    if (strpos($sec, "[post.") !== false) {
                         $exclude_connector_posts = false;
                         break;
                     }
@@ -183,8 +213,8 @@ class MainWPClientReport
         }
         if ($exclude_connector_posts)
             $args['connector__not_in'] =  array('posts');
-        // end fix
-        
+        ///// end fix /////
+
         $args['action__not_in'] =  array('login');
         
         // fix for Stream 3
