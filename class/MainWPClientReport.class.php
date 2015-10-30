@@ -149,7 +149,41 @@ class MainWPClientReport
             if (!in_array($arg, $allowed_params)) {
                 unset($args[$arg]);
             }                
-        }     
+        }
+
+        // to fix bug
+        $exclude_connector_posts = true;
+        if ( isset( $other_tokens['body'] ) && isset( $other_tokens['body']['section_token'] ) && is_array($other_tokens['body']['section_token']) ) {
+            foreach ($other_tokens['body']['section_token'] as $sec) {
+                if (strpos($sec, "[section.posts") !== false) {
+                    $exclude_connector_posts = false;
+                    break;
+                }
+            }
+        }
+        if ($exclude_connector_posts) {
+            if ( isset( $other_tokens['header'] ) && isset( $other_tokens['header']['section_token'] ) && is_array($other_tokens['header']['section_token']) ) {
+                foreach ($other_tokens['header']['section_token'] as $sec) {
+                    if (strpos($sec, "[section.posts") !== false) {
+                        $exclude_connector_posts = false;
+                        break;
+                    }
+                }
+            }
+        }
+        if ($exclude_connector_posts) {
+            if ( isset( $other_tokens['footer'] ) && isset( $other_tokens['footer']['section_token'] ) && is_array($other_tokens['footer']['section_token']) ) {
+                foreach ($other_tokens['footer']['section_token'] as $sec) {
+                    if (strpos($sec, "[section.posts") !== false) {
+                        $exclude_connector_posts = false;
+                        break;
+                    }
+                }
+            }
+        }
+        if ($exclude_connector_posts)
+            $args['connector__not_in'] =  array('posts');
+        // end fix
         
         $args['action__not_in'] =  array('login');
         

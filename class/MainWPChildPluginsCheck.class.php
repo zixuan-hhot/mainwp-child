@@ -1,7 +1,7 @@
 <?php
 
 /*
-Plugin Name: Vendi Abandoned Plugin Check
+Plugin: Vendi Abandoned Plugin Check
 Description: Provides information about abandoned plugins.
 Version: 3.1.1
 License: GPLv2
