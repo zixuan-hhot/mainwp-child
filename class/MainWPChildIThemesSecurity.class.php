@@ -445,7 +445,7 @@ class MainWPChildIThemesSecurity
                 //Get the full user object
                 $user_object = get_user_by( 'id', '1' );
 
-                if ( $username !== null && validate_username( $new_user ) && username_exists( $new_user ) === null ) { //there is a valid username to change
+                if ( $username !== null && validate_username( $new_user ) && username_exists( $new_user ) === false ) { //there is a valid username to change
 
                         if ( $id === true ) { //we're changing the id too so we'll set the username
 

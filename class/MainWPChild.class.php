@@ -2980,7 +2980,11 @@ class MainWPChild
                 $outPost['title'] = $post->post_title;
                 $outPost['content'] = $post->post_content;
                 $outPost['comment_count'] = $post->comment_count;
-                $outPost['dts'] = strtotime($post->post_modified_gmt);
+				if (isset($extra['where_post_date']) && !empty($extra['where_post_date'])) {
+					$outPost['dts'] = strtotime($post->post_date_gmt);
+				} else {
+					$outPost['dts'] = strtotime($post->post_modified_gmt);
+				}
                 $usr = get_user_by('id', $post->post_author);
                 $outPost['author'] = !empty($usr) ? $usr->user_nicename : 'removed';
                 $categoryObjects = get_the_category($post->ID);
@@ -3217,8 +3221,9 @@ class MainWPChild
     {
         global $wpdb;
 
-        add_filter('posts_where', array(&$this, 'posts_where'));
-
+        add_filter('posts_where', array(&$this, 'posts_where'));		
+		$where_post_date = isset($_POST['where_post_date']) && !empty($_POST['where_post_date']) ? true : false;
+				
         if (isset($_POST['postId']))
         {
             $this->posts_where_suffix .= " AND $wpdb->posts.ID = " . $_POST['postId'];
@@ -3235,11 +3240,17 @@ class MainWPChild
             }
             if (isset($_POST['dtsstart']) && $_POST['dtsstart'] != '')
             {
-                $this->posts_where_suffix .= " AND $wpdb->posts.post_modified > '" . $_POST['dtsstart'] . "'";
+				if ($where_post_date)
+					$this->posts_where_suffix .= " AND $wpdb->posts.post_date > '" . $_POST['dtsstart'] . "'";
+				else
+					$this->posts_where_suffix .= " AND $wpdb->posts.post_modified > '" . $_POST['dtsstart'] . "'";
             }
             if (isset($_POST['dtsstop']) && $_POST['dtsstop'] != '')
             {
-                $this->posts_where_suffix .= " AND $wpdb->posts.post_modified < '" . $_POST['dtsstop'] . "'";
+				if ($where_post_date)
+					$this->posts_where_suffix .= " AND $wpdb->posts.post_date < '" . $_POST['dtsstop'] . "'";
+				else
+					$this->posts_where_suffix .= " AND $wpdb->posts.post_modified < '" . $_POST['dtsstop'] . "'";
             }
         }
 
@@ -3258,7 +3269,8 @@ class MainWPChild
             $extra['tokens'] = unserialize(base64_decode ($_POST['extract_tokens']));
             $extra['extract_post_type'] = $_POST['extract_post_type'];
         }
-        
+		
+        $extra['where_post_date'] = $where_post_date;
         $rslt = $this->get_recent_posts(explode(',', $_POST['status']), $maxPages, $type, $extra);
         $this->posts_where_suffix = '';
 
