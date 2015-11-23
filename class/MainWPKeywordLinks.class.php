@@ -817,7 +817,7 @@ class MainWPKeywordLinks
                 $link = new stdClass;
                 $link->id = intval($link_id);
                 $link->name = sanitize_text_field($_POST['name']);                
-                $link->destination_url = sanitize_text_field($_POST['destination_url']);
+                $link->destination_url = $_POST['destination_url'];
                 $link->cloak_path = sanitize_text_field($_POST['cloak_path']);
                 $link->keyword = $valid_kws;
                 $link->link_target = $_POST['link_target'];  // number or text
