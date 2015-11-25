@@ -198,7 +198,7 @@ class MainWPChildThemesCheck
             }
                         
             //Deserialize the response
-            $obj = unserialize( $body );
+            $obj = maybe_unserialize( $body );
             
             $now = new \DateTime();
             

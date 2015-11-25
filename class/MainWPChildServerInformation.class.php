@@ -559,14 +559,14 @@ class MainWPChildServerInformation
         ?>
     <tr>
         <td ></td>
-        <td><?php echo $pConfig; ?></td>
-        <td><?php echo $pCompare; ?>  <?php echo ($pVersion === true ? 'true' : $pVersion) . ' ' . $pExtraText; ?></td>
+        <td><?php echo esc_html( $pConfig ); ?></td>
+        <td><?php echo esc_html( $pCompare ); ?>  <?php echo esc_html( ($pVersion === true ? 'true' : $pVersion) . ' ' . $pExtraText ); ?></td>
         <td><?php echo ($currentVersion === true ? 'true' : $currentVersion); ?></td>
-         <?php if ($compareFilesize) { ?>        
-        <td><?php echo (self::filesize_compare($currentVersion, $pVersion, $pCompare) ? '<span class="mainwp-pass"><i class="fa fa-check-circle"></i> Pass</span>' : '<span class="mainwp-warning"><i class="fa fa-exclamation-circle"></i> Warning</span>'); ?></td>
-        <?php } else { ?>
-        <td><?php echo (self::check($pCompare, $pVersion, $pGetter, $pExtraCompare, $pExtraVersion) ? '<span class="mainwp-pass"><i class="fa fa-check-circle"></i> Pass</span>' : '<span class="mainwp-warning"><i class="fa fa-exclamation-circle"></i> Warning</span>'); ?></td>
-        <?php } ?>
+		<?php if ( $compareFilesize ) { ?>
+			<td><?php echo self::filesize_compare( $currentVersion, $pVersion, $pCompare ) ? '<span class="mainwp-pass"><i class="fa fa-check-circle"></i> Pass</span>' : '<span class="mainwp-warning"><i class="fa fa-exclamation-circle"></i> Warning</span>'; ?></td>
+		<?php } else { ?>
+			<td><?php echo self::check( $pCompare, $pVersion, $pGetter, $pExtraCompare, $pExtraVersion ) ? '<span class="mainwp-pass"><i class="fa fa-check-circle"></i> Pass</span>' : '<span class="mainwp-warning"><i class="fa fa-exclamation-circle"></i> Warning</span>'; ?></td>
+		<?php } ?>
     </tr>
     <?php
     }
@@ -713,43 +713,43 @@ class MainWPChildServerInformation
     // new
 
     protected static function getCurrentlyExecutingScript() {
-        echo $_SERVER['PHP_SELF'];
+        echo esc_html( $_SERVER['PHP_SELF'] );
     }
 
     protected static function getServerGetawayInterface() {
-        echo $_SERVER['GATEWAY_INTERFACE'];
+        echo esc_html( $_SERVER['GATEWAY_INTERFACE'] );
     }
 
     protected static function getServerIP() {
-        echo $_SERVER['SERVER_ADDR'];
+        echo esc_html( $_SERVER['SERVER_ADDR'] );
     }
 
     protected static function getSeverName() {
-        echo $_SERVER['SERVER_NAME'];
+        echo esc_html( $_SERVER['SERVER_NAME'] );
     }
 
     protected static function getServerSoftware() {
-        echo $_SERVER['SERVER_SOFTWARE'];
+        echo esc_html( $_SERVER['SERVER_SOFTWARE'] );
     }
 
     protected static function getServerProtocol() {
-        echo $_SERVER['SERVER_PROTOCOL'];
+        echo esc_html( $_SERVER['SERVER_PROTOCOL'] );
     }
 
     protected static function getServerRequestMethod() {
-        echo $_SERVER['REQUEST_METHOD'];
+        echo esc_html( $_SERVER['REQUEST_METHOD'] );
     }
 
     protected static function getServerRequestTime(){
-        echo $_SERVER['REQUEST_TIME'];
+        echo esc_html( $_SERVER['REQUEST_TIME'] );
     }
 
     protected static function getServerQueryString() {
-        echo $_SERVER['QUERY_STRING'];
+        echo esc_html( $_SERVER['QUERY_STRING'] );
     }
 
     protected static function getServerHTTPAccept() {
-        echo $_SERVER['HTTP_ACCEPT'];
+        echo esc_html( $_SERVER['HTTP_ACCEPT'] );
     }
 
     protected static function getServerAcceptCharset() {
@@ -758,20 +758,20 @@ class MainWPChildServerInformation
         }
         else
         {
-            echo $_SERVER['HTTP_ACCEPT_CHARSET'];
+            echo esc_html( $_SERVER['HTTP_ACCEPT_CHARSET'] );
         }
     }
 
     protected static function getHTTPHost() {
-        echo $_SERVER['HTTP_HOST'];
+        echo esc_html( $_SERVER['HTTP_HOST'] );
     }
 
     protected static function getCompleteURL() {
-        echo $_SERVER['HTTP_REFERER'];
+        echo isset( $_SERVER['HTTP_REFERER'] ) ? esc_html( $_SERVER['HTTP_REFERER'] ) : '';
     }
 
     protected static function getUserAgent() {
-        echo $_SERVER['HTTP_USER_AGENT'];
+        echo esc_html( $_SERVER['HTTP_USER_AGENT'] );
     }
 
     protected static function getHTTPS() {
@@ -792,28 +792,28 @@ class MainWPChildServerInformation
             echo __('N/A','mainwp');
         }
         else {
-            echo $_SERVER['REMOTE_HOST'] ;
+            echo esc_html( $_SERVER['REMOTE_HOST'] );
         }
     }
 
     protected static function getRemotePort() {
-        echo $_SERVER['REMOTE_PORT'];
+        echo esc_html( $_SERVER['REMOTE_PORT'] );
     }
 
     protected static function getScriptFileName() {
-        echo $_SERVER['SCRIPT_FILENAME'];
+        echo esc_html( $_SERVER['SCRIPT_FILENAME'] );
     }
 
     protected static function getServerAdmin() {
-        echo $_SERVER['SERVER_ADMIN'];
+        echo esc_html( $_SERVER['SERVER_ADMIN'] );
     }
 
     protected static function getServerPort() {
-        echo $_SERVER['SERVER_PORT'];
+        echo esc_html( $_SERVER['SERVER_PORT'] );
     }
 
     protected static function getServerSignature() {
-        echo $_SERVER['SERVER_SIGNATURE'];
+        echo esc_html( $_SERVER['SERVER_SIGNATURE'] );
     }
 
     protected static function getServerPathTranslated() {
@@ -821,16 +821,16 @@ class MainWPChildServerInformation
             echo __('N/A','mainwp') ;
         }
         else {
-            echo $_SERVER['PATH_TRANSLATED'] ;
+            echo esc_html( $_SERVER['PATH_TRANSLATED'] ) ;
         }
     }
 
     protected static function getScriptName() {
-        echo $_SERVER['SCRIPT_NAME'];
+        echo esc_html( $_SERVER['SCRIPT_NAME'] );
     }
 
     protected static function getCurrentPageURI() {
-        echo $_SERVER['REQUEST_URI'];
+        echo esc_html( $_SERVER['REQUEST_URI'] );
     }
     protected static function getWPRoot() {
         echo ABSPATH ;

@@ -120,12 +120,12 @@ class MainWPClientReport
                 'ip',
         );
         
-        $sections = isset($_POST['sections']) ? unserialize(base64_decode($_POST['sections'])) : array();
+        $sections = isset($_POST['sections']) ? maybe_unserialize(base64_decode($_POST['sections'])) : array();
         if (!is_array($sections))
             $sections = array();
         //return $sections;
         
-        $other_tokens = isset($_POST['other_tokens']) ? unserialize(base64_decode($_POST['other_tokens'])) : array();
+        $other_tokens = isset($_POST['other_tokens']) ? maybe_unserialize(base64_decode($_POST['other_tokens'])) : array();
         if (!is_array($other_tokens))
             $other_tokens = array();
         //return $other_tokens;
@@ -637,7 +637,7 @@ class MainWPClientReport
                     $value = current($value); 
                 }               
                 if ($meta_key == "author_meta" || $meta_key == "user_meta") {                    
-                    $value = unserialize($value); 
+                    $value = maybe_unserialize($value); 
                     $value = $value['display_name'];                    
                 }
                 

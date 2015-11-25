@@ -152,7 +152,7 @@ class MainWPCloneInstall
     {
         $configContents = $this->getConfigContents();
         if ($configContents === FALSE) throw new Exception(__('Cant read configuration file from backup', 'mainwp-child'));
-        $this->config = unserialize(base64_decode($configContents));
+        $this->config = maybe_unserialize(base64_decode($configContents));
 
         if (isset($this->config['plugins'])) MainWPHelper::update_option('mainwp_temp_clone_plugins', $this->config['plugins']);
         if (isset($this->config['themes'])) MainWPHelper::update_option('mainwp_temp_clone_themes', $this->config['themes']);
@@ -213,16 +213,14 @@ class MainWPCloneInstall
     {
         /** @var $wpdb wpdb */
         global $wpdb;
-
-        $var = $wpdb->get_var('SELECT option_value FROM ' . $this->config['prefix'] . 'options WHERE option_name = "' . $name . '"');
-        if ($var == NULL)
-        {
-            $wpdb->query('INSERT INTO ' . $this->config['prefix'] . 'options (`option_name`, `option_value`) VALUES ("' . $name . '", "' . MainWPChildDB::real_escape_string(maybe_serialize($value)) . '")');
-        }
-        else
-        {
-            $wpdb->query('UPDATE ' . $this->config['prefix'] . 'options SET option_value = "' . MainWPChildDB::real_escape_string(maybe_serialize($value)) . '" WHERE option_name = "' . $name . '"');
-        }
+        		
+		$var = $wpdb->get_var( $wpdb->prepare( 'SELECT option_value FROM ' . $this->config['prefix'] . 'options WHERE option_name = %s', $name) );
+		if ( null === $var ) {
+			$wpdb->query( $wpdb->prepare( 'INSERT INTO ' . $this->config['prefix'] . 'options (`option_name`, `option_value`) VALUES (%s, "' . MainWPChildDB::real_escape_string( maybe_serialize( $value ) ) . '")', $name) );
+		} else {
+			$wpdb->query( $wpdb->prepare( 'UPDATE ' . $this->config['prefix'] . 'options SET option_value = "' . MainWPChildDB::real_escape_string( maybe_serialize( $value ) ) . '" WHERE option_name = %s', $name) );
+		}
+		
     }
 
     public function install()
@@ -326,8 +324,8 @@ class MainWPCloneInstall
                     $tables[] = $curr_table[0];
             }
             // Replace importance data first so if other replace failed, the website still work
-            $wpdb->query('UPDATE ' . $table_prefix . 'options SET option_value = "' . $site_url . '" WHERE option_name = "siteurl"');
-            $wpdb->query('UPDATE ' . $table_prefix . 'options SET option_value = "' . $home . '" WHERE option_name = "home"');
+            $wpdb->query( $wpdb->prepare( 'UPDATE ' . $table_prefix . 'options SET option_value = %s WHERE option_name = "siteurl"', $site_url ) );
+			$wpdb->query( $wpdb->prepare( 'UPDATE ' . $table_prefix . 'options SET option_value = %s WHERE option_name = "home"', $home) );
             // Replace others
             $this->icit_srdb_replacer($wpdb->dbh, $this->config['home'], $home, $tables);
             $this->icit_srdb_replacer($wpdb->dbh, $this->config['siteurl'], $site_url, $tables);

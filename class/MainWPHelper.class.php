@@ -407,7 +407,7 @@ class MainWPHelper
             $random_privelege = isset($post_custom['_saved_draft_random_privelege']) ? $post_custom['_saved_draft_random_privelege'] : null;            
             $random_privelege = is_array($random_privelege) ? current($random_privelege) : null;
             $random_privelege_base = base64_decode($random_privelege);
-            $random_privelege = unserialize($random_privelege_base);
+            $random_privelege = maybe_unserialize($random_privelege_base);
             
             if (is_array($random_privelege) && count($random_privelege) > 0) {
                 $random_post_authors = array();
@@ -705,7 +705,7 @@ class MainWPHelper
         else if (preg_match('/<mainwp>(.*)<\/mainwp>/', $data, $results) > 0) {
             $result = $results[1];
             $result_base = base64_decode($result);
-            $information = unserialize($result_base);
+            $information = maybe_unserialize($result_base);
             return $information;
         }
         else if ($data == '')
@@ -882,7 +882,7 @@ class MainWPHelper
     {
         global $wpdb;
 
-        if ( $autoload != $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = '" . $option_name . "'" ) )
+		if ( $autoload != $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $option_name ) ) ) 
         {
             $option_value = get_option( $option_name );
             delete_option( $option_name );

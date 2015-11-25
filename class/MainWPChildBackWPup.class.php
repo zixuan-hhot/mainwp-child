@@ -79,12 +79,12 @@ class MainWPChildBackWPup {
 		error_reporting( 0 );
 		function mainwp_backwpup_handle_fatal_error() {
 			$error = error_get_last();
-			if (isset($error['type']) && $error['type'] == E_ERROR && isset($error['message'])) {
-				die( '<mainwp>' . base64_encode( serialize( array( 'error' => 'MainWPChild fatal error : ' . $error['message'] . ' Line: ' . $error['line'] . ' File: ' . $error['file'] ) ) ) . '</mainwp>' );
-			} else if (!empty(MainWPChildBackWPup::$information)) {
-				die( '<mainwp>' . base64_encode( serialize( MainWPChildBackWPup::$information ) ) . '</mainwp>' );
-			} else {
-				die( '<mainwp>' . base64_encode( array('error' => 'Missing information array inside fatal_error') ) . '</mainwp>' );
+			if (isset($error['type']) && $error['type'] == E_ERROR && isset($error['message'])) {				
+				MainWPHelper::write( array( 'error' => 'MainWPChild fatal error : ' . $error['message'] . ' Line: ' . $error['line'] . ' File: ' . $error['file'] ) );
+			} else if (!empty(MainWPChildBackWPup::$information)) {				
+				MainWPHelper::write( MainWPChildBackWPup::$information );
+			} else {				
+				MainWPHelper::write( array( 'error' => 'Missing information array inside fatal_error' ) );
 			}
 		}
 

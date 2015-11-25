@@ -135,7 +135,7 @@ class MainWPChildPagespeed
             return array('result' => 'RUNNING');
         
         $settings = $_POST['settings'];
-        $settings = unserialize(base64_decode($settings));
+        $settings = maybe_unserialize(base64_decode($settings));
         
         if (is_array($settings)) {            
             

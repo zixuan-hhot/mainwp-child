@@ -449,8 +449,8 @@ class MainWPChild
     }    
     
     function settings()
-    {
-        if (isset($_POST['submit']))
+    {        
+		if ( isset( $_POST['submit'] ) && isset( $_POST['nonce'] ) && wp_verify_nonce( $_POST['nonce'], 'child-settings' )) 
         {
             if (isset($_POST['requireUniqueSecurityId']))
             {
@@ -484,6 +484,7 @@ class MainWPChild
         <p class="submit" style="margin-top: 4em;">
             <input type="submit" name="submit" id="submit" class="button button-primary" value="<?php _e('Save Changes','mainwp-child'); ?>">
         </p>
+		<input type="hidden" name="nonce" value="<?php echo wp_create_nonce( 'child-settings' );?>">
     </form>
     </div>
     </div>
@@ -1651,15 +1652,15 @@ class MainWPChild
     function newPost()
     {
         //Read form data
-        $new_post = unserialize(base64_decode ($_POST['new_post']));
-        $post_custom = unserialize(base64_decode ($_POST['post_custom']));
+        $new_post = maybe_unserialize(base64_decode ($_POST['new_post']));
+        $post_custom = maybe_unserialize(base64_decode ($_POST['post_custom']));
         $post_category = rawurldecode(isset($_POST['post_category']) ? base64_decode ($_POST['post_category']) : null);
         $post_tags = rawurldecode(isset($new_post['post_tags']) ? $new_post['post_tags'] : null);
         $post_featured_image = base64_decode ($_POST['post_featured_image']);
-        $upload_dir = unserialize(base64_decode ($_POST['mainwp_upload_dir']));
+        $upload_dir = maybe_unserialize(base64_decode ($_POST['mainwp_upload_dir']));
 
         if (isset($_POST['_ezin_post_category']))
-            $new_post['_ezin_post_category'] = unserialize(base64_decode ($_POST['_ezin_post_category']));
+            $new_post['_ezin_post_category'] = maybe_unserialize(base64_decode ($_POST['_ezin_post_category']));
 
         $res = MainWPHelper::createPost($new_post, $post_custom, $post_category, $post_featured_image, $upload_dir, $post_tags);
         $created = $res['success'];
@@ -1714,7 +1715,7 @@ class MainWPChild
         }
         else if ($action == 'update_meta')
         {
-            $values = unserialize(base64_decode ($_POST['values']));
+            $values = maybe_unserialize(base64_decode ($_POST['values']));
             $meta_key = $values['meta_key'];
             $meta_value = $values['meta_value'];
             $check_prev = $values['check_prev'];
@@ -1876,7 +1877,7 @@ class MainWPChild
     function newAdminPassword()
     {
         //Read form data
-        $new_password = unserialize(base64_decode ($_POST['new_password']));
+        $new_password = maybe_unserialize(base64_decode ($_POST['new_password']));
         $user = get_user_by('login', $_POST['user']);
         require_once(ABSPATH . WPINC . '/registration.php');
 
@@ -1900,7 +1901,7 @@ class MainWPChild
     function newUser()
     {
         //Read form data
-        $new_user = unserialize(base64_decode ($_POST['new_user']));
+        $new_user = maybe_unserialize(base64_decode ($_POST['new_user']));
         $send_password = $_POST['send_password'];
 
         $new_user_id = wp_insert_user($new_user);
@@ -3058,7 +3059,7 @@ class MainWPChild
     function insert_comment()
     {
         $postId = $_POST['id'];
-        $comments = unserialize(base64_decode ($_POST['comments']));
+        $comments = maybe_unserialize(base64_decode ($_POST['comments']));
         $ids = array();
         foreach ($comments as $comment)
         {
@@ -3091,8 +3092,8 @@ class MainWPChild
         if (!empty($meta_value))
             $where .= " AND `meta_value` = $meta_value ";
 
-
-        $results = $wpdb->get_results(sprintf("SELECT * FROM %s WHERE 1 = 1 $where ", $wpdb->postmeta));
+        
+		$results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM %s WHERE 1 = 1 $where ", $wpdb->postmeta ) );
         MainWPHelper::write($results);
     }
 
@@ -3126,9 +3127,9 @@ class MainWPChild
 		$information = array();
 		if ($postId > 0) {
 			if (get_post_meta($postId, '_is_auto_generate_content', true) == 'yes') {
-				$post = $wpdb->get_row('SELECT * FROM ' . $wpdb->posts .
-										' WHERE ID = ' . $postId .
-										' AND post_status = \'future\'');
+				$post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts
+											WHERE ID = %d
+											AND post_status = 'future'", $postId ) );
 				if ($post)
 					$result = wp_trash_post($postId);
 				else
@@ -3138,8 +3139,8 @@ class MainWPChild
 				$information['status'] = 'SUCCESS';
 		} else if ($cancel_all == true) {
 				$post_type = $_POST['post_type'];
-				$where = " WHERE p.post_status='future' AND p.post_type = '" . $post_type . "' AND  pm.meta_key = '_is_auto_generate_content' AND pm.meta_value = 'yes' ";
-				$posts = $wpdb->get_results("SELECT p.ID FROM $wpdb->posts p JOIN $wpdb->postmeta pm ON p.ID=pm.post_id $where ");
+				$where     = " WHERE p.post_status='future' AND p.post_type = %s AND  pm.meta_key = '_is_auto_generate_content' AND pm.meta_value = 'yes' ";
+				$posts     = $wpdb->get_results( $wpdb->prepare( "SELECT p.ID FROM $wpdb->posts p JOIN $wpdb->postmeta pm ON p.ID=pm.post_id $where ", $post_type) );
 				$count = 0;
 				if (is_array($posts)) {
 					foreach($posts as $post) {
@@ -3173,17 +3174,17 @@ class MainWPChild
 		{
 				global $wpdb;
 				$ct = current_time('mysql');
-				 $next_post = $wpdb->get_row("
-					SELECT *
-					FROM " . $wpdb->posts . " p JOIN " . $wpdb->postmeta . " pm ON p.ID=pm.post_id
+				$next_post = $wpdb->get_row( $wpdb->prepare( '
+                    SELECT *
+                    FROM ' . $wpdb->posts . ' p JOIN ' . $wpdb->postmeta . " pm ON p.ID=pm.post_id
 					WHERE
 						pm.meta_key='_is_auto_generate_content' AND
 						pm.meta_value='yes' AND
 						p.post_status='future' AND
-						p.post_type= '" . $post_type. "' AND
+						p.post_type= %s AND
 						p.post_date > NOW()
 					ORDER BY p.post_date
-					LIMIT 1");
+					LIMIT 1", $post_type) );
 
 				if (!$next_post)
 				{
@@ -3266,7 +3267,7 @@ class MainWPChild
         
         $extra = array();
         if (isset($_POST['extract_tokens'])) {
-            $extra['tokens'] = unserialize(base64_decode ($_POST['extract_tokens']));
+            $extra['tokens'] = maybe_unserialize(base64_decode ($_POST['extract_tokens']));
             $extra['extract_post_type'] = $_POST['extract_post_type'];
         }
 		

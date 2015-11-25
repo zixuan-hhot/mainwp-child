@@ -191,7 +191,7 @@ class MainWPChildUpdraftplusBackups
         
     function save_settings() {        
 
-        $settings = unserialize(base64_decode($_POST['settings']));           
+        $settings = maybe_unserialize(base64_decode($_POST['settings']));           
         
         $keys = $this->get_settings_keys();
         
@@ -275,7 +275,7 @@ class MainWPChildUpdraftplusBackups
         if (!defined('UDADDONS2_SLUG'))
             return array('error' => 'NO_PREMIUM');
         
-        $addons_options = unserialize(base64_decode($_POST['addons_options']));           
+        $addons_options = maybe_unserialize(base64_decode($_POST['addons_options']));           
         if (!is_array($addons_options)) $addons_options = array();
         
         $updated = $this->update_wpmu_options($addons_options);
@@ -1216,7 +1216,7 @@ class MainWPChildUpdraftplusBackups
 		global $wp_filesystem, $updraftplus;
 		$backup_history = UpdraftPlus_Options::get_updraft_option('updraft_backup_history');
 		if(!is_array($backup_history[$timestamp])) {
-			echo '<p>'.__('This backup does not exist in the backup history - restoration aborted. Timestamp:','updraftplus')." $timestamp</p><br/>";
+			echo '<p>'. esc_html(__('This backup does not exist in the backup history - restoration aborted. Timestamp:','updraftplus')." " . $timestamp) . "</p><br/>";
 			return new WP_Error('does_not_exist', __('Backup does not exist in the backup history', 'updraftplus'));
 		}
 

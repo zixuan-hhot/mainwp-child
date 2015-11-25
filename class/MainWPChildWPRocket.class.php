@@ -181,7 +181,7 @@ class MainWPChildWPRocket
     }  
    
     function save_settings() {           
-        $options = unserialize(base64_decode($_POST['settings']));
+        $options = maybe_unserialize(base64_decode($_POST['settings']));
         if (!is_array($options) || empty($options))
             return array('error' => 'INVALID_OPTIONS');
         

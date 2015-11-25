@@ -524,7 +524,7 @@ class MainWPChildWordfence
 	}
         
     function save_setting() {
-            $settings = unserialize(base64_decode($_POST['settings']));
+            $settings = maybe_unserialize(base64_decode($_POST['settings']));
             if (is_array($settings) && count($settings) > 0) {
                 $result = array();
                 $reload = '';

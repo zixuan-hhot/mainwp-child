@@ -35,6 +35,14 @@ class MainWPChildIThemesSecurity
             $information['error'] = 'NO_ITHEME_SECURITY';
             MainWPHelper::write($information);
         }   
+		global $itsec_globals, $itsec_modules_path;		
+		
+		if ( is_dir( $itsec_globals['plugin_dir'] . '/modules/free' ) ) {
+			$itsec_modules_path = $itsec_globals['plugin_dir'] . '/modules/free/'; 
+		} else if (is_dir( $itsec_globals['plugin_dir'] . '/core/modules')) {
+			$itsec_modules_path = $itsec_globals['plugin_dir'] . '/core/modules/'; 
+		}
+		
         if (isset($_POST['mwp_action'])) {
             switch ($_POST['mwp_action']) {                               
                 case "set_showhide":
@@ -129,11 +137,11 @@ class MainWPChildIThemesSecurity
         global $itsec_globals;
         
         if ( ! class_exists( 'ITSEC_Lib' ) ) {
-            require( trailingslashit( $itsec_globals['plugin_dir'] ) . 'core/class-itsec-lib.php' );
+            require( trailingslashit( $itsec_globals['plugin_dir'] ) . '/core/class-itsec-lib.php' );
         }
 
         MainWPHelper::update_option('mainwp_ithemes_ext_enabled', "Y", 'yes');
-        $settings = unserialize(base64_decode($_POST['settings']));           
+        $settings = maybe_unserialize(base64_decode($_POST['settings']));           
         $updated = false;
         $rewrites_changed = false;
                 
@@ -357,8 +365,8 @@ class MainWPChildIThemesSecurity
                 );
                 add_site_option( 'itsec_temp_whitelist_ip', $response );
                 $response['exp_diff']      = human_time_diff( $itsec_globals['current_time'], $response['exp'] );
-                $response['message1'] = __( 'Your IP Address', 'it-l10n-better-wp-security' );
-                $response['message2'] = __( 'is whitelisted for', 'it-l10n-better-wp-security' );
+                $response['message1'] = __( 'Your IP Address', 'better-wp-security' );
+                $response['message2'] = __( 'is whitelisted for', 'better-wp-security' );
                 return $response;
         }
 
@@ -370,9 +378,9 @@ class MainWPChildIThemesSecurity
     } 
     
     function backup_db() {
-        global $itsec_globals;
+        global $itsec_globals, $itsec_modules_path;
         if ( ! class_exists( 'ITSEC_Backup' ) ) {
-            require( trailingslashit( $itsec_globals['plugin_dir'] ) . 'modules/free/backup/class-itsec-backup.php' );
+            require( $itsec_modules_path . 'backup/class-itsec-backup.php' );
         }
         $module = new ITSEC_Backup();  
         $out = array();
@@ -391,7 +399,7 @@ class MainWPChildIThemesSecurity
         //load utility functions
         if ( ! class_exists( 'ITSEC_Lib' ) ) {
             global $itsec_globals;
-            require( trailingslashit( $itsec_globals['plugin_dir'] ) . 'core/class-itsec-lib.php' );
+            require( trailingslashit( $itsec_globals['plugin_dir'] ) . '/core/class-itsec-lib.php' );
         }
         
         $username_exists = username_exists( 'admin' );
@@ -453,15 +461,13 @@ class MainWPChildIThemesSecurity
 
                         } else { // we're only changing the username
 
-                                //query main user table
-                                $wpdb->query( "UPDATE `" . $wpdb->users . "` SET user_login = '" . esc_sql( $new_user ) . "' WHERE user_login='admin';" );
+                                //query main user table                                
+								$wpdb->query( $wpdb->prepare( 'UPDATE `' . $wpdb->users . "` SET user_login = %s WHERE user_login='admin';", $new_user ) );								
 
                                 if ( is_multisite() ) { //process sitemeta if we're in a multi-site situation
-
                                         $oldAdmins = $wpdb->get_var( "SELECT meta_value FROM `" . $wpdb->sitemeta . "` WHERE meta_key = 'site_admins'" );
-                                        $newAdmins = str_replace( '5:"admin"', strlen( $new_user ) . ':"' . esc_sql( $new_user ) . '"', $oldAdmins );
-                                        $wpdb->query( "UPDATE `" . $wpdb->sitemeta . "` SET meta_value = '" . esc_sql( $newAdmins ) . "' WHERE meta_key = 'site_admins'" );
-
+                                        $newAdmins = str_replace( '5:"admin"', strlen( $new_user ) . ':"' . esc_sql( $new_user ) . '"', $oldAdmins );                                        
+										$wpdb->query( $wpdb->prepare( 'UPDATE `' . $wpdb->sitemeta . "` SET meta_value = %s WHERE meta_key = 'site_admins'", $newAdmins ) );
                                 }
 
                                 wp_clear_auth_cookie();
@@ -505,10 +511,10 @@ class MainWPChildIThemesSecurity
 
                         $new_user = $wpdb->insert_id;
 
-                        $wpdb->query( "UPDATE `" . $wpdb->posts . "` SET post_author = '" . $new_user . "' WHERE post_author = 1;" );
-                        $wpdb->query( "UPDATE `" . $wpdb->usermeta . "` SET user_id = '" . $new_user . "' WHERE user_id = 1;" );
-                        $wpdb->query( "UPDATE `" . $wpdb->comments . "` SET user_id = '" . $new_user . "' WHERE user_id = 1;" );
-                        $wpdb->query( "UPDATE `" . $wpdb->links . "` SET link_owner = '" . $new_user . "' WHERE link_owner = 1;" );
+						$wpdb->query( $wpdb->prepare( 'UPDATE `' . $wpdb->posts . "` SET post_author = %s WHERE post_author = 1;", $new_user ) );
+						$wpdb->query( $wpdb->prepare( 'UPDATE `' . $wpdb->usermeta . "` SET user_id = %s WHERE user_id = 1;", $new_user ) );
+						$wpdb->query( $wpdb->prepare( 'UPDATE `' . $wpdb->comments . "` SET user_id = %s WHERE user_id = 1;", $new_user ) );
+						$wpdb->query( $wpdb->prepare( 'UPDATE `' . $wpdb->links . "` SET link_owner = %s WHERE link_owner = 1;", $new_user ) );
 
                         wp_clear_auth_cookie();
                         $itsec_files->release_file_lock( 'admin_user' );
@@ -564,9 +570,9 @@ class MainWPChildIThemesSecurity
                 $out['result'] = 'fail';                   
                 $msg = sprintf(
                                 '%s %s %s',
-                                __( 'You must allow this plugin to write to the wp-config.php file on the', 'it-l10n-better-wp-security' ),
-                                __( 'Settings', 'it-l10n-better-wp-security' ),
-                                __( 'page to use this feature.', 'it-l10n-better-wp-security' )
+                                __( 'You must allow this plugin to write to the wp-config.php file on the', 'better-wp-security' ),
+                                __( 'Settings', 'better-wp-security' ),
+                                __( 'page to use this feature.', 'better-wp-security' )
                         );
                 $out['message'] = $msg;
                 return $out;
@@ -594,14 +600,14 @@ class MainWPChildIThemesSecurity
                     $new_prefix .= '_';
 
                     $new_prefix = esc_sql( $new_prefix ); //just be safe
-
-                    $check_prefix = $wpdb->get_results( 'SHOW TABLES LIKE "' . $new_prefix . '%";', ARRAY_N ); //if there are no tables with that prefix in the database set checkPrefix to false
+                    
+					$check_prefix = $wpdb->get_results( $wpdb->prepare( 'SHOW TABLES LIKE "%s";', $new_prefix ."%" ), ARRAY_N ); //if there are no tables with that prefix in the database set checkPrefix to false
 
             }
 
             //assume this will work
             $type    = 'success';
-            $message = __( 'Settings Updated', 'it-l10n-better-wp-security' );
+            $message = __( 'Settings Updated', 'better-wp-security' );
 
             $tables = $wpdb->get_results( 'SHOW TABLES LIKE "' . $wpdb->base_prefix . '%"', ARRAY_N ); //retrieve a list of all tables in the DB
 
@@ -614,7 +620,7 @@ class MainWPChildIThemesSecurity
                     if ( $wpdb->query( 'RENAME TABLE `' . $wpdb->base_prefix . $table . '` TO `' . $new_prefix . $table . '`;' ) === false ) {
 
                             $type    = 'error';
-                            $message = sprintf( '%s %s%s. %s', __( 'Error: Could not rename table', 'it-l10n-better-wp-security' ), $wpdb->base_prefix, $table, __( 'You may have to rename the table manually.', 'it-l10n-better-wp-security' ) );
+                            $message = sprintf( '%s %s%s. %s', __( 'Error: Could not rename table', 'better-wp-security' ), $wpdb->base_prefix, $table, __( 'You may have to rename the table manually.', 'better-wp-security' ) );
 
                             //add_settings_error( 'itsec', esc_attr( 'settings_updated' ), $message, $type );
 
@@ -630,21 +636,19 @@ class MainWPChildIThemesSecurity
 
                             //update each blog's user_roles option
                             foreach ( $blogs as $blog ) {
-
-                                    $wpdb->query( 'UPDATE `' . $new_prefix . $blog . '_options` SET option_name = "' . $new_prefix . $blog . '_user_roles" WHERE option_name = "' . $wpdb->base_prefix . $blog . '_user_roles" LIMIT 1;' );
-
+									$wpdb->query( $wpdb->prepare( 'UPDATE `' . $new_prefix . $blog . '_options` SET option_name = %s WHERE option_name = %s LIMIT 1;', $new_prefix . $blog . '_user_roles', $wpdb->base_prefix . $blog . '_user_roles' ) );                                    
                             }
 
                     }
 
             }
-
-            $upOpts = $wpdb->query( 'UPDATE `' . $new_prefix . 'options` SET option_name = "' . $new_prefix . 'user_roles" WHERE option_name = "' . $wpdb->base_prefix . 'user_roles" LIMIT 1;' ); //update options table and set flag to false if there's an error
-
+            
+			$upOpts = $wpdb->query( $wpdb->prepare( 'UPDATE `' . $new_prefix . 'options` SET option_name = %s WHERE option_name = %s LIMIT 1;', $new_prefix.'user_roles', $wpdb->base_prefix.'user_roles' ) ); //update options table and set flag to false if there's an error
+			
             if ( $upOpts === false ) { //set an error
 
                     $type    = 'error';
-                    $message = __( 'Could not update prefix references in options table.', 'it-l10n-better-wp-security' );;
+                    $message = __( 'Could not update prefix references in options table.', 'better-wp-security' );;
 
                     //add_settings_error( 'itsec', esc_attr( 'settings_updated' ), $message, $type );
 
@@ -659,12 +663,12 @@ class MainWPChildIThemesSecurity
 
                             $pos = $new_prefix . substr( $row->meta_key, strlen( $wpdb->base_prefix ), strlen( $row->meta_key ) );
 
-                            $result = $wpdb->query( 'UPDATE `' . $new_prefix . 'usermeta` SET meta_key="' . $pos . '" WHERE meta_key= "' . $row->meta_key . '" LIMIT 1;' );
-
+							$result = $wpdb->query( $wpdb->prepare( 'UPDATE `' . $new_prefix . 'usermeta` SET meta_key= %s WHERE meta_key= %s LIMIT 1;', $pos, $row->meta_key) );
+							
                             if ( $result == false ) {
 
                                     $type    = 'error';
-                                    $message = __( 'Could not update prefix references in usermeta table.', 'it-l10n-better-wp-security' );
+                                    $message = __( 'Could not update prefix references in usermeta table.', 'better-wp-security' );
 
                                     //add_settings_error( 'itsec', esc_attr( 'settings_updated' ), $message, $type );
 
@@ -750,9 +754,9 @@ class MainWPChildIThemesSecurity
     }
     
     public function malware_scan() {
-        global $itsec_globals;
+        global $itsec_globals, $itsec_modules_path;
         if ( ! class_exists( 'ITSEC_Malware' ) ) {
-            require( trailingslashit( $itsec_globals['plugin_dir'] ) . 'modules/free/malware/class-itsec-malware.php' );
+            require( $itsec_modules_path . 'malware/class-itsec-malware.php' );
         }  
         $module = new ITSEC_Malware();
         $module->run();
@@ -762,9 +766,9 @@ class MainWPChildIThemesSecurity
     
     
     public function malware_get_scan_results() {    
-        global $itsec_globals;
+        global $itsec_globals, $itsec_modules_path;
         if ( ! class_exists( 'ITSEC_Malware' ) ) {
-            require( trailingslashit( $itsec_globals['plugin_dir'] ) . 'modules/free/malware/class-itsec-malware.php' );
+            require( $itsec_modules_path . 'malware/class-itsec-malware.php' );
         }  
         $module = new ITSEC_Malware();
         $module->run();
@@ -779,9 +783,9 @@ class MainWPChildIThemesSecurity
     }
     
     public function file_check() {        
-        global $itsec_globals;
-        if ( ! class_exists( 'ITSEC_File_Change' ) ) {
-            require( trailingslashit( $itsec_globals['plugin_dir'] ) . 'modules/free/file-change/class-itsec-file-change.php' );
+        global $itsec_globals, $itsec_modules_path;
+        if ( ! class_exists( 'ITSEC_File_Change' ) ) {			
+            require( $itsec_modules_path . 'file-change/class-itsec-file-change.php' );
         }         
         
         $module = new ITSEC_File_Change();
@@ -884,7 +888,7 @@ class MainWPChildIThemesSecurity
         global $wpdb, $itsec_globals;
 
         if ( ! class_exists( 'ITSEC_Lib' ) ) {
-            require( trailingslashit( $itsec_globals['plugin_dir'] ) . 'core/class-itsec-lib.php' );
+            require( trailingslashit( $itsec_globals['plugin_dir'] ) . '/core/class-itsec-lib.php' );
         }  
         
         $lockout_ids = $_POST['lockout_ids'];
@@ -892,7 +896,7 @@ class MainWPChildIThemesSecurity
             $lockout_ids = array();
         
         $type    = 'updated';
-        $message = __( 'The selected lockouts have been cleared.', 'it-l10n-better-wp-security' );
+        $message = __( 'The selected lockouts have been cleared.', 'better-wp-security' );
         
         foreach ( $lockout_ids as $value ) {
                 $wpdb->update(
