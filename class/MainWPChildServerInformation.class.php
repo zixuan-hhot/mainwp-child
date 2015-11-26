@@ -784,7 +784,7 @@ class MainWPChildServerInformation
     }
 
     protected static function getRemoteAddress() {
-        echo $_SERVER['REMOTE_ADDR'];
+        echo esc_html( $_SERVER['REMOTE_ADDR'] );
     }
 
     protected static function getRemoteHost() {
