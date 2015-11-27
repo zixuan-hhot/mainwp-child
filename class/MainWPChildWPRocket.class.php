@@ -131,6 +131,9 @@ class MainWPChildWPRocket
                 case "save_settings":
                     $information = $this->save_settings();
                 break;
+			    case "load_existing_settings":
+                    $information = $this->load_existing_settings();
+                break;
             }        
         }
         MainWPHelper::write($information);
@@ -199,6 +202,10 @@ class MainWPChildWPRocket
         return array('result' => 'SUCCESS');
     }     
     
+	function load_existing_settings() {
+        $options = get_option( WP_ROCKET_SLUG );       
+        return array('result' => 'success', 'options' => $options);
+    }     
     
     function get_rocket_default_options()
     {

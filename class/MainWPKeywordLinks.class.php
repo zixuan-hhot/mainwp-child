@@ -52,8 +52,8 @@ class MainWPKeywordLinks
         <script type="text/javascript">
                 var kwlAjaxUrl="<?php echo admin_url('admin-ajax.php'); ?>";
                 var kwlNonce="<?php echo wp_create_nonce('keywordLinksSaveClick'); ?>";
-                var kwlIp ="<?php echo $_SERVER['REMOTE_ADDR']; ?>"; 
-                var kwlReferer ="<?php echo $_SERVER['HTTP_REFERER']; ?>"; 
+                var kwlIp ="<?php echo esc_html( $_SERVER['REMOTE_ADDR'] ); ?>"; 
+                var kwlReferer ="<?php echo esc_html( $_SERVER['HTTP_REFERER'] ); ?>"; 
         </script>
         <?php
     }
