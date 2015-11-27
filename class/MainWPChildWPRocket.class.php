@@ -169,7 +169,7 @@ class MainWPChildWPRocket
             $options['minify_js_key'] = create_rocket_uniqid();
             remove_all_filters( 'update_option_' . WP_ROCKET_SLUG );
             update_option( WP_ROCKET_SLUG, $options );
-            rocket_dismiss_box( 'rocket_warning_plugin_modification' );
+            //rocket_dismiss_box( 'rocket_warning_plugin_modification' );
             return array('result' => 'SUCCESS');
         } else 
             return array('error' => 'function_not_exist');     
