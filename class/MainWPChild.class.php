@@ -1623,7 +1623,8 @@ class MainWPChild
         {
             if (!$this->login($_POST['user']))
             {
-                MainWPHelper::error(__('No such user','mainwp-child'));
+				$hint = "<br/>" . __('Hint: Check if the Administrator User exists on the child site, if not you need to use existing Administrator ', 'mainwp-child');
+                MainWPHelper::error(__('No such user' . $hint,'mainwp-child'));
             }
             if ($current_user->wp_user_level != 10 && (!isset($current_user->user_level) || $current_user->user_level != 10) && !current_user_can('level_10'))
             {
@@ -3694,7 +3695,8 @@ class MainWPChild
     {
         if (get_option('mainwp_child_pubkey'))
         {
-            MainWPHelper::error(__('This site already contains a link - please disable and enable the MainWP plugin.','mainwp-child'));
+			$hint = '<br/>' . __('Hint 1: Go to the child site, deactivate and reactivate the MainWP Child plugin and try again.<br/>Hint 2: Please verify that the ctype_digit() PHP function has not been disabled on your child site server.', 'mainwp-child');
+            MainWPHelper::error(__('This site already contains a link - please disable and enable the MainWP plugin.','mainwp-child') . $hint);
         }
 
         global $wp_version;
