@@ -554,7 +554,7 @@ class MainWPClientReport
                         
                         if ($data == "roles" && $users_updated) {
                             $user_info = get_userdata($record->object_id);
-                            if ( !( is_object( $user_info ) && is_a( $user_info, 'WP_User' ) ) ) {                                
+                            if ( !( is_object( $user_info ) && ( $user_info instanceof WP_User ) ) ) {                                
                                 $roles = "";
                             } else {
                                 $roles = implode(", ", $user_info->roles); 

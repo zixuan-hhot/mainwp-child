@@ -316,7 +316,7 @@ class MainWPSecurity
         if ($force || self::get_security_option('scripts_version'))
         {
             global $wp_scripts;
-            if (!is_a($wp_scripts, 'WP_Scripts'))
+            if (!($wp_scripts instanceof WP_Scripts))
                 return;
 
             foreach ($wp_scripts->registered as $handle => $script)
@@ -370,7 +370,7 @@ class MainWPSecurity
         if ($force || self::get_security_option('styles_version'))
         {
             global $wp_styles;
-            if (!is_a($wp_styles, 'WP_Styles'))
+            if (!($wp_styles instanceof WP_Styles))
                 return;
 
             foreach ($wp_styles->registered as $handle => $style)
