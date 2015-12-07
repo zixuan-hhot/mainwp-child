@@ -24,8 +24,8 @@ class MainWP_Client_Report {
 			'Sucuri',
 		);
 
-		foreach ( $connectors as $connector ) {
-			$class_name = "MainWPStreamConnector$connector";
+		foreach ( $connectors as $connector ) {			
+			$class_name = "MainWP_Child_Reports_Connector_$connector";
 			if ( ! class_exists( $class_name ) ) {
 				continue;
 			}
@@ -47,8 +47,11 @@ class MainWP_Client_Report {
 			'Sucuri',
 		);
 
-		foreach ( $connectors as $connector ) {
-			$class     = "MainWP_ChildReportsConnector$connector";
+		foreach ( $connectors as $connector ) {			
+			$class     = "MainWP_Child_Reports_Connector_$connector";
+			if ( ! class_exists( $class ) ) {
+				continue;
+			}
 			$classes[] = $class;
 		}
 
