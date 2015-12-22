@@ -7,6 +7,23 @@ class MainWP_Helper {
 		die( '<mainwp>' . base64_encode( $output ) . '</mainwp>' );
 	}
 
+	static function close_connection( $val = null ) {
+		$output = serialize( $val );
+		$output = '<mainwp>' . base64_encode( $output ) . '</mainwp>';
+		// Close browser connection so that it can resume AJAX polling
+		header( 'Content-Length: ' . strlen( $output ) );
+		header( 'Connection: close' );
+		header( 'Content-Encoding: none' );		
+		if ( session_id() ) {
+			session_write_close();
+		}
+		echo $output;
+		if ( ob_get_level() ) {
+			ob_end_flush();
+		}
+		flush();				
+	}
+	
 	static function error( $error ) {
 		$information['error'] = $error;
 		MainWP_Helper::write( $information );

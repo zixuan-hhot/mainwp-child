@@ -982,8 +982,10 @@ class MainWP_Child {
 		}
 
 		new MainWP_Child_iThemes_Security();
-
+		new MainWP_Child_Updraft_Plus_Backups();
+		
 		MainWP_Child_Updraft_Plus_Backups::Instance()->updraftplus_init();
+		
 		if ( version_compare( phpversion(), '5.3', '>=' ) ) {
 			MainWP_Child_Back_Up_Wordpress::Instance()->init();
 		}
@@ -2669,13 +2671,8 @@ class MainWP_Child {
 				$othersData = array();
 			}
 
-			do_action( 'mainwp-site-sync-others-data', $othersData );
-
-			if ( isset( $othersData['syncUpdraftData'] ) && $othersData['syncUpdraftData'] ) {
-				if ( MainWP_Child_Updraft_Plus_Backups::isActivatedUpdraftplus() ) {
-					$information['syncUpdraftData'] = MainWP_Child_Updraft_Plus_Backups::Instance()->syncData();
-				}
-			}
+			$information = apply_filters( 'mainwp-site-sync-others-data', $information, $othersData );
+			
 			if ( version_compare( phpversion(), '5.3', '>=' ) ) {
 				if ( isset( $othersData['syncBackUpWordPress'] ) && $othersData['syncBackUpWordPress'] ) {
 					if ( MainWP_Child_Back_Up_Wordpress::isActivated() ) {
