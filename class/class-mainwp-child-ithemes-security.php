@@ -15,7 +15,7 @@ class MainWP_Child_iThemes_Security {
 		add_filter( 'mainwp-site-sync-others-data', array( $this, 'syncOthersData' ), 10, 2 );
 	}
 
-	function syncOthersData( $information, $data = array()) {
+	function syncOthersData( $information, $data = array() ) {
 		if ( is_array( $data ) && isset( $data['ithemeExtActivated'] ) && ( 'yes' === $data['ithemeExtActivated'] ) ) {
 			MainWP_Helper::update_option( 'mainwp_ithemes_ext_activated', 'Y' );
 		} else {

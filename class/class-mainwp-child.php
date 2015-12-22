@@ -78,7 +78,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 }
 
 class MainWP_Child {
-	private $version = '3.0';
+	public static $version = '3.0';
 	private $update_version = '1.3';
 
 	private $callableFunctions = array(
@@ -176,7 +176,7 @@ class MainWP_Child {
 		add_action( 'init', array( &$this, 'localization' ) );
 
 		if ( is_admin() ) {
-			MainWP_Helper::update_option( 'mainwp_child_plugin_version', $this->version, 'yes' );
+			MainWP_Helper::update_option( 'mainwp_child_plugin_version', self::$version, 'yes' );
 		}
 
 		$this->checkOtherAuth();
@@ -714,8 +714,10 @@ class MainWP_Child {
 				MainWP_Helper::write( array( 'size' => filesize( $archiveFile ) ) );
 			} else if ( 'createCloneBackup' === $_POST['cloneFunc'] ) {
 				MainWP_Helper::endSession();
-				if ( file_exists( WP_CONTENT_DIR . '/dbBackup.sql' ) ) {
-					@unlink( WP_CONTENT_DIR . '/dbBackup.sql' );
+
+				$files = glob( WP_CONTENT_DIR . '/dbBackup*.sql' );
+				foreach ( $files as $file ) {
+					@unlink( $file );
 				}
 				if ( file_exists( ABSPATH . 'clone/config.txt' ) ) {
 					@unlink( ABSPATH . 'clone/config.txt' );
@@ -983,9 +985,8 @@ class MainWP_Child {
 
 		new MainWP_Child_iThemes_Security();
 		new MainWP_Child_Updraft_Plus_Backups();
-		
+
 		MainWP_Child_Updraft_Plus_Backups::Instance()->updraftplus_init();
-		
 		if ( version_compare( phpversion(), '5.3', '>=' ) ) {
 			MainWP_Child_Back_Up_Wordpress::Instance()->init();
 		}
@@ -1904,7 +1905,11 @@ class MainWP_Child {
 				MainWP_Helper::write( array() );
 			}
 
-			MainWP_Helper::write( array( 'size' => filesize( $result[0] ) ) );
+			$size = 0;
+			foreach ( $result as $f ) {
+				$size += filesize($f);
+			}
+			MainWP_Helper::write( array( 'size' => $size ) );
 			exit();
 		}
 	}
@@ -1998,7 +2003,7 @@ class MainWP_Child {
 				$uname = @posix_uname();
 				if ( is_array( $uname ) && isset( $uname['nodename'] ) ) {
 					if ( stristr( $uname['nodename'], 'hostgator' ) ) {
-						if ( ! isset( $_POST['file_descriptors'] ) || '0' === $_POST['file_descriptors'] || $_POST['file_descriptors'] > 1000 ) {
+						if ( ! isset( $_POST['file_descriptors'] ) || '0' == $_POST['file_descriptors'] || $_POST['file_descriptors'] > 1000 ) {
 							$_POST['file_descriptors'] = 1000;
 						}
 						$_POST['file_descriptors_auto'] = 0;
@@ -2025,10 +2030,10 @@ class MainWP_Child {
 				$newExcludes[] = rtrim( $exclude, '/' );
 			}
 
-			$excludebackup = ( isset( $_POST['excludebackup'] ) && '1' === $_POST['excludebackup'] );
-			$excludecache  = ( isset( $_POST['excludecache'] ) && '1' === $_POST['excludecache'] );
-			$excludezip    = ( isset( $_POST['excludezip'] ) && '1' === $_POST['excludezip'] );
-			$excludenonwp  = ( isset( $_POST['excludenonwp'] ) && '1' === $_POST['excludenonwp'] );
+			$excludebackup = ( isset( $_POST['excludebackup'] ) && '1' == $_POST['excludebackup'] );
+			$excludecache  = ( isset( $_POST['excludecache'] ) && '1' == $_POST['excludecache'] );
+			$excludezip    = ( isset( $_POST['excludezip'] ) && '1' == $_POST['excludezip'] );
+			$excludenonwp  = ( isset( $_POST['excludenonwp'] ) && '1' == $_POST['excludenonwp'] );
 
 			if ( $excludebackup ) {
 				//Backup buddy
@@ -2107,7 +2112,7 @@ class MainWP_Child {
 				$pid = $_POST['pid'];
 			}
 
-			$append = ( isset( $_POST['append'] ) && ( '1' === $_POST['append'] ) );
+			$append = ( isset( $_POST['append'] ) && ( '1' == $_POST['append'] ) );
 
 			$res = MainWP_Backup::get()->createFullBackup( $newExcludes, $fileName, true, true, $file_descriptors, $file, $excludezip, $excludenonwp, $loadFilesBeforeZip, $ext, $pid, $append );
 			if ( ! $res ) {
@@ -2117,7 +2122,7 @@ class MainWP_Child {
 				$information['size'] = $res['filesize'];
 			}
 			$information['db'] = false;
-		} else if ( 'db' === $_POST['type'] ) {
+		} else if ( 'db' == $_POST['type'] ) {
 			$ext = 'zip';
 			if ( isset( $_POST['ext'] ) ) {
 				$ext = $_POST['ext'];
@@ -2147,25 +2152,23 @@ class MainWP_Child {
 		$dirs      = MainWP_Helper::getMainWPDir( 'backup' );
 		$dir       = $dirs[0];
 		$timestamp = time();
+
 		if ( '' !== $fileName ) {
 			$fileName .= '-';
 		}
-		$filepath = $dir . 'dbBackup-' . $fileName . $timestamp . '.sql';
+
+		$filepath_prefix = $dir . 'dbBackup-' . $fileName . $timestamp;
 
 		if ( $dh = opendir( $dir ) ) {
 			while ( ( $file = readdir( $dh ) ) !== false ) {
-				if ( '.' !== $file && '..' !== $file && ( preg_match( '/dbBackup-(.*).sql(\.zip|\.tar|\.tar\.gz|\.tar\.bz2)?$/', $file ) ) ) {
+				if ( '.' !== $file && '..' !== $file && ( preg_match( '/dbBackup-(.*).sql(\.zip|\.tar|\.tar\.gz|\.tar\.bz2|\.tmp)?$/', $file ) ) ) {
 					@unlink( $dir . $file );
 				}
 			}
 			closedir( $dh );
 		}
 
-		if ( file_exists( $filepath ) ) {
-			@unlink( $filepath );
-		}
-
-		$result = MainWP_Backup::get()->createBackupDB( $filepath, $ext );
+		$result = MainWP_Backup::get()->createBackupDB( $filepath_prefix, $ext );
 
 		MainWP_Helper::update_option( 'mainwp_child_last_db_backup_size', filesize( $result['filepath'] ) );
 
@@ -2420,7 +2423,7 @@ class MainWP_Child {
 			}
 		}
 
-		$information['version']   = $this->version;
+		$information['version']   = self::$version;
 		$information['wpversion'] = $wp_version;
 		$information['siteurl']   = get_option( 'siteurl' );
 		$information['nossl']     = ( '1' === get_option( 'mainwp_child_nossl' ) ? 1 : 0 );
@@ -2672,7 +2675,7 @@ class MainWP_Child {
 			}
 
 			$information = apply_filters( 'mainwp-site-sync-others-data', $information, $othersData );
-			
+
 			if ( version_compare( phpversion(), '5.3', '>=' ) ) {
 				if ( isset( $othersData['syncBackUpWordPress'] ) && $othersData['syncBackUpWordPress'] ) {
 					if ( MainWP_Child_Back_Up_Wordpress::isActivated() ) {
@@ -3396,22 +3399,19 @@ class MainWP_Child {
 			$active_plugins = get_option( 'active_plugins' );
 
 			foreach ( $plugins as $pluginslug => $plugin ) {
-				if ( $pluginslug === $this->plugin_slug ) {
-					continue;
-				}
-
 				$out                = array();
+				$out['mainwp']    = ($pluginslug == $this->plugin_slug ? 'T' : 'F');
 				$out['name']        = $plugin['Name'];
 				$out['slug']        = $pluginslug;
 				$out['description'] = $plugin['Description'];
 				$out['version']     = $plugin['Version'];
 				$out['active']      = ( is_array( $active_plugins ) && in_array( $pluginslug, $active_plugins ) ) ? 1 : 0;
 				if ( ! $filter ) {
-					if ( '' === $keyword || stristr( $out['name'], $keyword ) ) {
+					if ( '' == $keyword || stristr( $out['name'], $keyword ) ) {
 						$rslt[] = $out;
 					}
 				} else if ( $out['active'] == ( ( $status == 'active' ) ? 1 : 0 ) ) {
-					if ( '' === $keyword || stristr( $out['name'], $keyword ) ) {
+					if ( '' == $keyword || stristr( $out['name'], $keyword ) ) {
 						$rslt[] = $out;
 					}
 				}
@@ -3422,7 +3422,7 @@ class MainWP_Child {
 	}
 
 	function get_all_users() {
-		$roles    = explode( ',', $_POST['role'] );
+		$roles = explode( ',', $_POST['role'] );
 		$allusers = array();
 		if ( is_array( $roles ) ) {
 			foreach ( $roles as $role ) {
@@ -3524,7 +3524,7 @@ class MainWP_Child {
 		}
 
 		global $wp_version;
-		$information['version']   = $this->version;
+		$information['version']   = self::$version;
 		$information['wpversion'] = $wp_version;
 		MainWP_Helper::write( $information );
 	}

@@ -13,7 +13,7 @@ class MainWP_Helper {
 		// Close browser connection so that it can resume AJAX polling
 		header( 'Content-Length: ' . strlen( $output ) );
 		header( 'Connection: close' );
-		header( 'Content-Encoding: none' );		
+		header( 'Content-Encoding: none' );
 		if ( session_id() ) {
 			session_write_close();
 		}
@@ -21,9 +21,9 @@ class MainWP_Helper {
 		if ( ob_get_level() ) {
 			ob_end_flush();
 		}
-		flush();				
+		flush();
 	}
-	
+
 	static function error( $error ) {
 		$information['error'] = $error;
 		MainWP_Helper::write( $information );
@@ -612,11 +612,11 @@ class MainWP_Helper {
 
 	public static function endsWith( $haystack, $needle ) {
 		$length = strlen( $needle );
-		if ( 0 === $length ) {
+		if ( 0 == $length ) {
 			return true;
 		}
 
-		return ( substr( $haystack, - $length ) === $needle );
+		return ( substr( $haystack, - $length ) == $needle );
 	}
 
 	public static function getNiceURL( $pUrl, $showHttp = false ) {
@@ -681,7 +681,8 @@ class MainWP_Helper {
 	}
 
 	public static function _fetchUrl( $url, $postdata ) {
-		$agent = 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)';
+		//$agent = 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)';
+		$agent = 'Mozilla/5.0 (compatible; MainWP-Child/' . MainWP_Child::$version . '; +http://mainwp.com)';
 
 		$ch = curl_init();
 		curl_setopt( $ch, CURLOPT_URL, $url );
@@ -944,13 +945,13 @@ class MainWP_Helper {
 			return false;
 		}
 
-		if ( null !== $excludes ) {
+		if ( null != $excludes ) {
 			foreach ( $excludes as $exclude ) {
 				if ( MainWP_Helper::endsWith( $exclude, '*' ) ) {
 					if ( MainWP_Helper::startsWith( $value, substr( $exclude, 0, strlen( $exclude ) - 1 ) ) ) {
 						return true;
 					}
-				} else if ( $value === $exclude ) {
+				} else if ( $value == $exclude ) {
 					return true;
 				} else if ( MainWP_Helper::startsWith( $value, $exclude . '/' ) ) {
 					return true;
@@ -1028,5 +1029,18 @@ class MainWP_Helper {
 		}
 
 		return false;
+	}
+
+	public static function sanitize_filename( $filename ) {
+		// Remove anything which isn't a word, whitespace, number
+		// or any of the following caracters -_~,;:[]().
+		// If you don't need to handle multi-byte characters
+		// you can use preg_replace rather than mb_ereg_replace
+		// Thanks @Łukasz Rysiak!
+		$filename = mb_ereg_replace( "([^\w\s\d\-_~,;:\[\]\(\).])", '', $filename );
+		// Remove any runs of periods (thanks falstro!)
+		$filename = mb_ereg_replace( "([\.]{2,})", '', $filename );
+
+		return $filename;
 	}
 }

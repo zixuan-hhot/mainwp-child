@@ -10,24 +10,25 @@ class MainWP_Child_Updraft_Plus_Backups {
 
 		return MainWP_Child_Updraft_Plus_Backups::$instance;
 	}
+
 	public function __construct() {
 		add_filter( 'mainwp-site-sync-others-data', array( $this, 'syncOthersData' ), 10, 2 );
 	}
 
-	function syncOthersData( $information, $data = array()) {		
+	function syncOthersData( $information, $data = array() ) {
 		if ( isset( $data['syncUpdraftData'] ) && $data['syncUpdraftData'] ) {
 			if ( self::isActivatedUpdraftplus() ) {
 				$information['syncUpdraftData'] = $this->syncData();
-			}				
+			}
 		}
 		if ( isset( $data['sync_Updraftvault_quota_text'] ) && $data['sync_Updraftvault_quota_text'] ) {
 			if ( self::isActivatedUpdraftplus() ) {
 				$information['sync_Updraftvault_quota_text'] = $this->connected_html();
-			}				
+			}
 		}
 		return $information;
-	}	
-	
+	}
+
 	public function action() {
 		$information = array();
 		if ( ! self::isActivatedUpdraftplus() ) {
@@ -211,160 +212,157 @@ class MainWP_Child_Updraft_Plus_Backups {
 		);
 	}
 
-	private function do_vault_connect() {	
-		
-		$vault_settings = UpdraftPlus_Options::get_updraft_option('updraft_updraftvault');
-		if (is_array($vault_settings) && !empty($vault_settings['token']) && !empty($vault_settings['email'])) 
-			return array('connected' => true, 'html' => $this->connected_html());
-		
-		$connect = $this->vault_connect($_REQUEST['email'], $_REQUEST['passwd']);
-		if (true === $connect) {			
-			$response = array('connected' => true, 'html' => $this->connected_html());
+	private function do_vault_connect() {
+		$vault_settings = UpdraftPlus_Options::get_updraft_option( 'updraft_updraftvault' );
+		if ( is_array( $vault_settings ) && !empty( $vault_settings['token'] ) && !empty( $vault_settings['email'] ) )
+			return array( 'connected' => true, 'html' => $this->connected_html() );
+
+		$connect = $this->vault_connect( $_REQUEST['email'], $_REQUEST['passwd'] );
+		if ( true === $connect ) {
+			$response = array( 'connected' => true, 'html' => $this->connected_html() );
 		} else {
 			$response = array(
-				'e' => __('An unknown error occurred when trying to connect to UpdraftPlus.Com', 'updraftplus')
+				'e' => __( 'An unknown error occurred when trying to connect to UpdraftPlus.Com', 'updraftplus' )
 			);
-			if (is_wp_error($connect)) {
+			if ( is_wp_error( $connect ) ) {
 				$response['e'] = $connect->get_error_message();
 				$response['code'] = $connect->get_error_code();
-				$response['data'] = serialize($connect->get_error_data());
+				$response['data'] = serialize( $connect->get_error_data() );
 			}
-		} 
-		return $response;		
+		}
+		return $response;
 	}
-	
-	
+
+
 	private function connected_html() {
-		
-		$vault_settings = UpdraftPlus_Options::get_updraft_option('updraft_updraftvault');		
-		if (!is_array($vault_settings) || empty($vault_settings['token']) || empty($vault_settings['email'])) 
+		$vault_settings = UpdraftPlus_Options::get_updraft_option( 'updraft_updraftvault' );
+		if ( !is_array( $vault_settings ) || empty( $vault_settings['token'] ) || empty( $vault_settings['email'] ) ) {
 			return '';
+		}
 
 		$ret = '';
 		$ret .= '<p style="padding-top: 0px; margin-top: 0px;">';
-		$ret .= __('This site is <strong>connected</strong> to UpdraftPlus Vault.', 'updraftplus').' '.__("Well done - there's nothing more needed to set up.", 'updraftplus').'</p><p><strong>'.__('Vault owner', 'updraftplus').':</strong> '.htmlspecialchars($vault_settings['email']);
+		$ret .= __( 'This site is <strong>connected</strong> to UpdraftPlus Vault.', 'updraftplus' ).' '.__( "Well done - there's nothing more needed to set up.", 'updraftplus' ).'</p><p><strong>'.__( 'Vault owner', 'updraftplus' ).':</strong> ' . htmlspecialchars( $vault_settings['email'] );
 
-		$ret .= '<br><strong>'.__('Quota:', 'updraftplus').'</strong> ';
-		if (!isset($vault_settings['quota']) || !is_numeric($vault_settings['quota']) || $vault_settings['quota'] < 0) {
-			$ret .= __('Unknown', 'updraftplus');
+		$ret .= '<br><strong>' . __( 'Quota:', 'updraftplus' ) . '</strong> ';
+		if ( !isset( $vault_settings['quota'] ) || !is_numeric( $vault_settings['quota'] ) || ( $vault_settings['quota'] < 0 ) ) {
+			$ret .= __( 'Unknown', 'updraftplus' );
 		} else {
-			$quota_via_transient = get_transient('updraftvault_quota_text');
-			if (is_string($quota_via_transient) && $quota_via_transient)				
+			$quota_via_transient = get_transient( 'updraftvault_quota_text' );
+			if ( is_string( $quota_via_transient ) && $quota_via_transient ) {
 				$ret .= $quota_via_transient;
+			}
 		}
 		$ret .= '</p>';
-		$ret .= '<p><button id="updraftvault_disconnect" class="button-primary" style="font-size:18px;">'.__('Disconnect', 'updraftplus').'</button></p>';
+		$ret .= '<p><button id="updraftvault_disconnect" class="button-primary" style="font-size:18px;">' . __( 'Disconnect', 'updraftplus' ) . '</button></p>';
 
 		return $ret;
 	}
 
-	
+
 	// Returns either true (in which case the Vault token will be stored), or false|WP_Error
-	private function vault_connect($email, $password) {
-			
+	private function vault_connect( $email, $password ) {
 			global $updraftplus;
 			$vault_mothership = 'https://vault.updraftplus.com/plugin-info/';
-			
+
 			// Use SSL to prevent snooping
-			$result = wp_remote_post($vault_mothership.'/?udm_action=vault_connect',
+			$result = wp_remote_post( $vault_mothership.'/?udm_action=vault_connect',
 				array(
 					'timeout' => 20,
 					'body' => array(
 						'e' => $email,
-						'p' => base64_encode($password),
+						'p' => base64_encode( $password ),
 						'sid' => $updraftplus->siteid(),
-						'su' => base64_encode(home_url())
-					) 
+						'su' => base64_encode( home_url() )
+					)
 				)
 			);
 
-			if (is_wp_error($result) || false === $result) return $result;
+			if ( is_wp_error( $result ) || ( false === $result ) ) return $result;
 
-			$response = json_decode($result['body'], true);
+			$response = json_decode( $result['body'], true );
 
-			if (!is_array($response) || !isset($response['mothership']) || !isset($response['loggedin'])){
-
-				if (preg_match('/has banned your IP address \(([\.:0-9a-f]+)\)/', $result['body'], $matches)){
-					return new WP_Error('banned_ip', sprintf(__("UpdraftPlus.com has responded with 'Access Denied'.", 'updraftplus').'<br>'.__("It appears that your web server's IP Address (%s) is blocked.", 'updraftplus').' '.__('This most likely means that you share a webserver with a hacked website that has been used in previous attacks.', 'updraftplus').'<br> <a href="https://updraftplus.com/unblock-ip-address/" target="_blank">'.__('To remove the block, please go here.', 'updraftplus').'</a> ', $matches[1]));
+			if ( !is_array( $response ) || !isset( $response['mothership'] ) || !isset( $response['loggedin'] ) ) {
+				if ( preg_match( '/has banned your IP address \(([\.:0-9a-f]+)\)/', $result['body'], $matches ) ) {
+					return new WP_Error( 'banned_ip', sprintf( __( "UpdraftPlus.com has responded with 'Access Denied'.", 'updraftplus' ) . '<br>' . __( "It appears that your web server's IP Address (%s) is blocked.", 'updraftplus' ) . ' ' . __( 'This most likely means that you share a webserver with a hacked website that has been used in previous attacks.', 'updraftplus' ) . '<br> <a href="https://updraftplus.com/unblock-ip-address/" target="_blank">' . __( 'To remove the block, please go here.', 'updraftplus' ) . '</a> ', $matches[1] ) );
 				} else {
-					return new WP_Error('unknown_response', sprintf(__('UpdraftPlus.Com returned a response which we could not understand (data: %s)', 'updraftplus'), $result['body']));
+					return new WP_Error( 'unknown_response', sprintf( __( 'UpdraftPlus.Com returned a response which we could not understand (data: %s)', 'updraftplus' ), $result['body'] ) );
 				}
 			}
 
-			switch ($response['loggedin']) {
+			switch ( $response['loggedin'] ) {
 				case 'connected':
-					if (!empty($response['token'])) {
+					if ( !empty( $response['token'] ) ) {
 						// Store it
-						$vault_settings = UpdraftPlus_Options::get_updraft_option('updraft_updraftvault');
-						if (!is_array($vault_settings)) $vault_settings = array();
+						$vault_settings = UpdraftPlus_Options::get_updraft_option( 'updraft_updraftvault' );
+						if ( !is_array( $vault_settings ) ) $vault_settings = array();
 						$vault_settings['email'] = $email;
-						$vault_settings['token'] = (string)$response['token'];
+						$vault_settings['token'] = (string) $response['token'];
 						$vault_settings['quota'] = -1;
-						unset($vault_settings['last_config']);
-						if (isset($response['quota'])) $vault_settings['quota'] = $response['quota'];
-						UpdraftPlus_Options::update_updraft_option('updraft_updraftvault', $vault_settings);						
-					} elseif (isset($response['quota']) && !$response['quota']) {
-						return new WP_Error('no_quota', __('You do not currently have any UpdraftPlus Vault quota', 'updraftplus'));
+						unset( $vault_settings['last_config'] );
+						if ( isset($response['quota'] ) ) $vault_settings['quota'] = $response['quota'];
+						UpdraftPlus_Options::update_updraft_option( 'updraft_updraftvault', $vault_settings );
+					} elseif ( isset( $response['quota'] ) && !$response['quota'] ) {
+						return new WP_Error( 'no_quota', __( 'You do not currently have any UpdraftPlus Vault quota', 'updraftplus' ) );
 					} else {
-						return new WP_Error('unknown_response', __('UpdraftPlus.Com returned a response, but we could not understand it', 'updraftplus'));
+						return new WP_Error( 'unknown_response', __( 'UpdraftPlus.Com returned a response, but we could not understand it', 'updraftplus' ) );
 					}
 					break;
 				case 'authfailed':
 
-					if (!empty($response['authproblem'])) {
-						if ('invalidpassword' == $response['authproblem']) {
-							$authfail_error = new WP_Error('authfailed', __('Your email address was valid, but your password was not recognised by UpdraftPlus.Com.', 'updraftplus').' <a href="https://updraftplus.com/my-account/lost-password/">'.__('If you have forgotten your password, then go here to change your password on updraftplus.com.', 'updraftplus').'</a>');
+					if ( !empty( $response['authproblem'] ) ) {
+						if ( 'invalidpassword' == $response['authproblem'] ) {
+							$authfail_error = new WP_Error( 'authfailed', __( 'Your email address was valid, but your password was not recognised by UpdraftPlus.Com.', 'updraftplus' ) . ' <a href="https://updraftplus.com/my-account/lost-password/">' . __( 'If you have forgotten your password, then go here to change your password on updraftplus.com.', 'updraftplus' ) . '</a>' );
 							return $authfail_error;
-						} elseif ('invaliduser' == $response['authproblem']) {
-							return new WP_Error('authfailed', __('You entered an email address that was not recognised by UpdraftPlus.Com', 'updraftplus'));
+						} elseif ( 'invaliduser' == $response['authproblem'] ) {
+							return new WP_Error( 'authfailed', __( 'You entered an email address that was not recognised by UpdraftPlus.Com', 'updraftplus' ) );
 						}
 					}
 
-					return new WP_Error('authfailed', __('Your email address and password were not recognised by UpdraftPlus.Com', 'updraftplus'));
+					return new WP_Error( 'authfailed', __( 'Your email address and password were not recognised by UpdraftPlus.Com', 'updraftplus' ) );
 					break;
 
 				default:
-					return new WP_Error('unknown_response', __('UpdraftPlus.Com returned a response, but we could not understand it', 'updraftplus'));
+					return new WP_Error( 'unknown_response', __( 'UpdraftPlus.Com returned a response, but we could not understand it', 'updraftplus' ) );
 					break;
 			}
 
 			return true;
 	}
-		
+
 	// This method also gets called directly, so don't add code that assumes that it's definitely an AJAX situation
 	public function vault_disconnect() {
-		$vault_settings = UpdraftPlus_Options::get_updraft_option('updraft_updraftvault');
-		UpdraftPlus_Options::update_updraft_option('updraft_updraftvault', array());
+		$vault_settings = UpdraftPlus_Options::get_updraft_option( 'updraft_updraftvault' );
+		UpdraftPlus_Options::update_updraft_option( 'updraft_updraftvault', array() );
 		global $updraftplus;
 		$vault_mothership = 'https://vault.updraftplus.com/plugin-info/';
-		
-		delete_transient('udvault_last_config');
-		delete_transient('updraftvault_quota_text');
 
-		MainWP_Helper::close_connection(array('disconnected' => 1, 'html' => $this->connected_html()));
+		delete_transient( 'udvault_last_config' );
+		delete_transient( 'updraftvault_quota_text' );
+
+		MainWP_Helper::close_connection( array( 'disconnected' => 1,
+		                                        'html' => $this->connected_html() )
+		);
 
 		// If $_POST['reset_hash'] is set, then we were alerted by updraftplus.com - no need to notify back
-		if (is_array($vault_settings) && isset($vault_settings['email']) && empty($_POST['reset_hash'])) {
-		
+		if ( is_array( $vault_settings ) && isset( $vault_settings['email'] ) && empty( $_POST['reset_hash'] ) ) {
 			$post_body = array(
-				'e' => (string)$vault_settings['email'],
+				'e' => (string) $vault_settings['email'],
 				'sid' => $updraftplus->siteid(),
-				'su' => base64_encode(home_url())
+				'su' => base64_encode( home_url() )
 			);
 
-			if (!empty($vault_settings['token'])) $post_body['token'] = (string)$vault_settings['token'];
+			if ( !empty( $vault_settings['token'] ) ) $post_body['token'] = (string) $vault_settings['token'];
 
 			// Use SSL to prevent snooping
-			wp_remote_post($vault_mothership.'/?udm_action=vault_disconnect', array(
+			wp_remote_post( $vault_mothership.'/?udm_action=vault_disconnect', array(
 				'timeout' => 20,
 				'body' => $post_body,
 			));
 		}
 	}
-	
 
 	function save_settings() {
-
 		$settings = maybe_unserialize( base64_decode( $_POST['settings'] ) );
 
 		$keys = $this->get_settings_keys();
@@ -392,23 +390,7 @@ class MainWP_Child_Updraft_Plus_Backups {
 							$opts['secret']   = $settings[ $key ]['secret'];
 							$opts['folder']   = $settings[ $key ]['folder'];
 							UpdraftPlus_Options::update_updraft_option( $key, $opts );
-						}  else if ( 'updraft_azure' === $key ) {
-							$opts				= UpdraftPlus_Options::get_updraft_option( 'updraft_azure' );
-							$opts['account_name'] = $settings[ $key ]['account_name'];
-							$opts['key']   = $settings[ $key ]['key'];
-							$opts['container']   = $settings[ $key ]['container'];
-							$opts['directory']   = $settings[ $key ]['directory'];
-							UpdraftPlus_Options::update_updraft_option( $key, $opts );
-						} else if ( 'updraft_googlecloud' === $key ) {
-							$opts				= UpdraftPlus_Options::get_updraft_option( 'updraft_googlecloud' );
-							$opts['clientid'] = $settings[ $key ]['clientid'];
-							$opts['secret']   = $settings[ $key ]['secret'];
-							$opts['project_id']   = $settings[ $key ]['project_id'];
-							$opts['bucket_path']   = $settings[ $key ]['bucket_path'];
-							$opts['storage_class']   = $settings[ $key ]['storage_class'];
-							$opts['bucket_location']   = $settings[ $key ]['bucket_location'];
-							UpdraftPlus_Options::update_updraft_option( $key, $opts );
-						} else if ( 'updraft_email' === $key ) {		
+						} else if ( 'updraft_email' === $key ) {
 							$value = $settings[ $key ];
 							// free version
 							if ( ! is_array( $value ) ) {
@@ -680,7 +662,7 @@ class MainWP_Child_Updraft_Plus_Backups {
 			'm'     => '<strong>' . __( 'Start backup', 'updraftplus' ) . ':</strong> ' . htmlspecialchars( __( 'OK. You should soon see activity in the "Last log message" field below.', 'updraftplus' ) ),
 		);
 
-		MainWP_Helper::close_connection( $msg );
+		$this->close_browser_connection( $msg );
 
 		$options = array( 'nocloud' => $backupnow_nocloud, 'use_nonce' => $nonce );
 		if ( ! empty( $_REQUEST['onlythisfileentity'] ) && is_string( $_REQUEST['onlythisfileentity'] ) ) {
@@ -876,7 +858,7 @@ class MainWP_Child_Updraft_Plus_Backups {
 
 		$last_backup                       = $this->last_backup_html();
 		$out['updraft_lastbackup_html']    = $last_backup['b'];
-		$out['updraft_lastbackup_gmttime'] = $last_backup['lasttime_gmt'];		
+		$out['updraft_lastbackup_gmttime'] = $last_backup['lasttime_gmt'];
 
 		return $out;
 	}
@@ -1235,7 +1217,7 @@ class MainWP_Child_Updraft_Plus_Backups {
 		$updraftplus->jobdata_set( 'dlfile_' . $timestamp . '_' . $type . '_' . $findex, "downloading:$known_size:$fullpath" );
 
 		if ( $needs_downloading ) {
-			MainWP_Helper::close_connection();
+			$this->close_browser_connection();
 			$is_downloaded = false;
 			add_action( 'http_request_args', array( $updraftplus, 'modify_http_options' ) );
 			foreach ( $services as $service ) {
@@ -2701,7 +2683,7 @@ ENDHERE;
 			$updraftplus->log( "Forcing resumption: job id=$job_id, resumption=$resumption" );
 			$time = $get_cron[0];
 			wp_clear_scheduled_hook( 'updraft_backup_resume', array( $resumption, $job_id ) );
-			MainWP_Helper::close_connection( array( 'r' => true ) );
+			$this->close_browser_connection( array( 'r' => true ) );
 			$updraftplus->jobdata_set_from_array( $get_cron[1] );
 			$updraftplus->backup_resume( $resumption, $job_id );
 		}
@@ -3203,6 +3185,23 @@ ENDHERE;
 		}
 
 		return $response;
+	}
+
+	private function close_browser_connection( $txt = '' ) {
+		$txt = '<mainwp>' . base64_encode( serialize( $txt ) ) . '</mainwp>';
+		// Close browser connection so that it can resume AJAX polling
+		header( 'Content-Length: ' . ( ( ! empty( $txt ) ) ? strlen( $txt ) : '0' ) );
+		header( 'Connection: close' );
+		header( 'Content-Encoding: none' );
+		if ( session_id() ) {
+			session_write_close();
+		}
+		echo $txt;
+		// These two added - 19-Feb-15 - started being required on local dev machine, for unknown reason (probably some plugin that started an output buffer).
+		if ( ob_get_level() ) {
+			ob_end_flush();
+		}
+		flush();
 	}
 
 	public function updraftplus_init() {
