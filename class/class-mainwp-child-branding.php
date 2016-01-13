@@ -658,7 +658,7 @@ class MainWP_Child_Branding {
 					<h2><?php echo esc_html( $this->settings['contact_support_label'] ); ?></h2>
 
 					<div style="height: auto; margin-bottom: 10px; text-align: left">
-						<p><?php echo esc_html( $support_message ); ?></p>
+						<p><?php echo wp_kses( $support_message ); ?></p>
 
 						<div style="max-width: 650px;">
 							<?php
