@@ -78,7 +78,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 }
 
 class MainWP_Child {
-	public static $version = '3.0';
+	public static $version = '3.0.1';
 	private $update_version = '1.3';
 
 	private $callableFunctions = array(
@@ -1145,9 +1145,9 @@ class MainWP_Child {
 				'hook_extra'        => array(),
 			) );
 
-			if ( is_wp_error( $result ) ) {				
-				if ( true == $ssl_verify && strpos( $url, 'https://' ) === 0) {					
-					// retry 					
+			if ( is_wp_error( $result ) ) {
+				if ( true == $ssl_verify && strpos( $url, 'https://' ) === 0) {
+					// retry
 					add_filter( 'http_request_args', array( &$this, 'noSSLFilterFunction' ), 99, 2 );
 					$ssl_verify = false;
 					$result = $installer->run( array(
@@ -1160,7 +1160,7 @@ class MainWP_Child {
 						'hook_extra'        => array(),
 					) );
 				}
-				
+
 				if ( is_wp_error( $result ) ) {
 					if ( $result->get_error_data() && is_string( $result->get_error_data() ) ) {
 						$error = $result->get_error_data();
@@ -1168,13 +1168,13 @@ class MainWP_Child {
 					} else {
 						$error = $result->get_error_code();
 						MainWP_Helper::error( implode( ', ', $error ) );
-					}				
-				}				
+					}
+				}
 			}
-			
-			remove_filter( 'http_request_args', array( &$this, 'http_request_reject_unsafe_urls' ), 99, 2 );			
+
+			remove_filter( 'http_request_args', array( &$this, 'http_request_reject_unsafe_urls' ), 99, 2 );
 			if ( false == $ssl_verify ) {
-				remove_filter( 'http_request_args', array( &$this, 'noSSLFilterFunction' ), 99 );				
+				remove_filter( 'http_request_args', array( &$this, 'noSSLFilterFunction' ), 99 );
 			}
 
 			$args = array( 'success' => 1, 'action' => 'install' );

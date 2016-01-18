@@ -7,7 +7,7 @@ Author URI: https://mainwp.com
 Plugin URI: https://mainwp.com
 Requires at least: 3.6
 Tested up to: 4.4.1
-Stable tag: 3.0
+Stable tag: 3.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,14 +45,22 @@ To see full documentation and FAQs please visit [MainWP Documentation](http://do
 
 == Screenshots ==
 
-1. The Dashboard Screen
-2. The Sites Screen
-3. The Posts Screen
-4. The Extensions Screen
-5. The Plugins Screen
-6. The Groups Screen
+1. Quick Setup Wizard
+2. Add New Site Screen
+3. Manage Sites Screen
+4. Install Plugins Screen
+5. Install Themes Screen
+6. Add New User Screen
+7. Manage Posts Screen
+8. MainWP Settings Screen
+9. Global Dashboard Screen
 
 == Changelog ==
+
+= 3.0.1 - 1-18-16 =
+* Fixed: HTML output of branding contact form
+* Added: Auto retry install plugin/theme if installation fails
+* Fixed: Issue with rendering CSS used in the Branding extension
 
 = 3.0 - 1-12-16 =
 * Fixed: Refactored code to meet WordPress Coding standards

@@ -36,7 +36,7 @@ class MainWP_Helper {
 	 * Copyright (C) 2009 Peter Kröner
 	 */
 	public static function parse_css($css){
-		
+
 		// Remove CSS-Comments
 		$css = preg_replace('/\/\*.*?\*\//ms', '', $css);
 		// Remove HTML-Comments
@@ -48,7 +48,7 @@ class MainWP_Helper {
 		$ordered = array();
 		for($i=0;$i<count($blocks[0]);$i++){
 			// If @media-block, strip declaration and parenthesis
-			if(substr($blocks[0][$i],0,6) === '@media') 
+			if(substr($blocks[0][$i],0,6) === '@media')
 			{
 				$ordered_key = preg_replace('/^(@media[^\{]+)\{.*\}$/ms','$1',$blocks[0][$i]);
 				$ordered_value = preg_replace('/^@media[^\{]+\{(.*)\}$/ms','$1',$blocks[0][$i]);
@@ -59,7 +59,7 @@ class MainWP_Helper {
 				$ordered_key = $blocks[0][$i];
 				$ordered_value = $blocks[0][$i];
 			}
-			else 
+			else
 			{
 				$ordered_key = 'main';
 				$ordered_value = $blocks[0][$i];
@@ -67,14 +67,14 @@ class MainWP_Helper {
 			// Split by parenthesis, ignoring those inside content-quotes
 			$ordered[$ordered_key] = preg_split('/([^\'"\{\}]*?[\'"].*?(?<!\\\)[\'"][^\'"\{\}]*?)[\{\}]|([^\'"\{\}]*?)[\{\}]/',trim($ordered_value," \r\n\t"),-1,PREG_SPLIT_NO_EMPTY|PREG_SPLIT_DELIM_CAPTURE);
 		}
-		
+
 		// Beginning to rebuild new slim CSS-Array
 		foreach($ordered as $key => $val){
 			$new = array();
 			for($i = 0; $i<count($val); $i++){
 				// Split selectors and rules and split properties and values
 				$selector = trim($val[$i]," \r\n\t");
-				
+
 				if(!empty($selector)){
 					if(!isset($new[$selector])) $new[$selector] = array();
 					$rules = explode(';',$val[++$i]);
@@ -84,7 +84,7 @@ class MainWP_Helper {
 							$rule = array_reverse(explode(':', $rule));
 							$property = trim(array_pop($rule)," \r\n\t");
 							$value = implode(':', array_reverse($rule));
-							
+
 							if(!isset($new[$selector][$property]) || !preg_match('/!important/',$new[$selector][$property])) $new[$selector][$property] = $value;
 							elseif(preg_match('/!important/',$new[$selector][$property]) && preg_match('/!important/',$value)) $new[$selector][$property] = $value;
 						}
@@ -94,7 +94,7 @@ class MainWP_Helper {
 			$ordered[$key] = $new;
 		}
 		$parsed = $ordered;
-		
+
 		$output = '';
 		foreach($parsed as $media => $content){
 			if(substr($media,0,6) === '@media'){
@@ -117,8 +117,8 @@ class MainWP_Helper {
 		}
 		return $output;
 
-	}	
-	
+	}
+
 	static function uploadImage( $img_url ) {
 		include_once( ABSPATH . 'wp-admin/includes/file.php' ); //Contains download_url
 		//Download $img_url
