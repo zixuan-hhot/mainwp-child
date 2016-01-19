@@ -2396,6 +2396,7 @@ class MainWP_Child {
 					$update_htaccess = true;
 				}
 				MainWP_Helper::update_option( 'heatMapEnabled', '0', 'yes' );
+				MainWP_Helper::update_option( 'heatMapExtensionLoaded', '', 'yes' );
 			}
 		}
 
@@ -3949,11 +3950,7 @@ class MainWP_Child {
 		}
 		$code = stripslashes( $_POST['code'] );
 		if ( 'run_snippet' === $action ) {
-			$return = $this->execute_snippet( $code );
-			if ( is_array( $return ) && isset( $return['result'] ) && 'SUCCESS' === $return['result'] ) {
-				$information['status'] = 'SUCCESS';
-			}
-			$information['result'] = isset( $return['output'] ) ? $return['output'] : '';
+			$information = $this->execute_snippet( $code );		
 		} else if ( 'save_snippet' === $action ) {
 			$type     = $_POST['type'];
 			$slug     = $_POST['slug'];
@@ -4035,11 +4032,14 @@ class MainWP_Child {
 		$result = eval( $code );
 		$output = ob_get_contents();
 		ob_end_clean();
-		$return = array( 'output' => $output );
-		if ( $result ) {
-			$return['result'] = 'SUCCESS';
+		$return = array();		
+		if ( false === $result && ( $error = error_get_last() ) ) {
+			$return['status'] = 'FAIL';
+			$return['result'] = $error['message'];			
+		} else {
+			$return['status'] = 'SUCCESS';
+			$return['result'] = $output;			
 		}
-
 		return $return;
 	}
 
