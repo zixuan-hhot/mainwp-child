@@ -24,8 +24,10 @@ class MainWP_Helper {
 		flush();
 	}
 
-	static function error( $error ) {
+	static function error( $error, $code = null ) {
 		$information['error'] = $error;
+		if (null !== $code)
+			$information['error_code'] = $code;
 		MainWP_Helper::write( $information );
 	}
 

@@ -1162,12 +1162,12 @@ class MainWP_Child {
 				}
 
 				if ( is_wp_error( $result ) ) {
+					$err_code = $result->get_error_code();										
 					if ( $result->get_error_data() && is_string( $result->get_error_data() ) ) {
 						$error = $result->get_error_data();
-						MainWP_Helper::error( $error );
+						MainWP_Helper::error( $error, $err_code );
 					} else {
-						$error = $result->get_error_code();
-						MainWP_Helper::error( implode( ', ', $error ) );
+						MainWP_Helper::error( implode( ', ', $error ), $err_code );
 					}
 				}
 			}
