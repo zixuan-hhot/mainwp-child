@@ -1618,7 +1618,7 @@ class MainWP_Child {
 
 		//Already added - can't readd. Deactivate plugin..
 		if ( get_option( 'mainwp_child_pubkey' ) ) {
-			MainWP_Helper::error( __( 'Public key already set, reset the MainWP plugin on your site and try again.', 'mainwp-child' ) );
+			MainWP_Helper::error( __( 'Public key already set, reset the MainWP Child plugin on your Child site and try again.', 'mainwp-child' ) );
 		}
 
 		if ( '' != get_option( 'mainwp_child_uniqueId' ) ) {
