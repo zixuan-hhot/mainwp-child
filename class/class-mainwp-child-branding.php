@@ -302,10 +302,10 @@ class MainWP_Child_Branding {
 		if ( get_option( 'mainwp_branding_disable_wp_branding' ) !== 'Y' ) {
 			add_filter( 'wp_footer', array( &$this, 'branding_global_footer' ), 15 );
 			add_action( 'wp_dashboard_setup', array( &$this, 'custom_dashboard_widgets' ), 999 );
-			// branding site generator
+			// branding site generator			
 			$types = array( 'html', 'xhtml', 'atom', 'rss2', 'rdf', 'comment', 'export' );
 			foreach ( $types as $type ) {
-				add_filter( 'get_the_generator_' . $type, array( &$this, 'custom_the_generator' ) );
+				add_filter( 'get_the_generator_' . $type, array( &$this, 'custom_the_generator' ), 999, 2 );
 			}
 			add_action( 'admin_head', array( &$this, 'custom_admin_css' ) );
 			add_action( 'login_enqueue_scripts', array( &$this, 'custom_login_css' ) );
@@ -517,8 +517,9 @@ class MainWP_Child_Branding {
 		}
 	}
 
-	function custom_the_generator( $generator, $type = '' ) {
-		$extra_setting = $this->settings['extra_settings'];
+	function custom_the_generator( $generator, $type = '' ) {		
+		$extra_setting = $this->settings['extra_settings'];	
+		error_log($type . "======" . print_r($extra_setting, true));
 		if ( isset( $extra_setting['site_generator'] ) ) {
 			if ( ! empty( $extra_setting['site_generator'] ) ) {
 				switch ( $type ) :

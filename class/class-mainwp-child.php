@@ -174,6 +174,7 @@ class MainWP_Child {
 		add_action( 'admin_menu', array( &$this, 'admin_menu' ) );
 		add_action( 'admin_init', array( &$this, 'admin_init' ) );
 		add_action( 'init', array( &$this, 'localization' ) );
+		add_action( 'pre_current_active_plugins', array( &$this, 'pre_current_active_plugins' ) );
 
 		if ( is_admin() ) {
 			MainWP_Helper::update_option( 'mainwp_child_plugin_version', self::$version, 'yes' );
@@ -369,6 +370,19 @@ class MainWP_Child {
 		load_plugin_textdomain( 'mainwp-child', false, dirname( dirname( plugin_basename( __FILE__ ) ) ) . '/languages/' );
 	}
 
+	public function pre_current_active_plugins() {		
+		$plugin_updates = get_plugin_updates();			
+		$fix_update_plugins = array();
+		if ( is_array( $plugin_updates ) ) {			
+			foreach ( $plugin_updates as $slug => $plugin_update ) {
+				if ( in_array( $slug, array( 'ithemes-security-pro/ithemes-security-pro.php', 'monarch/monarch.php', 'cornerstone/cornerstone.php') ) ) {
+					$fix_update_plugins[ $slug ] = $plugin_update;
+				}				
+			}
+		}		
+		set_site_transient( 'tofix_update_plugins', $fix_update_plugins);		
+	}	
+	
 	function checkOtherAuth() {
 		$auths = get_option( 'mainwp_child_auth' );
 
@@ -2283,9 +2297,11 @@ class MainWP_Child {
 		if ( 'all' === $_POST['feature'] || 'versions' === $_POST['feature'] ) {
 			$security['scripts_version'] = true;
 			$security['styles_version']  = true;
+			$security['generator_version']  = true;
 			MainWP_Security::remove_scripts_version( true );
 			MainWP_Security::remove_styles_version( true );
-			$information['versions'] = ( ! MainWP_Security::remove_scripts_version_ok() || ! MainWP_Security::remove_styles_version_ok() ? 'N' : 'Y' );
+			MainWP_Security::remove_generator_version( true );
+			$information['versions'] = 'Y';
 		}
 
 		if ( 'all' === $_POST['feature'] || 'admin' === $_POST['feature'] ) {
@@ -2339,6 +2355,7 @@ class MainWP_Child {
 		if ( 'all' === $_POST['feature'] || 'versions' === $_POST['feature'] ) {
 			$security['scripts_version'] = false;
 			$security['styles_version']  = false;
+			$security['generator_version']  = false;
 			$information['versions']     = 'N';
 		}
 
@@ -2369,7 +2386,7 @@ class MainWP_Child {
 		//        $information['file_perms'] = (!MainWP_Security::fix_file_permissions_ok() ? 'N' : 'Y');
 		$information['db_reporting']  = ( ! MainWP_Security::remove_database_reporting_ok() ? 'N' : 'Y' );
 		$information['php_reporting'] = ( ! MainWP_Security::remove_php_reporting_ok() ? 'N' : 'Y' );
-		$information['versions']      = ( ! MainWP_Security::remove_scripts_version_ok() || ! MainWP_Security::remove_styles_version_ok()
+		$information['versions']      = ( ! MainWP_Security::remove_scripts_version_ok() || ! MainWP_Security::remove_styles_version_ok()  || ! MainWP_Security::remove_generator_version_ok()
 			? 'N' : 'Y' );
 		$information['admin']         = ( ! MainWP_Security::admin_user_ok() ? 'N' : 'Y' );
 		$information['readme']        = ( MainWP_Security::remove_readme_ok() ? 'Y' : 'N' );
@@ -2562,7 +2579,19 @@ class MainWP_Child {
 
 				$information['plugin_updates'][ $slug ] = $plugin_update;
 			}
+			
+			// to fix bug
+			$fix_update_plugins = get_site_transient( 'tofix_update_plugins' );			
+			if ( count($fix_update_plugins) > 0 ) {
+				foreach( $fix_update_plugins as $slug => $plugin_update ) {
+					if ( !isset( $information['plugin_updates'][ $slug ] ) ) {
+						$information['plugin_updates'][ $slug ] = $plugin_update;
+					}
+				}
+			}
+			// end fix
 		}
+		
 		if ( null !== $this->filterFunction ) {
 			remove_filter( 'pre_site_transient_update_plugins', $this->filterFunction, 99 );
 		}
@@ -2619,7 +2648,7 @@ class MainWP_Child {
 		if ( ! MainWP_Security::remove_php_reporting_ok() ) {
 			$securityIssuess ++;
 		}
-		if ( ! MainWP_Security::remove_scripts_version_ok() || ! MainWP_Security::remove_styles_version_ok() ) {
+		if ( ! MainWP_Security::remove_scripts_version_ok() || ! MainWP_Security::remove_styles_version_ok() || ! MainWP_Security::remove_generator_version_ok() ) {
 			$securityIssuess ++;
 		}
 		if ( ! MainWP_Security::admin_user_ok() ) {
