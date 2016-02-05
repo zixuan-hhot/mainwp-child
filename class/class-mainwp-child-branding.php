@@ -648,7 +648,7 @@ class MainWP_Child_Branding {
 			}
 			?>
 			<div
-				class="mainwp_info-box-yellow"><?php echo esc_html( $send_email_message . '&nbsp;&nbsp' . $back_link ); ?></div><?php
+				class="mainwp_info-box-yellow"><?php echo esc_html( $send_email_message ) . "&nbsp;&nbsp" . $back_link; ?></div><?php
 		} else {
 			$from_page = '';
 			if ( isset( $_GET['from_page'] ) ) {
