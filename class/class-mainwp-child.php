@@ -423,10 +423,8 @@ class MainWP_Child {
 		return false;
 	}
 
-	function template_redirect() {
-		if ( 1 === (int) get_option( 'mainwp_maintenance_opt_alert_404' ) ) {
-			$this->maintenance_alert_404();
-		}
+	function template_redirect() {		
+		$this->maintenance_alert_404();		
 	}
 
 
@@ -3888,7 +3886,12 @@ class MainWP_Child {
 	function maintenance_alert_404() {
 		if ( ! is_404() ) {
 			return;
+		}	
+		
+		if ( 1 !== (int) get_option( 'mainwp_maintenance_opt_alert_404' ) ) {
+			return;
 		}
+		
 		$email = get_option( 'mainwp_maintenance_opt_alert_404_email' );
 
 		if ( empty( $email ) || ! preg_match( '/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/is', $email ) ) {
