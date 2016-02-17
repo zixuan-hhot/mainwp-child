@@ -269,7 +269,7 @@ class MainWP_Security {
 		//        }
 		//        return true;
 	}
-		
+
 	public static function remove_script_versions( $src ) {
 		if ( self::get_security_option( 'scripts_version' ) ) {
 			if ( strpos( $src, '?ver=' ) ) {
@@ -284,24 +284,24 @@ class MainWP_Security {
 		return $src;
 	}
 
-	
+
 	public static function remove_generator_version_ok() {
 		return self::get_security_option( 'generator_version' );
-	}	
-	
+	}
+
 	public static function remove_generator_version( $force = false ) {
 		if ( $force || self::get_security_option( 'generator_version' ) ) {
 			$types = array( 'html', 'xhtml', 'atom', 'rss2', 'rdf', 'comment', 'export' );
 			foreach ( $types as $type ) {
-				add_filter( 'get_the_generator_' . $type, array( &$this, 'custom_the_generator' ), 10, 2 );
-			}	
+				add_filter( 'get_the_generator_' . $type, array( 'MainWP_Security', 'custom_the_generator' ), 10, 2 );
+			}
 		}
-	}		
-		
-	function custom_the_generator( $generator, $type = '' ) {				
+	}
+
+	public static function custom_the_generator( $generator, $type = '' ) {
 		return '';
 	}
-	
+
 	public static function remove_theme_versions( $src ) {
 		if ( 'T' === self::get_security_option( 'styles_version' ) ) {
 			if ( strpos( $src, '?ver=' ) ) {
@@ -385,12 +385,12 @@ class MainWP_Security {
 
 		return ! ( $user && ( 10 === $user->wp_user_level || ( isset( $user->user_level ) && 10 === $user->user_level ) ) );
 	}
-	
+
 	public static function update_security_option( $key, $value ) {
 		$security = get_option( 'mainwp_security' );
 		if ( !empty($key) )
 			$security[$key] = $value;
-		MainWP_Helper::update_option( 'mainwp_security', $security, 'yes' );		
+		MainWP_Helper::update_option( 'mainwp_security', $security, 'yes' );
 	}
 }
 

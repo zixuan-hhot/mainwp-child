@@ -225,13 +225,13 @@ class MainWP_Child_Branding {
 		} else {
 			MainWP_Helper::update_option( 'mainwp_branding_disable_change', '' );
 		}
-		
+
 		if ( $settings['child_disable_switching_theme'] ) {
 			MainWP_Helper::update_option( 'mainwp_branding_disable_switching_theme', 'T' );
 		} else {
 			MainWP_Helper::update_option( 'mainwp_branding_disable_switching_theme', '' );
 		}
-		
+
 		$information['result'] = 'SUCCESS';
 
 		return $information;
@@ -517,8 +517,8 @@ class MainWP_Child_Branding {
 		}
 	}
 
-	function custom_the_generator( $generator, $type = '' ) {		
-		$extra_setting = $this->settings['extra_settings'];	
+	function custom_the_generator( $generator, $type = '' ) {
+		$extra_setting = $this->settings['extra_settings'];
 		error_log($type . "======" . print_r($extra_setting, true));
 		if ( isset( $extra_setting['site_generator'] ) ) {
 			if ( ! empty( $extra_setting['site_generator'] ) ) {
@@ -819,13 +819,13 @@ class MainWP_Child_Branding {
 	public function branding_map_meta_cap( $caps, $cap, $user_id, $args ) {
 		if ( 'T' === get_option( 'mainwp_branding_disable_change' ) ) {
 			// disable: edit, update, install, active themes and plugins
-			if ( false !== strpos( $cap, 'plugins' ) || false !== strpos( $cap, 'themes' ) || 'edit_theme_options' === $cap ) {				
+			if ( false !== strpos( $cap, 'plugins' ) || false !== strpos( $cap, 'themes' ) || 'edit_theme_options' === $cap ) {
 				$caps[0] = 'do_not_allow';
 			}
-		} 		
+		}
 		if ( 'T' === get_option( 'mainwp_branding_disable_switching_theme' ) ) {
 			// disable: theme switching
-			if ( 'switch_themes' === $cap ) {				
+			if ( 'switch_themes' === $cap ) {
 				$caps[0] = 'do_not_allow';
 			}
 		}
