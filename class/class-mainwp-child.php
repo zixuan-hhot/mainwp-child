@@ -2866,8 +2866,10 @@ class MainWP_Child {
 		$information['mainwpdir']            = ( MainWP_Helper::validateMainWPDir() ? 1 : - 1 );
 		$information['uniqueId']             = get_option( 'mainwp_child_uniqueId', '' );
 		$information['plugins_outdate_info'] = MainWP_Child_Plugins_Check::Instance()->get_plugins_outdate_info();
-		$information['themes_outdate_info']  = MainWP_Child_Themes_Check::Instance()->get_themes_outdate_info();
-
+		$information['themes_outdate_info']  = MainWP_Child_Themes_Check::Instance()->get_themes_outdate_info();		
+		
+		do_action('mainwp_child_site_stats');
+		
 		if ( $exit ) {
 			MainWP_Helper::write( $information );
 		}

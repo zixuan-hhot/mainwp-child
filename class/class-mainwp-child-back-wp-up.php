@@ -178,6 +178,8 @@ class MainWP_Child_Back_WP_Up {
 	}
 
 	public function init() {
+		add_action('mainwp_child_site_stats', array($this, 'do_site_stats'));
+		
 		if ( get_option( 'mainwp_backwpup_ext_enabled' ) !== 'Y' ) {
 			return;
 		}
@@ -188,6 +190,49 @@ class MainWP_Child_Back_WP_Up {
 		}
 	}
 
+	function do_site_stats() {			
+		if ( ! $this->is_backwpup_installed || !class_exists('BackWPup_Page_Logs')) {
+			return;			
+		}
+		update_user_option( get_current_user_id(), 'backwpuplogs_per_page', 99999999 );
+		$output = new BackWPup_Page_Logs();
+		$output->prepare_items();
+				
+		if (is_array($output->items)) {
+			$backup_types = array(
+				'DBDUMP' => 'DB Check',
+				'DBCHECK' => 'DB Check',
+				'FILE' => 'File backup',
+				'WPEXP' => 'XML export',
+				'WPPLUGIN' => 'Plugins'
+			);
+			$last_logs_checking = get_option('mainwp_backwpup_lastcheck_logs', 0);
+			$new_last_logs_checking = $last_logs_checking;
+			foreach($output->items as $item) {
+				if (!isset($item['logtime']))
+					continue;
+				$logtime_gmt = $item['logtime'] -  ( get_option( 'gmt_offset' ) * 3600 );
+				if ($logtime_gmt > $last_logs_checking) {										
+					$types = explode("+", (string)$item['type']);
+					$type_temp = "";
+					foreach($types as $type) {
+						if (isset($backup_types[$type])) {
+							$type_temp .= $backup_types[$type] . ", ";
+						}
+					}
+					$type_temp = rtrim($type_temp, ", ");
+					$message = "BackWPup backup" . ( !empty($type_temp) ? ": " . $type_temp : "" );						
+					do_action( 'mainwp_backwpup_backup', $message, $type_temp, $logtime_gmt);
+					if ($logtime_gmt > $new_last_logs_checking)
+						$new_last_logs_checking = $logtime_gmt;	
+				}
+			}
+			if ($new_last_logs_checking > $last_logs_checking) {
+				update_option('mainwp_backwpup_lastcheck_logs', $new_last_logs_checking);
+			}
+		}			
+	}
+	
 	public function all_plugins( $plugins ) {
 		foreach ( $plugins as $key => $value ) {
 			$plugin_slug = basename( $key, '.php' );
