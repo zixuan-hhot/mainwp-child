@@ -584,9 +584,9 @@ class MainWP_Child_Wordfence {
 					}
 				}
 			}
-
-			if ( $regenerateHtaccess ) {
-				wfCache::addHtaccessCode( 'add' );
+						
+			if($regenerateHtaccess && wfConfig::get('cacheType') == 'falcon'){
+				wfCache::addHtaccessCode('add');
 			}
 
 			if ( '1' === $opts['autoUpdate'] ) {

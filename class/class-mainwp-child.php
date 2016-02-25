@@ -209,6 +209,14 @@ class MainWP_Child {
 		}
 		add_action( 'admin_notices', array( &$this, 'admin_notice' ) );
 		add_filter( 'plugin_row_meta', array( &$this, 'plugin_row_meta' ), 10, 2 );
+		
+		//WP-Cron
+		if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
+			if ( isset($_GET[ 'mainwp_child_run' ]) && ! empty( $_GET[ 'mainwp_child_run' ] ) ) {
+				add_action( 'init', array( $this, 'cron_active' ), PHP_INT_MAX );
+			}
+		}
+		
 	}
 
 	function update() {
@@ -350,6 +358,24 @@ class MainWP_Child {
 		MainWP_Helper::update_option( 'mainwp_child_update_version', $this->update_version, 'yes' );
 	}
 
+	function cron_active() {
+		if ( ! defined( 'DOING_CRON' ) || ! DOING_CRON ) {
+			return;
+		}
+		if ( empty( $_GET[ 'mainwp_child_run' ] ) || 'test' !== $_GET[ 'mainwp_child_run' ] ) {
+			return;
+		}
+		@session_write_close();
+		@header( 'Content-Type: text/html; charset=' . get_bloginfo( 'charset' ), TRUE );
+		@header( 'X-Robots-Tag: noindex, nofollow', TRUE );
+		@header( 'X-MainWP-Child-Version: ' . MainWP_Child::$version, TRUE );
+		nocache_headers();
+		if ( $_GET[ 'mainwp_child_run' ] == 'test' ) {
+			die( 'MainWP Test' );
+		}
+		die( '' );
+	}
+	
 	public function admin_notice() {
 		//Admin Notice...
 		if ( is_plugin_active( 'mainwp-child/mainwp-child.php' ) ) {
