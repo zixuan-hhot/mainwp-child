@@ -198,8 +198,6 @@ class MainWP_Child_Back_Up_Wordpress {
 		$schedule_id = $this->check_schedule();
 		$schedule    = new HM\BackUpWordPress\Scheduled_Backup( sanitize_text_field( urldecode( $schedule_id ) ) );
 
-		HM\BackUpWordPress\Path::get_instance()->cleanup();
-
 		if (method_exists($schedule, 'get_running_backup_filename' )) {
 			$information['scheduleStatus'] = $schedule->get_status();
 		} else {
@@ -217,6 +215,9 @@ class MainWP_Child_Back_Up_Wordpress {
 		if (function_exists('hmbkp_run_schedule_async')) {
 			hmbkp_run_schedule_async($schedule_id);
 		} else if (function_exists('\HM\BackUpWordPress\run_schedule_async')) {
+			HM\BackUpWordPress\Path::get_instance()->cleanup();
+			// Fixes an issue on servers which only allow a single session per client
+			session_write_close();	
 			$task = new \HM\Backdrop\Task( '\HM\BackUpWordPress\run_schedule_async', $schedule_id );
 			$task->schedule();
 		} else

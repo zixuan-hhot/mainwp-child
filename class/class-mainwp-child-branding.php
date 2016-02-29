@@ -588,9 +588,8 @@ class MainWP_Child_Branding {
 
 	public function send_support_mail() {
 		$email   = get_option( 'mainwp_branding_support_email' );
-
-
-		$subject = ( ! empty(wp_kses_post( nl2br( stripslashes( $_POST['mainwp_branding_contact_message_subject'] ) ) ) ) ? wp_kses_post( nl2br( stripslashes( $_POST['mainwp_branding_contact_message_subject'] ) ) ) : "MainWP - Support Contact" );
+		$sub = wp_kses_post( nl2br( stripslashes( $_POST['mainwp_branding_contact_message_subject'] ) ) );
+		$subject = !empty( $sub ) ? $sub : "MainWP - Support Contact";
 		$content = wp_kses_post( nl2br( stripslashes( $_POST['mainwp_branding_contact_message_content'] ) ) );
 		if ( ! empty( $_POST['mainwp_branding_contact_message_content'] ) && ! empty( $email ) ) {
 			global $current_user;
