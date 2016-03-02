@@ -518,8 +518,7 @@ class MainWP_Child_Branding {
 	}
 
 	function custom_the_generator( $generator, $type = '' ) {
-		$extra_setting = $this->settings['extra_settings'];
-		error_log($type . "======" . print_r($extra_setting, true));
+		$extra_setting = $this->settings['extra_settings'];	
 		if ( isset( $extra_setting['site_generator'] ) ) {
 			if ( ! empty( $extra_setting['site_generator'] ) ) {
 				switch ( $type ) :
