@@ -79,7 +79,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 }
 
 class MainWP_Child {
-	public static $version = '3.1';
+	public static $version = '3.1.1';
 	private $update_version = '1.3';
 
 	private $callableFunctions = array(
@@ -209,14 +209,14 @@ class MainWP_Child {
 		}
 		add_action( 'admin_notices', array( &$this, 'admin_notice' ) );
 		add_filter( 'plugin_row_meta', array( &$this, 'plugin_row_meta' ), 10, 2 );
-		
+
 		//WP-Cron
 		if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
 			if ( isset($_GET[ 'mainwp_child_run' ]) && ! empty( $_GET[ 'mainwp_child_run' ] ) ) {
 				add_action( 'init', array( $this, 'cron_active' ), PHP_INT_MAX );
 			}
 		}
-		
+
 	}
 
 	function update() {
@@ -375,7 +375,7 @@ class MainWP_Child {
 		}
 		die( '' );
 	}
-	
+
 	public function admin_notice() {
 		//Admin Notice...
 		if ( is_plugin_active( 'mainwp-child/mainwp-child.php' ) ) {
@@ -978,6 +978,7 @@ class MainWP_Child {
 		//Register does not require auth, so we register here..
 		if ( isset( $_POST['function'] ) && 'register' === $_POST['function'] ) {
 			define( 'DOING_CRON', true );
+			MainWP_Child::fix_for_custom_themes();
 			$this->registerSite();
 		}
 
@@ -1036,9 +1037,11 @@ class MainWP_Child {
 		//Call the function required
 		if ( $auth && isset( $_POST['function'] ) && isset( $this->callableFunctions[ $_POST['function'] ] ) ) {
 			define( 'DOING_CRON', true );
+			MainWP_Child::fix_for_custom_themes();
 			call_user_func( array( $this, $this->callableFunctions[ $_POST['function'] ] ) );
 		} else if ( isset( $_POST['function'] ) && isset( $this->callableFunctionsNoAuth[ $_POST['function'] ] ) ) {
 			define( 'DOING_CRON', true );
+			MainWP_Child::fix_for_custom_themes();
 			call_user_func( array( $this, $this->callableFunctionsNoAuth[ $_POST['function'] ] ) );
 		}
 
@@ -2892,10 +2895,10 @@ class MainWP_Child {
 		$information['mainwpdir']            = ( MainWP_Helper::validateMainWPDir() ? 1 : - 1 );
 		$information['uniqueId']             = get_option( 'mainwp_child_uniqueId', '' );
 		$information['plugins_outdate_info'] = MainWP_Child_Plugins_Check::Instance()->get_plugins_outdate_info();
-		$information['themes_outdate_info']  = MainWP_Child_Themes_Check::Instance()->get_themes_outdate_info();		
-		
+		$information['themes_outdate_info']  = MainWP_Child_Themes_Check::Instance()->get_themes_outdate_info();
+
 		do_action('mainwp_child_site_stats');
-		
+
 		if ( $exit ) {
 			MainWP_Helper::write( $information );
 		}
@@ -4448,5 +4451,11 @@ class MainWP_Child {
 
 	function skeleton_key() {
 		MainWP_Child_Skeleton_Key::Instance()->action();
+	}
+
+	static function fix_for_custom_themes() {
+		if ( file_exists( ABSPATH . '/wp-admin/includes/screen.php' ) ) {
+			include_once( ABSPATH . '/wp-admin/includes/screen.php' );
+		}
 	}
 }

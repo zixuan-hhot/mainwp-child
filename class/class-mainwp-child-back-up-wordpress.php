@@ -217,7 +217,7 @@ class MainWP_Child_Back_Up_Wordpress {
 		} else if (function_exists('\HM\BackUpWordPress\run_schedule_async')) {
 			HM\BackUpWordPress\Path::get_instance()->cleanup();
 			// Fixes an issue on servers which only allow a single session per client
-			session_write_close();	
+			session_write_close();
 			$task = new \HM\Backdrop\Task( '\HM\BackUpWordPress\run_schedule_async', $schedule_id );
 			$task->schedule();
 		} else
@@ -454,7 +454,7 @@ class MainWP_Child_Back_Up_Wordpress {
 
 		$schedule_id = $this->check_schedule();
 		$schedule    = new HM\BackUpWordPress\Scheduled_Backup( sanitize_text_field( urldecode( $schedule_id ) ) );
-		
+
 		$new_version = true;
 		if (method_exists($schedule, 'get_running_backup_filename' )) {
 			$new_version = false;
@@ -465,9 +465,9 @@ class MainWP_Child_Back_Up_Wordpress {
 			$excludes = $schedule->get_excludes();
 			$user_excludes = $excludes->get_user_excludes();
 			$root_dir = HM\BackUpWordPress\Path::get_root();
-			$is_size_calculated = HM\BackUpWordPress\Site_Size::is_site_size_being_calculated();			
+			$is_size_calculated = HM\BackUpWordPress\Site_Size::is_site_size_being_calculated();
 		}
-				
+
 		ob_start();
 
 		?>
@@ -475,73 +475,73 @@ class MainWP_Child_Back_Up_Wordpress {
 
 			<?php //if ( $schedule->get_excludes() ) : ?>
 
-				<h3>
-					<?php esc_html_e( 'Currently Excluded', 'backupwordpress' ); ?>
-				</h3>
+			<h3>
+				<?php esc_html_e( 'Currently Excluded', 'backupwordpress' ); ?>
+			</h3>
 
-				<p><?php esc_html_e( 'We automatically detect and ignore common <abbr title="Version Control Systems">VCS</abbr> folders and other backup plugin folders.', 'backupwordpress' ); ?></p>
+			<p><?php esc_html_e( 'We automatically detect and ignore common <abbr title="Version Control Systems">VCS</abbr> folders and other backup plugin folders.', 'backupwordpress' ); ?></p>
 
-				<table class="widefat">
+			<table class="widefat">
 
-					<tbody>
-						<?php foreach ( $user_excludes as $key => $exclude ) : ?>
-						
-						<?php $exclude_path = new SplFileInfo( trailingslashit( $root_dir ) . ltrim( str_ireplace( $root_dir, '', $exclude ), '/' ) ); ?>
-						
-						<tr>
+				<tbody>
+				<?php foreach ( $user_excludes as $key => $exclude ) : ?>
 
-							<th scope="row">
+					<?php $exclude_path = new SplFileInfo( trailingslashit( $root_dir ) . ltrim( str_ireplace( $root_dir, '', $exclude ), '/' ) ); ?>
 
-								<?php if ( $exclude_path->isFile() ) { ?>
+					<tr>
 
-									<div class="dashicons dashicons-media-default"></div>
+						<th scope="row">
 
-								<?php } elseif ( $exclude_path->isDir() ) { ?>
+							<?php if ( $exclude_path->isFile() ) { ?>
 
-									<div class="dashicons dashicons-portfolio"></div>
+								<div class="dashicons dashicons-media-default"></div>
 
-								<?php } ?>
+							<?php } elseif ( $exclude_path->isDir() ) { ?>
 
-							</th>
+								<div class="dashicons dashicons-portfolio"></div>
 
-							<td>
-								<code>
-									<?php echo esc_html( str_ireplace( $root_dir, '', $exclude ) ); ?>
-								</code>
+							<?php } ?>
 
-							</td>
+						</th>
 
-							<td>
-								<?php 
-								if ($new_version) 
-									$is_default_rule = ( in_array( $exclude, $excludes->get_default_excludes() ) ) || ( HM\BackUpWordPress\Path::get_path() === trailingslashit( HM\BackUpWordPress\Path::get_root() ) . untrailingslashit( $exclude ) );									
-								else
-									$is_default_rule =  ( in_array( $exclude, $schedule->backup->default_excludes() ) ) || ( hmbkp_path() === untrailingslashit( $exclude ) ) ;
+						<td>
+							<code>
+								<?php echo esc_html( str_ireplace( $root_dir, '', $exclude ) ); ?>
+							</code>
 
-								if ( $is_default_rule ) : ?>								
-									<?php esc_html_e( 'Default rule', 'backupwordpress' ); ?>
+						</td>
 
-								<?php elseif ( defined( 'HMBKP_EXCLUDE' ) && false !== strpos( HMBKP_EXCLUDE, $exclude ) ) : ?>
+						<td>
+							<?php
+							if ($new_version)
+								$is_default_rule = ( in_array( $exclude, $excludes->get_default_excludes() ) ) || ( HM\BackUpWordPress\Path::get_path() === trailingslashit( HM\BackUpWordPress\Path::get_root() ) . untrailingslashit( $exclude ) );
+							else
+								$is_default_rule =  ( in_array( $exclude, $schedule->backup->default_excludes() ) ) || ( hmbkp_path() === untrailingslashit( $exclude ) ) ;
 
-									<?php esc_html_e( 'Defined in wp-config.php', 'backupwordpress' ); ?>
+							if ( $is_default_rule ) : ?>
+								<?php esc_html_e( 'Default rule', 'backupwordpress' ); ?>
 
-								<?php else : ?>
+							<?php elseif ( defined( 'HMBKP_EXCLUDE' ) && false !== strpos( HMBKP_EXCLUDE, $exclude ) ) : ?>
 
-									<a href="#"
-									   onclick="event.preventDefault(); mainwp_backupwp_remove_exclude_rule('<?php esc_attr_e( $exclude ); ?>', this);"
-									   class="delete-action"><?php esc_html_e( 'Stop excluding', 'backupwordpress' ); ?></a>
+								<?php esc_html_e( 'Defined in wp-config.php', 'backupwordpress' ); ?>
 
-								<?php endif; ?>
+							<?php else : ?>
 
-							</td>
+								<a href="#"
+								   onclick="event.preventDefault(); mainwp_backupwp_remove_exclude_rule('<?php esc_attr_e( $exclude ); ?>', this);"
+								   class="delete-action"><?php esc_html_e( 'Stop excluding', 'backupwordpress' ); ?></a>
 
-						</tr>
+							<?php endif; ?>
 
-					<?php endforeach; ?>
+						</td>
 
-					</tbody>
+					</tr>
 
-				</table>
+				<?php endforeach; ?>
+
+				</tbody>
+
+			</table>
 
 			<?php //endif; ?>
 
@@ -551,7 +551,7 @@ class MainWP_Child_Back_Up_Wordpress {
 
 			<?php
 			// The directory to display			
-			$directory = $root_dir;			
+			$directory = $root_dir;
 
 			if ( isset( $browse_dir ) ) {
 
@@ -562,17 +562,17 @@ class MainWP_Child_Back_Up_Wordpress {
 					$directory = $untrusted_directory;
 				}
 			}
-			
+
 			// Kick off a recursive filesize scan
 			if ($new_version) {
-				
+
 				$site_size = new HM\BackUpWordPress\Site_Size;
-				
+
 				$exclude_string = implode( '|', $excludes->get_excludes_for_regex() );
-				
+
 				if (function_exists('HM\BackUpWordPress\list_directory_by_total_filesize'))
-					$files = HM\BackUpWordPress\list_directory_by_total_filesize( $directory ); 
-								
+					$files = HM\BackUpWordPress\list_directory_by_total_filesize( $directory );
+
 			} else {
 				$files = $schedule->list_directory_by_total_filesize( $directory );
 				$exclude_string = $schedule->backup->exclude_string( 'regex' );
@@ -637,9 +637,9 @@ class MainWP_Child_Back_Up_Wordpress {
 							else :
 
 								$root = new SplFileInfo( $root_dir );
-							
-								if ($new_version) {								
-									$size = $site_size->filesize( $root );									
+
+								if ($new_version) {
+									$size = $site_size->filesize( $root );
 								} else {
 									$size = $schedule->filesize( $root, true );
 								}
@@ -737,25 +737,25 @@ class MainWP_Child_Back_Up_Wordpress {
 									if ( $is_unreadable ) { ?>
 
 										<code class="strikethrough"
-											  title="<?php echo esc_attr( wp_normalize_path( $file->getRealPath() ) ); ?>"><?php echo esc_html( $file->getBasename() ); ?></code>
+										      title="<?php echo esc_attr( wp_normalize_path( $file->getRealPath() ) ); ?>"><?php echo esc_html( $file->getBasename() ); ?></code>
 
 									<?php } elseif ( $file->isFile() ) { ?>
 
 										<code
 											title="<?php echo esc_attr( wp_normalize_path( $file->getRealPath() ) ); ?>"><?php echo esc_html( $file->getBasename() ); ?></code>
 
-									<?php } elseif ( $file->isDir() ) { ?>										
+									<?php } elseif ( $file->isDir() ) { ?>
 										<code title="<?php echo esc_attr( $file->getRealPath() ); ?>"><a
 												href="#"
 												onclick="event.preventDefault(); mainwp_backupwp_directory_browse('<?php echo urlencode( wp_normalize_path( $file->getPathname()) ); ?>', this)"><?php echo esc_html( $file->getBasename() ); ?></a></code>
-								
 
-									<?php } 
+
+									<?php }
 								} else {
 									if ( $is_unreadable ) { ?>
-								
+
 										<code class="strikethrough"
-											  title="<?php echo esc_attr( $file->getRealPath() ); ?>"><?php echo esc_html( $file->getBasename() ); ?></code>
+										      title="<?php echo esc_attr( $file->getRealPath() ); ?>"><?php echo esc_html( $file->getBasename() ); ?></code>
 
 									<?php } elseif ( $file->isFile() ) { ?>
 
@@ -769,7 +769,7 @@ class MainWP_Child_Back_Up_Wordpress {
 												href="#"
 												onclick="event.preventDefault(); mainwp_backupwp_directory_browse('<?php echo urlencode( $file->getPathname() ); ?>', this)"><?php echo esc_html( $file->getBasename() ); ?></a></code>
 
-									<?php } 
+									<?php }
 								}
 								?>
 
@@ -783,9 +783,9 @@ class MainWP_Child_Back_Up_Wordpress {
 
 									<?php
 								else :
-									if ($new_version) {																
+									if ($new_version) {
 										$size = $site_size->filesize( $file );
-									} else {								
+									} else {
 										$size = $schedule->filesize( $file );
 									}
 
@@ -947,13 +947,13 @@ class MainWP_Child_Back_Up_Wordpress {
 
 		$schedule_id = $this->check_schedule();
 		$schedule    = new HM\BackUpWordPress\Scheduled_Backup( sanitize_text_field( $schedule_id ) );
-		
-		$excludes = $schedule->get_excludes();		
+
+		$excludes = $schedule->get_excludes();
 		$exclude_rule_to_remove = stripslashes( sanitize_text_field( $_POST['remove_rule'] ) );
-		
+
 		if (method_exists($excludes, 'get_user_excludes')) {
 			$schedule->set_excludes( array_diff( $excludes->get_user_excludes(), (array) $exclude_rule_to_remove ) );
-		} else 
+		} else
 			$schedule->set_excludes( array_diff( $excludes, $exclude_rule_to_remove ) );
 
 		$schedule->save();
@@ -974,26 +974,26 @@ class MainWP_Child_Back_Up_Wordpress {
 
 	function remove_exclude_rule() {
 
-	check_admin_referer( 'hmbkp_remove_exclude_rule', 'hmbkp-remove_exclude_rule_nonce' );
+		check_admin_referer( 'hmbkp_remove_exclude_rule', 'hmbkp-remove_exclude_rule_nonce' );
 
-	if ( ! isset( $_GET['hmbkp_remove_exclude'] ) ) {
+		if ( ! isset( $_GET['hmbkp_remove_exclude'] ) ) {
+			die;
+		}
+
+		$schedule = new Scheduled_Backup( sanitize_text_field( $_GET['hmbkp_schedule_id'] ) );
+
+		$excludes = $schedule->get_excludes();
+		$exclude_rule_to_remove = stripslashes( sanitize_text_field( $_GET['hmbkp_remove_exclude'] ) );
+
+		$schedule->set_excludes( array_diff( $excludes->get_user_excludes(), (array) $exclude_rule_to_remove ) );
+
+		$schedule->save();
+
+		wp_safe_redirect( wp_get_referer(), '303' );
+
 		die;
+
 	}
-
-	$schedule = new Scheduled_Backup( sanitize_text_field( $_GET['hmbkp_schedule_id'] ) );
-
-	$excludes = $schedule->get_excludes();
-	$exclude_rule_to_remove = stripslashes( sanitize_text_field( $_GET['hmbkp_remove_exclude'] ) );
-
-	$schedule->set_excludes( array_diff( $excludes->get_user_excludes(), (array) $exclude_rule_to_remove ) );
-
-	$schedule->save();
-
-	wp_safe_redirect( wp_get_referer(), '303' );
-
-	die;
-
-}
 
 	function update_schedule() {
 		$sch_id  = isset( $_POST['schedule_id'] ) ? $_POST['schedule_id'] : 0;

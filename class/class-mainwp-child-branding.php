@@ -518,7 +518,7 @@ class MainWP_Child_Branding {
 	}
 
 	function custom_the_generator( $generator, $type = '' ) {
-		$extra_setting = $this->settings['extra_settings'];	
+		$extra_setting = $this->settings['extra_settings'];
 		if ( isset( $extra_setting['site_generator'] ) ) {
 			if ( ! empty( $extra_setting['site_generator'] ) ) {
 				switch ( $type ) :
@@ -670,7 +670,7 @@ class MainWP_Child_Branding {
 					<div style="height: auto; margin-bottom: 10px; text-align: left">
 						<p><?php echo wp_kses_post( $support_message ); ?></p>
 						<p><label for="mainwp_branding_contact_message_subject"><?php _e('Subject:', 'mainwp-child'); ?></label><br>
-						<input type="text" name="mainwp_branding_contact_message_subject" style="width: 650px;"></p>
+							<input type="text" name="mainwp_branding_contact_message_subject" style="width: 650px;"></p>
 						<div style="max-width: 650px;">
 							<label for="mainwp_branding_contact_message_content"><?php _e('Your Message:', 'mainwp-child'); ?></label><br>
 							<?php

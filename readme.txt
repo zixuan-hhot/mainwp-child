@@ -7,9 +7,9 @@ Author URI: https://mainwp.com
 Plugin URI: https://mainwp.com
 Requires at least: 3.6
 Tested up to: 4.4.1
-Stable tag: 3.1
+Stable tag: 3.1.1
 License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+License URI: http://www.gnu.org/licenses/gpl-2.0.html 
 
 Provides a secure connection between your MainWP Dashboard and your WordPress sites.   MainWP allows you to manage WP sites from one central location.
 
@@ -57,17 +57,28 @@ To see full documentation and FAQs please visit [MainWP Documentation](http://do
 
 == Changelog ==
 
+= 3.1.1 - 3-3-16 =
+* Fixed: Checking abandoned plugins not in WP repository
+* Fixed: Bug when running BackupWordPress backup
+* Fixed: Bug adding cache settings for WordFence Extension
+* Added: Feature to generate server information
+* Added: Server Information items
+* Added: New Subject text box to support email in Branding Extension
+* Added: Support themes using invalid screen functions
+* Tweaked: Support new version of BackupWordpress plugin version
+* Updated: Added support in Client Reports Extension for BackWPup backups
+
 = 3.1 - 2-17-16 =
-Fixed: PHP notices
-Fixed: Escape html error for the contact support feature of the Branding Extension
-Fixed: The issue with removing generator version
-Fixed: Update issue for the iThemes Security Pro and the Monarch plugin
-Fixed: Compatibility issue with the BackUpWordPress plugin
-Added: Auto detect manually removed script/style versions feature
-Added: Wordpress translation updates
-Added: New Branding option to disable theme switching
-Enhancement: Removed ctype_digit requirement
-Enhancement: Install plugin error message
+* Fixed: PHP notices
+* Fixed: Escape html error for the contact support feature of the Branding Extension
+* Fixed: The issue with removing generator version
+* Fixed: Update issue for the iThemes Security Pro and the Monarch plugin
+* Fixed: Compatibility issue with the BackUpWordPress plugin
+* Added: Auto detect manually removed script/style versions feature
+* Added: Wordpress translation updates
+* Added: New Branding option to disable theme switching
+* Enhancement: Removed ctype_digit requirement
+* Enhancement: Install plugin error message
 
 = 3.0.2 - 1-22-16 =
 * Fixed: Issue with scheduled BackupWordpress when run from dashboard

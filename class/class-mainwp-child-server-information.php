@@ -3,7 +3,7 @@
 class MainWP_Child_Server_Information {
 	const WARNING = 1;
 	const ERROR = 2;
-	
+
 	public static function init() {
 		add_action( 'wp_ajax_mainwp-child_dismiss_warnings', array(
 			'MainWP_Child_Server_Information',
@@ -165,276 +165,276 @@ class MainWP_Child_Server_Information {
 
 	public static function renderPage() {
 		?>
-		<script language="javascript">	
-			
-			/* FileSaver.js
-			* A saveAs() FileSaver implementation.
-			* 2013-01-23
-			* 
-			* By Eli Grey, http://eligrey.com
-			* License: X11/MIT
-			*   See LICENSE.md
-			*/
+		<script language="javascript">
 
-		   /*global self */
-		   /*jslint bitwise: true, regexp: true, confusion: true, es5: true, vars: true, white: true,
+			/* FileSaver.js
+			 * A saveAs() FileSaver implementation.
+			 * 2013-01-23
+			 *
+			 * By Eli Grey, http://eligrey.com
+			 * License: X11/MIT
+			 *   See LICENSE.md
+			 */
+
+			/*global self */
+			/*jslint bitwise: true, regexp: true, confusion: true, es5: true, vars: true, white: true,
 			 plusplus: true */
 
-		   /*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
+			/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
 
-		   var childSaveAs = childSaveAs
-			 || (navigator.msSaveBlob && navigator.msSaveBlob.bind(navigator))
-			 || (function(view) {
-			   "use strict";
-			   var
-					 doc = view.document
-					 // only get URL when necessary in case BlobBuilder.js hasn't overridden it yet
-				   , get_URL = function() {
-					   return view.URL || view.webkitURL || view;
-				   }
-				   , URL = view.URL || view.webkitURL || view
-				   , save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a")
-				   , can_use_save_link = "download" in save_link
-				   , click = function(node) {
-					   var event = doc.createEvent("MouseEvents");
-					   event.initMouseEvent(
-						   "click", true, false, view, 0, 0, 0, 0, 0
-						   , false, false, false, false, 0, null
-					   );
-					   return node.dispatchEvent(event); // false if event was cancelled
-				   }
-				   , webkit_req_fs = view.webkitRequestFileSystem
-				   , req_fs = view.requestFileSystem || webkit_req_fs || view.mozRequestFileSystem
-				   , throw_outside = function (ex) {
-					   (view.setImmediate || view.setTimeout)(function() {
-						   throw ex;
-					   }, 0);
-				   }
-				   , force_saveable_type = "application/octet-stream"
-				   , fs_min_size = 0
-				   , deletion_queue = []
-				   , process_deletion_queue = function() {
-					   var i = deletion_queue.length;
-					   while (i--) {
-						   var file = deletion_queue[i];
-						   if (typeof file === "string") { // file is an object URL
-							   URL.revokeObjectURL(file);
-						   } else { // file is a File
-							   file.remove();
-						   }
-					   }
-					   deletion_queue.length = 0; // clear queue
-				   }
-				   , dispatch = function(filesaver, event_types, event) {
-					   event_types = [].concat(event_types);
-					   var i = event_types.length;
-					   while (i--) {
-						   var listener = filesaver["on" + event_types[i]];
-						   if (typeof listener === "function") {
-							   try {
-								   listener.call(filesaver, event || filesaver);
-							   } catch (ex) {
-								   throw_outside(ex);
-							   }
-						   }
-					   }
-				   }
-				   , FileSaver = function(blob, name) {
-					   // First try a.download, then web filesystem, then object URLs
-					   var
-							 filesaver = this
-						   , type = blob.type
-						   , blob_changed = false
-						   , object_url
-						   , target_view
-						   , get_object_url = function() {
-							   var object_url = get_URL().createObjectURL(blob);
-							   deletion_queue.push(object_url);
-							   return object_url;
-						   }
-						   , dispatch_all = function() {
-							   dispatch(filesaver, "writestart progress write writeend".split(" "));
-						   }
-						   // on any filesys errors revert to saving with object URLs
-						   , fs_error = function() {
-							   // don't create more object URLs than needed
-							   if (blob_changed || !object_url) {
-								   object_url = get_object_url(blob);
-							   }
-							   if (target_view) {
-								   target_view.location.href = object_url;
-							   }
-							   filesaver.readyState = filesaver.DONE;
-							   dispatch_all();
-						   }
-						   , abortable = function(func) {
-							   return function() {
-								   if (filesaver.readyState !== filesaver.DONE) {
-									   return func.apply(this, arguments);
-								   }
-							   };
-						   }
-						   , create_if_not_found = {create: true, exclusive: false}
-						   , slice
-					   ;
-					   filesaver.readyState = filesaver.INIT;
-					   if (!name) {
-						   name = "download";
-					   }
-					   if (can_use_save_link) {
-						   object_url = get_object_url(blob);
-						   save_link.href = object_url;
-						   save_link.download = name;
-						   if (click(save_link)) {
-							   filesaver.readyState = filesaver.DONE;
-							   dispatch_all();
-							   return;
-						   }
-					   }
-					   // Object and web filesystem URLs have a problem saving in Google Chrome when
-					   // viewed in a tab, so I force save with application/octet-stream
-					   // http://code.google.com/p/chromium/issues/detail?id=91158
-					   if (view.chrome && type && type !== force_saveable_type) {
-						   slice = blob.slice || blob.webkitSlice;
-						   blob = slice.call(blob, 0, blob.size, force_saveable_type);
-						   blob_changed = true;
-					   }
-					   // Since I can't be sure that the guessed media type will trigger a download
-					   // in WebKit, I append .download to the filename.
-					   // https://bugs.webkit.org/show_bug.cgi?id=65440
-					   if (webkit_req_fs && name !== "download") {
-						   name += ".download";
-					   }
-					   if (type === force_saveable_type || webkit_req_fs) {
-						   target_view = view;
-					   } else {
-						   target_view = view.open();
-					   }
-					   if (!req_fs) {
-						   fs_error();
-						   return;
-					   }
-					   fs_min_size += blob.size;
-					   req_fs(view.TEMPORARY, fs_min_size, abortable(function(fs) {
-						   fs.root.getDirectory("saved", create_if_not_found, abortable(function(dir) {
-							   var save = function() {
-								   dir.getFile(name, create_if_not_found, abortable(function(file) {
-									   file.createWriter(abortable(function(writer) {
-										   writer.onwriteend = function(event) {
-											   target_view.location.href = file.toURL();
-											   deletion_queue.push(file);
-											   filesaver.readyState = filesaver.DONE;
-											   dispatch(filesaver, "writeend", event);
-										   };
-										   writer.onerror = function() {
-											   var error = writer.error;
-											   if (error.code !== error.ABORT_ERR) {
-												   fs_error();
-											   }
-										   };
-										   "writestart progress write abort".split(" ").forEach(function(event) {
-											   writer["on" + event] = filesaver["on" + event];
-										   });
-										   writer.write(blob);
-										   filesaver.abort = function() {
-											   writer.abort();
-											   filesaver.readyState = filesaver.DONE;
-										   };
-										   filesaver.readyState = filesaver.WRITING;
-									   }), fs_error);
-								   }), fs_error);
-							   };
-							   dir.getFile(name, {create: false}, abortable(function(file) {
-								   // delete file if it already exists
-								   file.remove();
-								   save();
-							   }), abortable(function(ex) {
-								   if (ex.code === ex.NOT_FOUND_ERR) {
-									   save();
-								   } else {
-									   fs_error();
-								   }
-							   }));
-						   }), fs_error);
-					   }), fs_error);
-				   }
-				   , FS_proto = FileSaver.prototype
-				   , childSaveAs = function(blob, name) {
-					   return new FileSaver(blob, name);
-				   }
-			   ;
-			   FS_proto.abort = function() {
-				   var filesaver = this;
-				   filesaver.readyState = filesaver.DONE;
-				   dispatch(filesaver, "abort");
-			   };
-			   FS_proto.readyState = FS_proto.INIT = 0;
-			   FS_proto.WRITING = 1;
-			   FS_proto.DONE = 2;
+			var childSaveAs = childSaveAs
+				|| (navigator.msSaveBlob && navigator.msSaveBlob.bind(navigator))
+				|| (function(view) {
+					"use strict";
+					var
+						doc = view.document
+					// only get URL when necessary in case BlobBuilder.js hasn't overridden it yet
+						, get_URL = function() {
+							return view.URL || view.webkitURL || view;
+						}
+						, URL = view.URL || view.webkitURL || view
+						, save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a")
+						, can_use_save_link = "download" in save_link
+						, click = function(node) {
+							var event = doc.createEvent("MouseEvents");
+							event.initMouseEvent(
+								"click", true, false, view, 0, 0, 0, 0, 0
+								, false, false, false, false, 0, null
+							);
+							return node.dispatchEvent(event); // false if event was cancelled
+						}
+						, webkit_req_fs = view.webkitRequestFileSystem
+						, req_fs = view.requestFileSystem || webkit_req_fs || view.mozRequestFileSystem
+						, throw_outside = function (ex) {
+							(view.setImmediate || view.setTimeout)(function() {
+								throw ex;
+							}, 0);
+						}
+						, force_saveable_type = "application/octet-stream"
+						, fs_min_size = 0
+						, deletion_queue = []
+						, process_deletion_queue = function() {
+							var i = deletion_queue.length;
+							while (i--) {
+								var file = deletion_queue[i];
+								if (typeof file === "string") { // file is an object URL
+									URL.revokeObjectURL(file);
+								} else { // file is a File
+									file.remove();
+								}
+							}
+							deletion_queue.length = 0; // clear queue
+						}
+						, dispatch = function(filesaver, event_types, event) {
+							event_types = [].concat(event_types);
+							var i = event_types.length;
+							while (i--) {
+								var listener = filesaver["on" + event_types[i]];
+								if (typeof listener === "function") {
+									try {
+										listener.call(filesaver, event || filesaver);
+									} catch (ex) {
+										throw_outside(ex);
+									}
+								}
+							}
+						}
+						, FileSaver = function(blob, name) {
+							// First try a.download, then web filesystem, then object URLs
+							var
+								filesaver = this
+								, type = blob.type
+								, blob_changed = false
+								, object_url
+								, target_view
+								, get_object_url = function() {
+									var object_url = get_URL().createObjectURL(blob);
+									deletion_queue.push(object_url);
+									return object_url;
+								}
+								, dispatch_all = function() {
+									dispatch(filesaver, "writestart progress write writeend".split(" "));
+								}
+							// on any filesys errors revert to saving with object URLs
+								, fs_error = function() {
+									// don't create more object URLs than needed
+									if (blob_changed || !object_url) {
+										object_url = get_object_url(blob);
+									}
+									if (target_view) {
+										target_view.location.href = object_url;
+									}
+									filesaver.readyState = filesaver.DONE;
+									dispatch_all();
+								}
+								, abortable = function(func) {
+									return function() {
+										if (filesaver.readyState !== filesaver.DONE) {
+											return func.apply(this, arguments);
+										}
+									};
+								}
+								, create_if_not_found = {create: true, exclusive: false}
+								, slice
+								;
+							filesaver.readyState = filesaver.INIT;
+							if (!name) {
+								name = "download";
+							}
+							if (can_use_save_link) {
+								object_url = get_object_url(blob);
+								save_link.href = object_url;
+								save_link.download = name;
+								if (click(save_link)) {
+									filesaver.readyState = filesaver.DONE;
+									dispatch_all();
+									return;
+								}
+							}
+							// Object and web filesystem URLs have a problem saving in Google Chrome when
+							// viewed in a tab, so I force save with application/octet-stream
+							// http://code.google.com/p/chromium/issues/detail?id=91158
+							if (view.chrome && type && type !== force_saveable_type) {
+								slice = blob.slice || blob.webkitSlice;
+								blob = slice.call(blob, 0, blob.size, force_saveable_type);
+								blob_changed = true;
+							}
+							// Since I can't be sure that the guessed media type will trigger a download
+							// in WebKit, I append .download to the filename.
+							// https://bugs.webkit.org/show_bug.cgi?id=65440
+							if (webkit_req_fs && name !== "download") {
+								name += ".download";
+							}
+							if (type === force_saveable_type || webkit_req_fs) {
+								target_view = view;
+							} else {
+								target_view = view.open();
+							}
+							if (!req_fs) {
+								fs_error();
+								return;
+							}
+							fs_min_size += blob.size;
+							req_fs(view.TEMPORARY, fs_min_size, abortable(function(fs) {
+								fs.root.getDirectory("saved", create_if_not_found, abortable(function(dir) {
+									var save = function() {
+										dir.getFile(name, create_if_not_found, abortable(function(file) {
+											file.createWriter(abortable(function(writer) {
+												writer.onwriteend = function(event) {
+													target_view.location.href = file.toURL();
+													deletion_queue.push(file);
+													filesaver.readyState = filesaver.DONE;
+													dispatch(filesaver, "writeend", event);
+												};
+												writer.onerror = function() {
+													var error = writer.error;
+													if (error.code !== error.ABORT_ERR) {
+														fs_error();
+													}
+												};
+												"writestart progress write abort".split(" ").forEach(function(event) {
+													writer["on" + event] = filesaver["on" + event];
+												});
+												writer.write(blob);
+												filesaver.abort = function() {
+													writer.abort();
+													filesaver.readyState = filesaver.DONE;
+												};
+												filesaver.readyState = filesaver.WRITING;
+											}), fs_error);
+										}), fs_error);
+									};
+									dir.getFile(name, {create: false}, abortable(function(file) {
+										// delete file if it already exists
+										file.remove();
+										save();
+									}), abortable(function(ex) {
+										if (ex.code === ex.NOT_FOUND_ERR) {
+											save();
+										} else {
+											fs_error();
+										}
+									}));
+								}), fs_error);
+							}), fs_error);
+						}
+						, FS_proto = FileSaver.prototype
+						, childSaveAs = function(blob, name) {
+							return new FileSaver(blob, name);
+						}
+						;
+					FS_proto.abort = function() {
+						var filesaver = this;
+						filesaver.readyState = filesaver.DONE;
+						dispatch(filesaver, "abort");
+					};
+					FS_proto.readyState = FS_proto.INIT = 0;
+					FS_proto.WRITING = 1;
+					FS_proto.DONE = 2;
 
-			   FS_proto.error =
-			   FS_proto.onwritestart =
-			   FS_proto.onprogress =
-			   FS_proto.onwrite =
-			   FS_proto.onabort =
-			   FS_proto.onerror =
-			   FS_proto.onwriteend =
-				   null;
+					FS_proto.error =
+						FS_proto.onwritestart =
+							FS_proto.onprogress =
+								FS_proto.onwrite =
+									FS_proto.onabort =
+										FS_proto.onerror =
+											FS_proto.onwriteend =
+												null;
 
-			   view.addEventListener("unload", process_deletion_queue, false);
-			   return childSaveAs;
-		   }(self));
+					view.addEventListener("unload", process_deletion_queue, false);
+					return childSaveAs;
+				}(self));
 
 
 			mwp_child_strCut = function(i,l,s,w) {
 				var o = i.toString();
 				if (!s) { s = '0'; }
 				while (o.length < parseInt(l)) {
-						// empty
-						if(w == 'undefined'){
-								o = s + o;
-						}else{
-								o = o + s;
-						}
+					// empty
+					if(w == 'undefined'){
+						o = s + o;
+					}else{
+						o = o + s;
+					}
 				}
 				return o;
 			};
 			jQuery('a.mwp-child-get-system-report-btn').live('click', function(){
 				var report = "";
 				jQuery('.mwp_server_info_box thead, .mwp_server_info_box tbody').each(function(){
-						var td_len = [35, 55, 45, 12, 12];
-						var th_count = 0;
-						var i;
-						if ( jQuery( this ).is('thead') ) {
+					var td_len = [35, 55, 45, 12, 12];
+					var th_count = 0;
+					var i;
+					if ( jQuery( this ).is('thead') ) {
+						i = 0;
+						report = report + "\n### ";
+						th_count = jQuery( this ).find('th:not(".mwp-not-generate-row")').length;
+						jQuery( this ).find('th:not(".mwp-not-generate-row")').each(function(){
+							var len = td_len[i];
+							if (i == 0 || i == th_count -1)
+								len = len - 4;
+							report =  report + mwp_child_strCut(jQuery.trim( jQuery( this ).text()), len, ' ' );
+							i++;
+						});
+						report = report + " ###\n\n";
+					} else {
+						jQuery('tr', jQuery( this )).each(function(){
+							if (jQuery( this ).hasClass('mwp-not-generate-row'))
+								return;
 							i = 0;
-							report = report + "\n### ";
-							th_count = jQuery( this ).find('th:not(".mwp-not-generate-row")').length;
-							jQuery( this ).find('th:not(".mwp-not-generate-row")').each(function(){
-								var len = td_len[i];
-								if (i == 0 || i == th_count -1)
-									len = len - 4;
-								report =  report + mwp_child_strCut(jQuery.trim( jQuery( this ).text()), len, ' ' );
+							jQuery( this ).find('td:not(".mwp-not-generate-row")').each(function(){
+								if (jQuery( this ).hasClass('mwp-hide-generate-row')) {
+									report =  report + mwp_child_strCut(' ', td_len[i], ' ' );
+									i++;
+									return;
+								}
+								report =  report + mwp_child_strCut(jQuery.trim( jQuery( this ).text()), td_len[i], ' ' );
 								i++;
 							});
-							report = report + " ###\n\n";
-						} else {
-								jQuery('tr', jQuery( this )).each(function(){
-										if (jQuery( this ).hasClass('mwp-not-generate-row'))
-											return;
-										i = 0;
-										jQuery( this ).find('td:not(".mwp-not-generate-row")').each(function(){
-											if (jQuery( this ).hasClass('mwp-hide-generate-row')) {
-												report =  report + mwp_child_strCut(' ', td_len[i], ' ' );
-												i++;
-												return;
-											}
-											report =  report + mwp_child_strCut(jQuery.trim( jQuery( this ).text()), td_len[i], ' ' );
-											i++;
-										});
-										report = report + "\n";
-								});
+							report = report + "\n";
+						});
 
-						}
+					}
 				} );
 
 				try {
@@ -459,7 +459,7 @@ class MainWP_Child_Server_Information {
 			});
 
 		</script>
-		<style type="text/css">			
+		<style type="text/css">
 			#mwp-server-information {
 				display: none;
 				margin: 10px 0;
@@ -487,8 +487,8 @@ class MainWP_Child_Server_Information {
 				float: right;
 				margin:  5px 0 5px;
 			}
-		</style>				
-		<div class="wrap">						
+		</style>
+		<div class="wrap">
 			<h2><?php esc_html_e( 'Plugin Conflicts' ); ?></h2>
 			<br/>
 			<div class="updated below-h2">
@@ -501,18 +501,18 @@ class MainWP_Child_Server_Information {
 				</p>
 
 				<div id="mwp-server-information"><textarea readonly="readonly" wrap="off"></textarea></div>
-			</div>				
+			</div>
 			<br/>
 			<div class="mwp_server_info_box">
-			<?php
-			MainWP_Child_Server_Information::renderConflicts();
-			?><h2><?php esc_html_e( 'Server Information' ); ?></h2><?php 
-			MainWP_Child_Server_Information::render();
-			?><h2><?php esc_html_e( 'Cron Schedules' ); ?></h2><?php
-			MainWP_Child_Server_Information::renderCron();
-			?><h2><?php esc_html_e( 'Error Log' ); ?></h2><?php
-			MainWP_Child_Server_Information::renderErrorLogPage();
-			?>
+				<?php
+				MainWP_Child_Server_Information::renderConflicts();
+				?><h2><?php esc_html_e( 'Server Information' ); ?></h2><?php
+				MainWP_Child_Server_Information::render();
+				?><h2><?php esc_html_e( 'Cron Schedules' ); ?></h2><?php
+				MainWP_Child_Server_Information::renderCron();
+				?><h2><?php esc_html_e( 'Error Log' ); ?></h2><?php
+				MainWP_Child_Server_Information::renderErrorLogPage();
+				?>
 			</div>
 		</div>
 		<?php
@@ -680,7 +680,7 @@ class MainWP_Child_Server_Information {
 		}
 
 		?>
-		
+
 		<table id="mainwp-table" class="wp-list-table widefat" cellspacing="0">
 			<thead>
 			<tr>
@@ -720,7 +720,7 @@ class MainWP_Child_Server_Information {
 				<td style="background: #333; color: #fff;"
 				    colspan="5"><?php esc_html_e( 'PHP SETTINGS', 'mainwp-child' ); ?></td>
 			</tr><?php
-			self::renderRow( 'PHP Version', '>=', '5.3', 'getPHPVersion' );			
+			self::renderRow( 'PHP Version', '>=', '5.3', 'getPHPVersion' );
 			?>
 			<tr>
 				<td></td>
@@ -732,18 +732,18 @@ class MainWP_Child_Server_Information {
 			self::renderRowSec( 'PHP Max Input Time', '>=', '30', 'getMaxInputTime', 'seconds', '=', '0' );
 			self::renderRow( 'PHP Memory Limit', '>=', '128M', 'getPHPMemoryLimit', '(256M+ best for big backups)', null, null, true );
 			self::renderRow( 'PHP Upload Max Filesize', '>=', '2M', 'getUploadMaxFilesize', '(2MB+ best for upload of big plugins)', null, null, true );
-			self::renderRow( 'PHP Post Max Size', '>=', '2M', 'getPostMaxSize', '(2MB+ best for upload of big plugins)', null, null, true );			
+			self::renderRow( 'PHP Post Max Size', '>=', '2M', 'getPostMaxSize', '(2MB+ best for upload of big plugins)', null, null, true );
 			self::renderRow( 'SSL Extension Enabled', '=', true, 'getSSLSupport' );
 			self::renderRowSec( 'SSL Warnings', '=', '', 'getSSLWarning', 'empty', '' );
 			self::renderRowSec( 'cURL Extension Enabled', '=', true, 'getCurlSupport', '', '', null, '', null, self::ERROR );
 			self::renderRowSec( 'cURL Timeout', '>=', '300', 'getCurlTimeout', 'seconds', '=', '0' );
 			if ( function_exists( 'curl_version' ) ) {
-					self::renderRowSec( 'cURL Version', '>=', '7.18.1', 'getCurlVersion', '', '', null );
-					self::renderRowSec( 'cURL SSL Version', '>=', array(
-						'version_number' => 0x009080cf,
-						'version'        => 'OpenSSL/0.9.8l',
-					), 'getCurlSSLVersion', '', '', null, '', 'curlssl' );
-				}
+				self::renderRowSec( 'cURL Version', '>=', '7.18.1', 'getCurlVersion', '', '', null );
+				self::renderRowSec( 'cURL SSL Version', '>=', array(
+					'version_number' => 0x009080cf,
+					'version'        => 'OpenSSL/0.9.8l',
+				), 'getCurlSSLVersion', '', '', null, '', 'curlssl' );
+			}
 			?>
 			<tr>
 				<td style="background: #333; color: #fff;"
@@ -762,7 +762,7 @@ class MainWP_Child_Server_Information {
 				<td><?php echo esc_html( '= ' . __( 'direct', 'mainwp' ) ); ?></td>
 				<td><?php echo esc_html( self::getFileSystemMethod() ); ?></td>
 				<td><?php echo esc_html( self::getFileSystemMethodCheck() ); ?></td>
-			</tr>			
+			</tr>
 			<tr>
 				<td style="background: #333; color: #fff;"
 				    colspan="5"><?php esc_html_e( 'BACKUP ARCHIVE INFORMATION', 'mainwp-child' ); ?></td>
@@ -982,17 +982,17 @@ class MainWP_Child_Server_Information {
 	protected static function getCurlSupport() {
 		return function_exists( 'curl_version' );
 	}
-	
+
 	protected static function getCurlTimeout() {
 		return ini_get( 'default_socket_timeout' );
 	}
-	
+
 	protected static function getCurlVersion() {
 		$curlversion = curl_version();
 
 		return $curlversion['version'];
 	}
-	
+
 	protected static function curlssl_compare( $value, $operator = null ) {
 		if ( isset( $value['version_number'] ) && defined( 'OPENSSL_VERSION_NUMBER' ) ) {
 			return version_compare( OPENSSL_VERSION_NUMBER, $value['version_number'], $operator );
@@ -1000,13 +1000,13 @@ class MainWP_Child_Server_Information {
 
 		return false;
 	}
-	
+
 	protected static function getCurlSSLVersion() {
 		$curlversion = curl_version();
 
 		return $curlversion['ssl_version'];
 	}
-	
+
 	public static function mainwpRequiredFunctions() {
 		//error_reporting(E_ALL);
 		$disabled_functions = ini_get( 'disable_functions' );
@@ -1173,13 +1173,13 @@ class MainWP_Child_Server_Information {
 				<td><?php echo ( self::check( $pCompare, $pVersion, $pGetter, $pExtraCompare, $pExtraVersion ) ? '<span class="mainwp-pass"><i class="fa fa-check-circle"></i> Pass</span>' : '<span class="mainwp-warning"><i class="fa fa-exclamation-circle"></i> Warning</span>' ); ?></td>
 			<?php } ?>
 		</tr>
-		<?php		
+		<?php
 	}
-	
+
 	protected static function renderRowSec( $pConfig, $pCompare, $pVersion, $pGetter, $pExtraText = '', $pExtraCompare = null, $pExtraVersion = null, $toolTip = null, $whatType = null, $errorType = self::WARNING ) {
 		$currentVersion = call_user_func( array( 'MainWP_Child_Server_Information', $pGetter ) );
 		?>
-		<tr>	
+		<tr>
 			<td></td>
 			<td><?php echo $pConfig; ?></td>
 			<td><?php echo $pCompare; ?><?php echo ( $pVersion === true ? 'true' : ( is_array( $pVersion ) && isset( $pVersion['version'] ) ? $pVersion['version'] : $pVersion ) ) . ' ' . $pExtraText; ?></td>
@@ -1196,7 +1196,7 @@ class MainWP_Child_Server_Information {
 		</tr>
 		<?php
 	}
-	
+
 	private static function getWarningHTML($errorType = self::WARNING)
 	{
 		if (self::WARNING == $errorType) {
@@ -1204,7 +1204,7 @@ class MainWP_Child_Server_Information {
 		}
 		return '<span class="mainwp-fail"><i class="fa fa-exclamation-circle"></i> Fail</span>';
 	}
-	
+
 	protected static function filesize_compare( $value1, $value2, $operator = null ) {
 		if ( strpos( $value1, 'G' ) !== false ) {
 			$value1 = preg_replace( '/[A-Za-z]/', '', $value1 );
@@ -1250,19 +1250,19 @@ class MainWP_Child_Server_Information {
 	protected static function getWordpressMemoryLimit() {
 		return WP_MEMORY_LIMIT;
 	}
-	
+
 	public static function checkIfMultisite() {
 		$isMultisite = ! is_multisite() ? true : false;
 
 		return $isMultisite;
 	}
-	
+
 	protected static function getSSLSupport() {
 		return extension_loaded( 'openssl' );
 	}
 
 	protected static function getSSLWarning() {
-		$conf = array( 'private_key_bits' => 384 );		
+		$conf = array( 'private_key_bits' => 384 );
 		$str = '';
 		if ( function_exists( 'openssl_pkey_new' ) ) {
 			$res  = @openssl_pkey_new( $conf );
@@ -1272,7 +1272,7 @@ class MainWP_Child_Server_Information {
 		}
 		return ( stristr( $str, 'NCONF_get_string:no value' ) ? '' : $str );
 	}
-	
+
 	protected static function getPHPVersion() {
 		return phpversion();
 	}
@@ -1299,7 +1299,7 @@ class MainWP_Child_Server_Information {
 	protected static function getMaxInputTime() {
 		return ini_get( 'max_input_time' );
 	}
-	
+
 	protected static function getPHPMemoryLimit() {
 		return ini_get( 'memory_limit' );
 	}
@@ -1457,9 +1457,9 @@ class MainWP_Child_Server_Information {
 		$query_args = array('mainwp_child_run' => 'test');
 		$url = add_query_arg( $query_args, $url );
 		$args = array(	'blocking'   	=> TRUE,
-						'sslverify'		=> apply_filters( 'https_local_ssl_verify', true ),
-						'timeout' 		=> 15
-					);
+		                  'sslverify'		=> apply_filters( 'https_local_ssl_verify', true ),
+		                  'timeout' 		=> 15
+		);
 		$response =  wp_remote_post( $url, $args );
 		$test_result = '';
 		if ( is_wp_error( $response ) ) {
@@ -1480,7 +1480,7 @@ class MainWP_Child_Server_Information {
 			echo $test_result;
 	}
 
-	
+
 	protected static function getRemoteAddress() {
 		echo esc_html( $_SERVER['REMOTE_ADDR'] );
 	}

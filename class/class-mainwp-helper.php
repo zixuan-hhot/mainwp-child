@@ -162,8 +162,8 @@ class MainWP_Helper {
 
 		$response = wp_remote_get( $file_url, array(
 			'timeout'  => 10 * 60 * 60,
-		                                             'stream'   => true,
-		                                             'filename' => $full_file_name,
+			'stream'   => true,
+			'filename' => $full_file_name,
 		) );
 
 		if ( is_wp_error( $response ) ) {
