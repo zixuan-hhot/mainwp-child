@@ -1459,6 +1459,15 @@ class MainWP_Child {
 				}
 			}
 			////
+			
+			// to fix: smart-manager-for-wp-e-commerce update
+			if (in_array('smart-manager-for-wp-e-commerce/smart-manager.php', $plugins)) {
+				if (file_exists(plugin_dir_path( __FILE__ ) . '../../smart-manager-for-wp-e-commerce/pro/upgrade.php') && file_exists(plugin_dir_path( __FILE__ ) . '../../smart-manager-for-wp-e-commerce/smart-manager.php')) {
+					include_once plugin_dir_path( __FILE__ ) . '../../smart-manager-for-wp-e-commerce/smart-manager.php';
+					include_once (plugin_dir_path( __FILE__ ) . '../../smart-manager-for-wp-e-commerce/pro/upgrade.php');
+				}					
+			}
+			//// 
 
 			global $wp_current_filter;
 			$wp_current_filter[] = 'load-plugins.php';
