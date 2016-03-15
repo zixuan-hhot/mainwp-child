@@ -231,8 +231,7 @@ class MainWP_Child {
 				'mainwp_child_legacy',
 				'mainwp_child_auth',
 				'mainwp_branding_ext_enabled',
-				'mainwp_child_uniqueId',
-				'mainwp_child_onetime_htaccess',
+				'mainwp_child_uniqueId',				
 				'mainwp_child_htaccess_set',
 				'mainwp_child_fix_htaccess',
 				'mainwp_child_pubkey',
@@ -650,10 +649,10 @@ class MainWP_Child {
 	}
 
 	function update_htaccess( $hard = false ) {
-		if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
+		if ( !$hard && defined( 'DOING_CRON' ) && DOING_CRON ) {			
 			return;
-		}
-
+		}		
+				
 		if ( 'hidden' === ( get_option( 'mainwp_child_pluginDir' ) ) && ( $hard || 'yes' !== ( get_option( 'mainwp_child_htaccess_set' ) ) ) ) {
 			include_once( ABSPATH . '/wp-admin/includes/misc.php' );
 
@@ -684,10 +683,7 @@ class MainWP_Child {
 				//                }
 				//                @flock($ch, LOCK_UN);
 				//                @fclose($ch);
-
-				if ( get_option( 'mainwp_child_onetime_htaccess' ) === false ) {
-					MainWP_Helper::update_option( 'mainwp_child_onetime_htaccess', true );
-				}
+				
 			}
 			MainWP_Helper::update_option( 'mainwp_child_htaccess_set', 'yes', 'yes' );
 		} else if ( $hard ) {
@@ -705,10 +701,7 @@ class MainWP_Child {
 				//                }
 				//                @flock($ch, LOCK_UN);
 				//                @fclose($ch);
-
-				if ( get_option( 'mainwp_child_onetime_htaccess' ) === false ) {
-					MainWP_Helper::update_option( 'mainwp_child_onetime_htaccess', true );
-				}
+				
 			}
 		}
 	}
@@ -2514,10 +2507,6 @@ class MainWP_Child {
 	function updateExternalSettings() {
 		$update_htaccess = false;
 
-		if ( get_option( 'mainwp_child_onetime_htaccess' ) === false ) {
-			$update_htaccess = true;
-		}
-
 		if ( isset( $_POST['heatMap'] ) ) {
 			if ( '1' === $_POST['heatMap'] ) {
 				if ( '1' !== get_option( 'heatMapEnabled' ) ) {
@@ -2542,7 +2531,7 @@ class MainWP_Child {
 				MainWP_Helper::update_option( 'mainwp_child_clone_sites', '0' );
 			}
 		}
-
+			
 		if ( isset( $_POST['pluginDir'] ) ) {
 			if ( get_option( 'mainwp_child_pluginDir' ) !== $_POST['pluginDir'] ) {
 				MainWP_Helper::update_option( 'mainwp_child_pluginDir', $_POST['pluginDir'], 'yes' );
@@ -2551,9 +2540,9 @@ class MainWP_Child {
 		} else if ( false !== get_option( 'mainwp_child_pluginDir' ) ) {
 			MainWP_Helper::update_option( 'mainwp_child_pluginDir', false, 'yes' );
 			$update_htaccess = true;
-		}
-
-		if ( $update_htaccess ) {
+		}					
+			
+		if ( $update_htaccess ) {			
 			$this->update_htaccess( true );
 		}
 	}
@@ -2563,7 +2552,7 @@ class MainWP_Child {
 		global $wp_version;
 
 		if ( $exit ) {
-			$this->updateExternalSettings();
+			$this->updateExternalSettings();						
 		}
 
 		MainWP_Helper::update_option( 'mainwp_child_branding_disconnected', '', 'yes' );
