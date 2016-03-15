@@ -178,11 +178,11 @@ class MainWP_Child_Back_WP_Up {
 	}
 
 	public function init() {
-		add_action('mainwp_child_site_stats', array($this, 'do_site_stats'));
-
 		if ( get_option( 'mainwp_backwpup_ext_enabled' ) !== 'Y' ) {
 			return;
 		}
+
+		add_action( 'mainwp_child_site_stats', array( $this, 'do_site_stats' ) );
 
 		if ( get_option( 'mainwp_backwpup_hide_plugin' ) === 'hide' ) {
 			add_filter( 'all_plugins', array( $this, 'all_plugins' ) );
@@ -191,9 +191,10 @@ class MainWP_Child_Back_WP_Up {
 	}
 
 	function do_site_stats() {
-		if ( ! $this->is_backwpup_installed || !class_exists('BackWPup_Page_Logs')) {
+		if ( ! $this->is_backwpup_installed ) {
 			return;
 		}
+		$this->wp_list_table_dependency();
 		update_user_option( get_current_user_id(), 'backwpuplogs_per_page', 99999999 );
 		$output = new BackWPup_Page_Logs();
 		$output->prepare_items();
@@ -535,6 +536,9 @@ class MainWP_Child_Back_WP_Up {
 						$dests = BackWPup_Option::get( $jobid, 'destinations' );
 						foreach ( $dests as $dest ) {
 							$dest_class = BackWPup::get_destination( $dest );
+							if ( is_null($dest_class) ) {
+								continue;
+							}
 							$items      = $dest_class->file_get_list( $jobid . '_' . $dest );
 							if ( ! empty( $items ) ) {
 								foreach ( $items as $item ) {

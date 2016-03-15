@@ -1166,8 +1166,8 @@ class MainWP_Child_Server_Information {
 			<td></td>
 			<td><?php echo esc_html( esc_html( $pConfig ) ); ?></td>
 			<td><?php echo esc_html( esc_html( $pCompare ) ); ?><?php echo esc_html( ( true === $pVersion ? 'true' : $pVersion ) . ' ' . $pExtraText ); ?></td>
-			<td><?php echo esc_html( true === $currentVersion ? 'true' : $currentVersion ); ?></td>			
-			<td><?php echo ( self::check( $pCompare, $pVersion, $pGetter, $pExtraCompare, $pExtraVersion, $sizeCompare ) ? '<span class="mainwp-pass"><i class="fa fa-check-circle"></i> Pass</span>' : '<span class="mainwp-warning"><i class="fa fa-exclamation-circle"></i> Warning</span>' ); ?></td>			
+			<td><?php echo esc_html( true === $currentVersion ? 'true' : $currentVersion ); ?></td>
+			<td><?php echo ( self::check( $pCompare, $pVersion, $pGetter, $pExtraCompare, $pExtraVersion, $sizeCompare ) ? '<span class="mainwp-pass"><i class="fa fa-check-circle"></i> Pass</span>' : '<span class="mainwp-warning"><i class="fa fa-exclamation-circle"></i> Warning</span>' ); ?></td>
 		</tr>
 		<?php
 	}
@@ -1220,9 +1220,9 @@ class MainWP_Child_Server_Information {
 	}
 
 	protected static function check( $pCompare, $pVersion, $pGetter, $pExtraCompare = null, $pExtraVersion = null, $sizeCompare = false) {
-		$currentVersion = call_user_func( array( 'MainWP_Child_Server_Information', $pGetter ) );				
-		
-		if ($sizeCompare) {			
+		$currentVersion = call_user_func( array( 'MainWP_Child_Server_Information', $pGetter ) );
+
+		if ($sizeCompare) {
 			return self::filesize_compare( $currentVersion, $pVersion, $pCompare );
 		} else {
 			return ( version_compare( $currentVersion, $pVersion, $pCompare ) || ( ( null !== $pExtraCompare ) && version_compare( $currentVersion, $pExtraVersion, $pExtraCompare ) ) );
@@ -1735,4 +1735,3 @@ class MainWP_Child_Server_Information {
 		<?php
 	}
 }
-

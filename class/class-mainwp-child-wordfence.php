@@ -113,18 +113,18 @@ class MainWP_Child_Wordfence {
 
 	public function __construct() {
 		add_action( 'mainwp_child_deactivation', array( $this, 'deactivation' ) );
-		
+
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 
 		if ( is_plugin_active( 'wordfence/wordfence.php' ) && file_exists( plugin_dir_path( __FILE__ ) . '../../wordfence/wordfence.php' ) ) {
-			require_once( plugin_dir_path( __FILE__ ) . '../../wordfence/wordfence.php' );						
-			$this->is_wordfence_installed = true;			
+			require_once( plugin_dir_path( __FILE__ ) . '../../wordfence/wordfence.php' );
+			$this->is_wordfence_installed = true;
 		}
 
 		if ( $this->is_wordfence_installed ) {
 			add_action( 'wp_ajax_mainwp_wordfence_download_htaccess', array( $this, 'downloadHtaccess' ) );
 		}
-		
+
 	}
 
 	public function deactivation() {
@@ -140,7 +140,7 @@ class MainWP_Child_Wordfence {
 			MainWP_Helper::write( array( 'error' => __( 'Please install Wordfence plugin on child website', $this->plugin_translate ) ) );
 			return;
 		}
-		
+
 		if ( ! class_exists( 'wordfence' ) || ! class_exists( 'wfScanEngine' ) ) {
 			$information['error'] = 'NO_WORDFENCE';
 			MainWP_Helper::write( $information );
@@ -216,16 +216,16 @@ class MainWP_Child_Wordfence {
 					break;
 				case "check_falcon_htaccess":
 					$information = $this->checkFalconHtaccess();
-					break;			
+					break;
 				case "save_cache_options":
 					$information = $this->saveCacheOptions();
-					break;	
+					break;
 				case "clear_page_cache":
 					$information = $this->clearPageCache();
-					break;			
+					break;
 				case "get_cache_stats":
 					$information = $this->getCacheStats();
-					break;			
+					break;
 				case "add_cache_exclusion":
 					$information = $this->addCacheExclusion();
 					break;
@@ -916,17 +916,17 @@ class MainWP_Child_Wordfence {
 
 		return $return;
 	}
-	
-	public static function saveCacheConfig(){	
-		$noEditHtaccess = '1';		
+
+	public static function saveCacheConfig(){
+		$noEditHtaccess = '1';
 		if (isset($_POST['needToCheckFalconHtaccess']) && !empty($_POST['needToCheckFalconHtaccess'])) {
 			$checkHtaccess = self::checkFalconHtaccess();
 			if (isset($checkHtaccess['ok']))
 				$noEditHtaccess = '0';
 		} else if (isset($_POST['noEditHtaccess']))	{
 			$noEditHtaccess = $_POST['noEditHtaccess'];
-		}	 
-		
+		}
+
 		$cacheType = $_POST['cacheType'];
 		if($cacheType == 'falcon' || $cacheType == 'php'){
 			$plugins = get_plugins();
@@ -943,7 +943,7 @@ class MainWP_Child_Wordfence {
 						$badPlugins[] = "WP Fast Cache";
 					} else if($pluginFile == "wp-fastest-cache/wpFastestCache.php"){
 						$badPlugins[] = "WP Fastest Cache";
-}
+					}
 				}
 			}
 			if(count($badPlugins) > 0){
@@ -1001,8 +1001,8 @@ class MainWP_Child_Wordfence {
 		}
 		return array('errorMsg' => "An error occurred.");
 	}
-	
-	public static function checkFalconHtaccess(){		
+
+	public static function checkFalconHtaccess(){
 		if(wfUtils::isNginx()){
 			return array('nginx' => 1);
 		}
@@ -1018,7 +1018,7 @@ class MainWP_Child_Wordfence {
 		$download_url = admin_url( 'admin-ajax.php' ) . '?action=mainwp_wordfence_download_htaccess&_wpnonce=' . MainWP_Helper::create_nonce_without_session( 'mainwp_download_htaccess' );
 		return array( 'ok' => 1 , 'download_url' => $download_url );
 	}
-	
+
 	public static function downloadHtaccess(){
 		if ( ! isset( $_GET['_wpnonce'] ) || empty( $_GET['_wpnonce'] ) ) {
 			die( '-1' );
@@ -1027,7 +1027,7 @@ class MainWP_Child_Wordfence {
 		if ( ! MainWP_Helper::verify_nonce_without_session( $_GET['_wpnonce'], 'mainwp_download_htaccess' ) ) {
 			die( '-2' );
 		}
-		
+
 		$url = site_url();
 		$url = preg_replace('/^https?:\/\//i', '', $url);
 		$url = preg_replace('/[^a-zA-Z0-9\.]+/', '_', $url);
@@ -1039,7 +1039,7 @@ class MainWP_Child_Wordfence {
 		readfile($file);
 		die();
 	}
-	
+
 	public static function saveCacheOptions(){
 		$changed = false;
 		if($_POST['allowHTTPSCaching'] != wfConfig::get('allowHTTPSCaching', false)){
@@ -1057,7 +1057,7 @@ class MainWP_Child_Wordfence {
 		wfCache::scheduleCacheClear();
 		return array('ok' => 1);
 	}
-	
+
 	public static function clearPageCache(){
 		$stats = wfCache::clearPageCache();
 		if($stats['error']){
@@ -1070,20 +1070,20 @@ class MainWP_Child_Wordfence {
 		}
 		return array('ok' => 1, 'heading' => 'Page Cache Cleared', 'body' => $body );
 	}
-	
+
 	public static function getCacheStats(){
 		$s = wfCache::getCacheStats();
 		if($s['files'] == 0){
 			return array('ok' => 1, 'heading' => 'Cache Stats', 'body' => "The cache is currently empty. It may be disabled or it may have been recently cleared.");
 		}
 		$body = 'Total files in cache: ' . $s['files'] .
-			'<br />Total directories in cache: ' . $s['dirs'] .
-			'<br />Total data: ' . $s['data'] . 'KB';
+		        '<br />Total directories in cache: ' . $s['dirs'] .
+		        '<br />Total data: ' . $s['data'] . 'KB';
 		if($s['compressedFiles'] > 0){
 			$body .= '<br />Files: ' . $s['uncompressedFiles'] .
-				'<br />Data: ' . $s['uncompressedKBytes'] . 'KB' .
-				'<br />Compressed files: ' . $s['compressedFiles'] .
-				'<br />Compressed data: ' . $s['compressedKBytes'] . 'KB';
+			         '<br />Data: ' . $s['uncompressedKBytes'] . 'KB' .
+			         '<br />Compressed files: ' . $s['compressedFiles'] .
+			         '<br />Compressed data: ' . $s['compressedKBytes'] . 'KB';
 		}
 		if($s['largestFile'] > 0){
 			$body .= '<br />Largest file: ' . $s['largestFile'] . 'KB';
@@ -1107,7 +1107,7 @@ class MainWP_Child_Wordfence {
 
 		return array('ok' => 1, 'heading' => 'Cache Stats', 'body' => $body);
 	}
-	
+
 	public static function addCacheExclusion(){
 		$ex = wfConfig::get('cacheExclusions', false);
 		if($ex){
@@ -1133,7 +1133,7 @@ class MainWP_Child_Wordfence {
 		}
 		return array('ok' => 1, 'ex' => $ex);
 	}
-	
+
 	public static function loadCacheExclusions(){
 		$ex = wfConfig::get('cacheExclusions', false);
 		if(! $ex){
@@ -1142,10 +1142,10 @@ class MainWP_Child_Wordfence {
 		$ex = unserialize($ex);
 		return array('ok' => 1, 'ex' => $ex);
 	}
-	
+
 	public static function removeCacheExclusion(){
 		$id = $_POST['id'];
-		$ex = wfConfig::get('cacheExclusions', false);		
+		$ex = wfConfig::get('cacheExclusions', false);
 		if(! $ex){
 			return array('ok' => 1);
 		}
@@ -1167,17 +1167,14 @@ class MainWP_Child_Wordfence {
 			$return['error'] = "Not found the cache exclusion.";
 			return $return;
 		}
-		
+
 		wfConfig::set('cacheExclusions', serialize($ex));
 		if($rewriteHtaccess && wfCache::addHtaccessCode('add')){ //rewrites htaccess rules
 			$return['errorMsg'] = "We removed that rule but could not rewrite your .htaccess file. You're going to have to manually remove this rule from your .htaccess file. Please reload this page now.";
-			return $return;			
+			return $return;
 		}
-		
+
 		$return['ok'] = 1;
 		return $return;
 	}
-	
-	
 }
-

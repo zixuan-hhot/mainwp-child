@@ -1141,19 +1141,19 @@ class MainWP_Helper {
 	static function ctype_digit( $str ) {
 		return ( is_string( $str ) || is_int( $str ) || is_float( $str ) ) && preg_match( '/^\d+\z/', $str );
 	}
-	
+
 	public static function create_nonce_without_session( $action = - 1 ) {
 		$user = wp_get_current_user();
 		$uid  = (int) $user->ID;
 		if ( ! $uid ) {
 			$uid = apply_filters( 'nonce_user_logged_out', $uid, $action );
-}
+		}
 
 		$i = wp_nonce_tick();
 
 		return substr( wp_hash( $i . '|' . $action . '|' . $uid, 'nonce' ), - 12, 10 );
 	}
-	
+
 	public static function verify_nonce_without_session( $nonce, $action = - 1 ) {
 		$nonce = (string) $nonce;
 		$user  = wp_get_current_user();
