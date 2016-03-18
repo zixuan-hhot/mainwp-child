@@ -131,8 +131,11 @@ class MainWP_Child_Pagespeed {
 	}
 
 	function save_settings() {
-		$current_values = get_option( 'gpagespeedi_options' );
-		if ( is_array( $current_values ) && false === $current_values['last_run_finished'] ) {
+		$current_values = get_option( 'gpagespeedi_options' );		
+		require_once GPI_DIRECTORY . '/core/core.php';		  
+		$googlePagespeedInsights = new googlePagespeedInsights( $current_values );
+		$worker_status = $googlePagespeedInsights->google_pagespeed_insights_Check_Status();				
+		if ( $worker_status ) {
 			return array( 'result' => 'RUNNING' );
 		}
 
@@ -244,9 +247,12 @@ class MainWP_Child_Pagespeed {
 		if ( empty( $strategy ) ) {
 			$strategy = 'both';
 		}
+		
 		$current_values = get_option( 'gpagespeedi_options' );
-
-		if ( is_array( $current_values ) && false === $current_values['last_run_finished'] ) {
+		require_once GPI_DIRECTORY . '/core/core.php';		  
+		$googlePagespeedInsights = new googlePagespeedInsights( $current_values );
+		$worker_status = $googlePagespeedInsights->google_pagespeed_insights_Check_Status();				
+		if ( $worker_status ) {
 			return array( 'result' => 'RUNNING' );
 		}
 
