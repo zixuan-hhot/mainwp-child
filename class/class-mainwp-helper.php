@@ -304,18 +304,20 @@ class MainWP_Helper {
 							$serverHref               = 'href="' . $serverHost;
 							$replaceServerHref        = 'href="' . parse_url( $localUrl, PHP_URL_SCHEME ) . '://' . parse_url( $localUrl, PHP_URL_HOST );
 							$new_post['post_content'] = str_replace( $serverHref, $replaceServerHref, $new_post['post_content'] );
-						} else if ( strpos( $hrefLink, 'http' ) !== false ) {
-							$lnkToReplace = dirname( $hrefLink );
-							if ( 'http:' !== $lnkToReplace && 'https:' !== $lnkToReplace ) {
-								$new_post['post_content'] = str_replace( $lnkToReplace, $linkToReplaceWith, $new_post['post_content'] );
-							}
-						}
+						} 
+						// To fix bug
+//						else if ( strpos( $hrefLink, 'http' ) !== false ) {
+//							$lnkToReplace = dirname( $hrefLink );
+//							if ( 'http:' !== $lnkToReplace && 'https:' !== $lnkToReplace ) {
+//								$new_post['post_content'] = str_replace( $lnkToReplace, $linkToReplaceWith, $new_post['post_content'] );
+//							}
+//						}
 					}
-
-					$lnkToReplace = dirname( $imgUrl );
-					if ( 'http:' !== $lnkToReplace && 'https:' !== $lnkToReplace ) {
-						$new_post['post_content'] = str_replace( $lnkToReplace, $linkToReplaceWith, $new_post['post_content'] );
-					}
+					// To fix bug
+//					$lnkToReplace = dirname( $imgUrl );
+//					if ( 'http:' !== $lnkToReplace && 'https:' !== $lnkToReplace ) {
+//						$new_post['post_content'] = str_replace( $lnkToReplace, $linkToReplaceWith, $new_post['post_content'] );
+//					}
 				} catch ( Exception $e ) {
 
 				}
