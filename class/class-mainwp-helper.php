@@ -312,12 +312,11 @@ class MainWP_Helper {
 //								$new_post['post_content'] = str_replace( $lnkToReplace, $linkToReplaceWith, $new_post['post_content'] );
 //							}
 //						}
+					}					
+					$lnkToReplace = dirname( $imgUrl );
+					if ( 'http:' !== $lnkToReplace && 'https:' !== $lnkToReplace ) {
+						$new_post['post_content'] = str_replace( $lnkToReplace, $linkToReplaceWith, $new_post['post_content'] );
 					}
-					// To fix bug
-//					$lnkToReplace = dirname( $imgUrl );
-//					if ( 'http:' !== $lnkToReplace && 'https:' !== $lnkToReplace ) {
-//						$new_post['post_content'] = str_replace( $lnkToReplace, $linkToReplaceWith, $new_post['post_content'] );
-//					}
 				} catch ( Exception $e ) {
 
 				}
