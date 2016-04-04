@@ -671,7 +671,7 @@ class MainWP_Child_Updraft_Plus_Backups {
 			$options['restrict_files_to_override'] = explode( ',', $_REQUEST['onlythisfileentity'] );
 		}
 
-		do_action( $event, apply_filters( 'updraft_backupnow_options', $options ) );
+		do_action( $event, apply_filters( 'updraft_backupnow_options', $options, array() ) );
 
 		// not used anymore
 		//        if (wp_schedule_single_event(time()+5, $event, array($backupnow_nocloud)) === false) {
@@ -2487,7 +2487,7 @@ ENDHERE;
 	}
 
 	private function date_label( $pretty_date, $key, $backup, $jobdata, $nonce ) {
-		$ret = apply_filters( 'updraftplus_showbackup_date', $pretty_date, $backup, $jobdata, (int) $key );
+		$ret = apply_filters( 'updraftplus_showbackup_date', $pretty_date, $backup, $jobdata, (int) $key, false );
 		if ( is_array( $jobdata ) && ! empty( $jobdata['resume_interval'] ) && ( empty( $jobdata['jobstatus'] ) || 'finished' !== $jobdata['jobstatus'] ) ) {
 			$ret .= apply_filters( 'updraftplus_msg_unfinishedbackup', '<br><span title="' . esc_attr( __( 'If you are seeing more backups than you expect, then it is probably because the deletion of old backup sets does not happen until a fresh backup completes.', 'updraftplus' ) ) . '">' . __( '(Not finished)', 'updraftplus' ) . '</span>', $jobdata, $nonce );
 		}
