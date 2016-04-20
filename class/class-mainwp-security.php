@@ -337,6 +337,10 @@ class MainWP_Security {
 					global $wp_filesystem;
 					if ( ! empty( $wp_filesystem ) ) {
 						$wp_filesystem->delete( ABSPATH . 'readme.html' );
+						if ( @file_exists( ABSPATH . 'readme.html' ) ) {
+							// prevent repeat delete
+							self::update_security_option('readme', false);
+						}
 					}
 				}
 			}
