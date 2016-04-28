@@ -569,7 +569,7 @@ class MainWP_Child_Back_Up_Wordpress {
 				$site_size = new HM\BackUpWordPress\Site_Size;
 
 				$exclude_string = implode( '|', $excludes->get_excludes_for_regex() );
-				
+
 				if (function_exists('HM\BackUpWordPress\list_directory_by_total_filesize'))
 					$files = HM\BackUpWordPress\list_directory_by_total_filesize( $directory, $excludes );
 

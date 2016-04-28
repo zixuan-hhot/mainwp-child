@@ -277,9 +277,10 @@ class MainWP_Security {
 			}
 
 			return $src;
-		} else if ( false === strpos( $src, '?ver=' ) ) {
-			self::update_security_option('scripts_version', true);
 		}
+//		else if ( false === strpos( $src, '?ver=' ) ) {
+//			self::update_security_option('scripts_version', true);
+//		}
 
 		return $src;
 	}
@@ -309,9 +310,10 @@ class MainWP_Security {
 			}
 
 			return $src;
-		} else if ( false === strpos( $src, '?ver=' ) ) {
-			self::update_security_option('styles_version', true);
 		}
+//		else if ( false === strpos( $src, '?ver=' ) ) {
+//			self::update_security_option('styles_version', true);
+//		}
 
 		return $src;
 	}

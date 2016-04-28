@@ -10,32 +10,6 @@ class MainWP_Clone {
 		}
 	}
 
-//	public static function init_menu( $the_branding, $childMenuSlug = '' ) {
-//		if ( empty( $the_branding ) ) {
-//			$the_branding = 'MainWP';
-//		}
-//		$page_title = $the_branding . 'Clone';
-//		//$page = add_options_page('MainWP_Clone', __($the_branding . ' Clone','mainwp-child'), 'manage_options', 'MainWP_Clone', array('MainWP_Clone', 'render'));
-//		$page = add_submenu_page( $childMenuSlug, $page_title, __( $the_branding . ' Clone', 'mainwp-child' ), 'manage_options', 'MainWP_Clone', array(
-//			'MainWP_Clone',
-//			'render',
-//		) );
-//		add_action( 'admin_print_scripts-' . $page, array( 'MainWP_Clone', 'print_scripts' ) );
-//	}
-
-//	public static function init_restore_menu( $the_branding, $childMenuSlug = '' ) {
-//		if ( empty( $the_branding ) ) {
-//			$the_branding = 'MainWP';
-//		}
-//		$page_title = $the_branding . 'Clone';
-//		//$page = add_options_page('MainWP_Clone', __($the_branding . ' Restore','mainwp-child'), 'manage_options', 'MainWPRestore', array('MainWP_Clone', 'renderNormalRestore'));
-//		$page = add_submenu_page( $childMenuSlug, $page_title, __( $the_branding . ' Restore', 'mainwp-child' ), 'manage_options', 'MainWPRestore', array(
-//			'MainWP_Clone',
-//			'renderNormalRestore',
-//		) );
-//		add_action( 'admin_print_scripts-' . $page, array( 'MainWP_Clone', 'print_scripts' ) );
-//	}
-
 	public static function print_scripts() {
 		wp_enqueue_script( 'jquery-ui-tooltip' );
 		wp_enqueue_script( 'jquery-ui-autocomplete' );
@@ -1490,7 +1464,9 @@ class MainWP_Clone {
 
 		self::renderStyle();
 		?>
-		<div id="icon-options-general" class="icon32"><br></div><h2><?php esc_html_e( 'Restore', 'mainwp-child' ); ?></h2>
+		<div class="postbox">
+	    <h2 class="hndle"><?php esc_html_e( 'Restore', 'mainwp-child' ); ?></h2>
+	    <div class="inside">
         <div class="mainwp-hide-after-restore">
 			<br/><?php esc_html_e( 'Be sure to use a FULL backup created by your Network dashboard, if critical folders are excluded it may result in a not working installation.', 'mainwp-child' ); ?>
 			<br/><br/><a href="#" class="button-primary" file="<?php echo esc_attr( urldecode( $file ) ); ?>"
@@ -1501,6 +1477,8 @@ class MainWP_Clone {
         <div class="mainwp-child_info-box-green"
 		     style="display: none;"><?php esc_html_e( 'Restore process completed successfully! You will now need to click ', 'mainwp-child' ); ?>
 			<a href="<?php echo esc_attr( admin_url( 'options-permalink.php' ) ); ?>"><?php esc_html_e( 'here', 'mainwp-child' ); ?></a><?php esc_html_e( ' to re-login to the admin and re-save permalinks.', 'mainwp-child' ); ?>
+        </div>
+        </div>
         </div>
 		<?php
 		self::renderJavaScript();

@@ -131,10 +131,10 @@ class MainWP_Child_Pagespeed {
 	}
 
 	function save_settings() {
-		$current_values = get_option( 'gpagespeedi_options' );		
-		require_once GPI_DIRECTORY . '/core/core.php';		  
+		$current_values = get_option( 'gpagespeedi_options' );
+		require_once GPI_DIRECTORY . '/core/core.php';
 		$googlePagespeedInsights = new googlePagespeedInsights( $current_values );
-		$worker_status = $googlePagespeedInsights->google_pagespeed_insights_Check_Status();				
+		$worker_status = $googlePagespeedInsights->google_pagespeed_insights_Check_Status();
 		if ( $worker_status ) {
 			return array( 'result' => 'RUNNING' );
 		}
@@ -232,13 +232,13 @@ class MainWP_Child_Pagespeed {
 
 	function do_check_pages($forceRecheck = false) {
 		if ( defined( 'GPI_DIRECTORY' ) ) {
-				$options = get_option( 'gpagespeedi_options' );
-				require_once GPI_DIRECTORY . '/core/core.php';
-				$googlePagespeedInsights = new googlePagespeedInsights( $options );
-				if ( $googlePagespeedInsights ) {
-					$googlePagespeedInsights->googlepagespeedinsightsworker( array(), true, $forceRecheck );
-					return true;
-				}
+			$options = get_option( 'gpagespeedi_options' );
+			require_once GPI_DIRECTORY . '/core/core.php';
+			$googlePagespeedInsights = new googlePagespeedInsights( $options );
+			if ( $googlePagespeedInsights ) {
+				$googlePagespeedInsights->googlepagespeedinsightsworker( array(), true, $forceRecheck );
+				return true;
+			}
 		}
 		return false;
 	}
@@ -247,11 +247,11 @@ class MainWP_Child_Pagespeed {
 		if ( empty( $strategy ) ) {
 			$strategy = 'both';
 		}
-		
+
 		$current_values = get_option( 'gpagespeedi_options' );
-		require_once GPI_DIRECTORY . '/core/core.php';		  
+		require_once GPI_DIRECTORY . '/core/core.php';
 		$googlePagespeedInsights = new googlePagespeedInsights( $current_values );
-		$worker_status = $googlePagespeedInsights->google_pagespeed_insights_Check_Status();				
+		$worker_status = $googlePagespeedInsights->google_pagespeed_insights_Check_Status();
 		if ( $worker_status ) {
 			return array( 'result' => 'RUNNING' );
 		}

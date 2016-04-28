@@ -304,7 +304,7 @@ class MainWP_Helper {
 							$serverHref               = 'href="' . $serverHost;
 							$replaceServerHref        = 'href="' . parse_url( $localUrl, PHP_URL_SCHEME ) . '://' . parse_url( $localUrl, PHP_URL_HOST );
 							$new_post['post_content'] = str_replace( $serverHref, $replaceServerHref, $new_post['post_content'] );
-						} 
+						}
 						// To fix bug
 //						else if ( strpos( $hrefLink, 'http' ) !== false ) {
 //							$lnkToReplace = dirname( $hrefLink );
@@ -312,7 +312,7 @@ class MainWP_Helper {
 //								$new_post['post_content'] = str_replace( $lnkToReplace, $linkToReplaceWith, $new_post['post_content'] );
 //							}
 //						}
-					}					
+					}
 					$lnkToReplace = dirname( $imgUrl );
 					if ( 'http:' !== $lnkToReplace && 'https:' !== $lnkToReplace ) {
 						$new_post['post_content'] = str_replace( $lnkToReplace, $linkToReplaceWith, $new_post['post_content'] );
@@ -322,46 +322,46 @@ class MainWP_Helper {
 				}
 			}
 		}
-		
-		if ( has_shortcode( $new_post['post_content'], 'gallery' ) ) {
-			if ( preg_match_all( '/\[gallery[^\]]+ids=\"(.*?)\"[^\]]*\]/ix', $new_post['post_content'], $matches, PREG_SET_ORDER ) ) {										
-					$replaceAttachedIds = array();
-					if ( isset( $_POST['post_gallery_images'] ) ) {
-						$post_gallery_images = unserialize(base64_decode( $_POST['post_gallery_images'] ));
-						if (is_array($post_gallery_images)) {
-							foreach($post_gallery_images as $gallery){
-								if (isset($gallery['src'])) {
-									try {
-										$upload = MainWP_Helper::uploadImage( $gallery['src'], $gallery ); //Upload image to WP
-										if ( null !== $upload ) {
-											$replaceAttachedIds[$gallery['id']] = $upload['id'];
-										}
-									} catch ( Exception $e ) {
 
+		if ( has_shortcode( $new_post['post_content'], 'gallery' ) ) {
+			if ( preg_match_all( '/\[gallery[^\]]+ids=\"(.*?)\"[^\]]*\]/ix', $new_post['post_content'], $matches, PREG_SET_ORDER ) ) {
+				$replaceAttachedIds = array();
+				if ( isset( $_POST['post_gallery_images'] ) ) {
+					$post_gallery_images = unserialize(base64_decode( $_POST['post_gallery_images'] ));
+					if (is_array($post_gallery_images)) {
+						foreach($post_gallery_images as $gallery){
+							if (isset($gallery['src'])) {
+								try {
+									$upload = MainWP_Helper::uploadImage( $gallery['src'], $gallery ); //Upload image to WP
+									if ( null !== $upload ) {
+										$replaceAttachedIds[$gallery['id']] = $upload['id'];
 									}
+								} catch ( Exception $e ) {
+
 								}
 							}
 						}
 					}
-					if (count($replaceAttachedIds) > 0) {
-						foreach ( $matches as $match ) {											
-							$idsToReplace = $match[1];
-							$idsToReplaceWith = "";
-							$originalIds = explode(',', $idsToReplace);
-							foreach($originalIds as $attached_id) {
-								if (!empty($originalIds) && isset($replaceAttachedIds[$attached_id])) {
-									$idsToReplaceWith .= $replaceAttachedIds[$attached_id].",";
-								}
-							}							
-							$idsToReplaceWith = rtrim($idsToReplaceWith,",");														
-							if (!empty($idsToReplaceWith)) {
-								$new_post['post_content'] = str_replace( '"' . $idsToReplace . '"', '"'.$idsToReplaceWith.'"', $new_post['post_content'] );
-							}							
+				}
+				if (count($replaceAttachedIds) > 0) {
+					foreach ( $matches as $match ) {
+						$idsToReplace = $match[1];
+						$idsToReplaceWith = "";
+						$originalIds = explode(',', $idsToReplace);
+						foreach($originalIds as $attached_id) {
+							if (!empty($originalIds) && isset($replaceAttachedIds[$attached_id])) {
+								$idsToReplaceWith .= $replaceAttachedIds[$attached_id].",";
+							}
+						}
+						$idsToReplaceWith = rtrim($idsToReplaceWith,",");
+						if (!empty($idsToReplaceWith)) {
+							$new_post['post_content'] = str_replace( '"' . $idsToReplace . '"', '"'.$idsToReplaceWith.'"', $new_post['post_content'] );
 						}
 					}
 				}
+			}
 		}
-				
+
 		if ( $is_post_plus ) {
 			$random_publish_date = isset( $post_custom['_saved_draft_random_publish_date'] ) ? $post_custom['_saved_draft_random_publish_date'] : false;
 			$random_publish_date = is_array( $random_publish_date ) ? current( $random_publish_date ) : null;

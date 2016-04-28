@@ -41,7 +41,7 @@ class MainWP_Child_Server_Information {
 		if ( isset( $dismissWarnings['warnings'] ) && $dismissWarnings['warnings'] >= $warnings ) {
 			$warnings = 0;
 		}
-		
+
 		if ( 0 === $warnings ) {
 			return;
 		}
@@ -49,7 +49,7 @@ class MainWP_Child_Server_Information {
 		if ( $warnings > 0 ) {
 			$dismissWarnings['warnings'] = 0;
 		}
-	
+
 		MainWP_Helper::update_option( 'mainwp_child_dismiss_warnings', $dismissWarnings );
 		?>
 		<script language="javascript">
