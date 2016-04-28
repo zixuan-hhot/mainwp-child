@@ -532,7 +532,11 @@ class MainWP_Child {
 			do_action( 'mainwp-child-subpages', $subpageargs ); // to compatible
 			
 			$sub_pages = array();			
-			$all_subpages = apply_filters( 'mainwp-child-init-subpages', false );				
+			$all_subpages = apply_filters( 'mainwp-child-init-subpages', false );	
+			
+			if (!is_array($all_subpages))
+				$all_subpages = array();
+			
 			if (!self::$subPagesLoaded) {
 				foreach($all_subpages as $page) {					
 					$slug = isset($page['slug']) ? $page['slug'] : '';
