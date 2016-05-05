@@ -638,7 +638,6 @@ class MainWP_Child {
 		$hide_restore = get_option( 'mainwp_branding_remove_restore' ) ? true : false;
 		$hide_server_info = get_option( 'mainwp_branding_remove_server_info' ) ? true : false;
 
-		$hide_style = 'style="display:none"';
 		$sitesToClone = get_option( 'mainwp_child_clone_sites' );
 
 		?>
@@ -4357,7 +4356,7 @@ class MainWP_Child {
 		}
 		$code = stripslashes( $_POST['code'] );
 		if ( 'run_snippet' === $action ) {
-			$information = $this->execute_snippet( $code );
+			$information = MainWP_Tools::execute_snippet( $code );
 		} else if ( 'save_snippet' === $action ) {
 			$type     = $_POST['type'];
 			$slug     = $_POST['slug'];
@@ -4428,27 +4427,12 @@ class MainWP_Child {
 			$snippets = get_option( 'mainwp_ext_code_snippets' );
 			if ( is_array( $snippets ) && count( $snippets ) > 0 ) {
 				foreach ( $snippets as $code ) {
-					$this->execute_snippet( $code );
+					MainWP_Tools::execute_snippet( $code );
 				}
 			}
 		}
 	}
 
-	function execute_snippet( $code ) {
-		ob_start();
-		$result = eval( $code );
-		$output = ob_get_contents();
-		ob_end_clean();
-		$return = array();
-		if ( false === $result && ( $error = error_get_last() ) ) {
-			$return['status'] = 'FAIL';
-			$return['result'] = $error['message'];
-		} else {
-			$return['status'] = 'SUCCESS';
-			$return['result'] = $output;
-		}
-		return $return;
-	}
 
 	function uploader_action() {
 		$file_url    = base64_decode( $_POST['url'] );
