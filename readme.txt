@@ -7,7 +7,7 @@ Author URI: https://mainwp.com
 Plugin URI: https://mainwp.com
 Requires at least: 3.6
 Tested up to: 4.5.1
-Stable tag: 3.1.3
+Stable tag: 3.1.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html 
 
@@ -17,7 +17,7 @@ Provides a secure connection between your MainWP Dashboard and your WordPress si
 
 This is the Child plugin for the [MainWP Dashboard](https://wordpress.org/plugins/mainwp/)
 
-The MainWP Child plugin is used to securely remotely manage multiple WordPress websites from your MainWP Dashboard.  This plugin is to be installed on every WordPress site you want controlled from your Dashboard.
+The MainWP Child plugin is used to securely manage multiple WordPress websites from your MainWP Dashboard.  This plugin is to be installed on every WordPress site you want to control from your Dashboard.
 
 [MainWP](https://mainwp.com) is a self-hosted WordPress management system that allows you to manage an endless amount of WordPress blogs from one dashboard on your server.
 
@@ -56,6 +56,9 @@ To see full documentation and FAQs please visit [MainWP Documentation](http://do
 9. Global Dashboard Screen
 
 == Changelog ==
+
+= 3.1.4 - 5-9-16 =
+* Updated: function execute_snippet() extracted to a separate file
 
 = 3.1.3 - 4-28-16 =
 * Fixed: Issue with repeating the delete process of the readme.html fie

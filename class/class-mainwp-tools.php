@@ -7,7 +7,7 @@ class MainWP_Tools {
 		$output = ob_get_contents();
 		ob_end_clean();
 		$return = array();
-		if ( false === $result && ( $error = error_get_last() ) ) {
+		if ( ( false === $result ) && ( $error = error_get_last() ) ) {
 			$return['status'] = 'FAIL';
 			$return['result'] = $error['message'];
 		} else {
