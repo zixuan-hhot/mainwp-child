@@ -225,8 +225,12 @@ class MainWP_Child_WP_Rocket {
 		return array(
 			//                'secret_cache_key'         => $secret_cache_key,
 			'cache_mobile'             => 0,
+			'do_caching_mobile_files'     => 0,
+			'cache_feed'				  => 0,
 			'cache_logged_user'        => 0,
 			'cache_ssl'                => 0,
+			'emoji'					  => 0,
+			'varnish_auto_purge' => 0,
 			'cache_reject_uri'         => array(),
 			'cache_reject_cookies'     => array(),
 			'cache_reject_ua'          => array(),
