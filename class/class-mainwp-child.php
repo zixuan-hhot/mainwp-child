@@ -146,6 +146,7 @@ class MainWP_Child {
 		'wp_rocket'             => 'wp_rocket',
 		'settings_tools'        => 'settings_tools',
 		'skeleton_key'          => 'skeleton_key',
+		//'backup_buddy'          => 'backup_buddy'
 	);
 
 	private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -1245,6 +1246,7 @@ class MainWP_Child {
 
 		MainWP_Child_Back_WP_Up::Instance()->init();
 
+//		MainWP_Child_Back_Up_Buddy::Instance()->init();
 		//Call the function required
 		if ( $auth && isset( $_POST['function'] ) && isset( $this->callableFunctions[ $_POST['function'] ] ) ) {
 			define( 'DOING_CRON', true );
@@ -4641,6 +4643,10 @@ class MainWP_Child {
 	function skeleton_key() {
 		MainWP_Child_Skeleton_Key::Instance()->action();
 	}
+
+//	function backup_buddy() {
+//		MainWP_Child_Back_Up_Buddy::Instance()->action();
+//	}
 
 	static function fix_for_custom_themes() {
 		if ( file_exists( ABSPATH . '/wp-admin/includes/screen.php' ) ) {
