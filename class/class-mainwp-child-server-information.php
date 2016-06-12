@@ -564,11 +564,11 @@ class MainWP_Child_Server_Information {
 				<td><?php echo esc_html( self::getMainWPVersion() ); ?></td>
 				<td><?php echo esc_html( self::getCurrentVersion() ); ?></td>
 				<td><?php echo esc_html( self::getMainWPVersionCheck() ); ?></td>
-			</tr>			
+			</tr>
 			<?php
 			self::checkDirectoryMainWPDirectory();
 			$server       = get_option( 'mainwp_child_server' );
-			?>			
+			?>
 			<tr>
 				<td></td>
 				<td><?php _e( 'Currently Connected to Dashboard URL', 'mainwp-child' ); ?></td>
@@ -625,7 +625,7 @@ class MainWP_Child_Server_Information {
 				    colspan="5"><?php esc_html_e( 'MySQL SETTINGS', 'mainwp-child' ); ?></td>
 			</tr><?php
 			self::renderRow( 'MySQL Version', '>=', '5.0', 'getMySQLVersion' );
-			?>			
+			?>
 			<tr>
 				<td style="background: #333; color: #fff;"
 				    colspan="5"><?php esc_html_e( 'BACKUP ARCHIVE INFORMATION', 'mainwp-child' ); ?></td>
@@ -802,22 +802,22 @@ class MainWP_Child_Server_Information {
 				<td colspan="3"><?php echo esc_html( defined( 'DB_CHARSET' ) ? DB_CHARSET : '' ); ?></td>
 			</tr>
 			<tr>
-			<td style="background: #333; color: #fff;" colspan="5"><?php _e( 'WORDPRESS PLUGINS', 'mainwp' ); ?></td>
-				</tr>
-				<?php
-				$all_plugins = get_plugins();
-				foreach ( $all_plugins as $slug => $plugin) {					
+				<td style="background: #333; color: #fff;" colspan="5"><?php _e( 'WORDPRESS PLUGINS', 'mainwp' ); ?></td>
+			</tr>
+			<?php
+			$all_plugins = get_plugins();
+			foreach ( $all_plugins as $slug => $plugin) {
 				?>
 				<tr>
 					<td>&nbsp;</td>
-					<td><?php echo $plugin['Name']; ?></td>					
-					<td><?php echo $plugin['Version']; ?></td>					
-					<td><?php echo is_plugin_active($slug) ? 'Active' : 'Inactive'; ?></td>					
+					<td><?php echo $plugin['Name']; ?></td>
+					<td><?php echo $plugin['Version']; ?></td>
+					<td><?php echo is_plugin_active($slug) ? 'Active' : 'Inactive'; ?></td>
 					<td>&nbsp;</td>
 				</tr>
 				<?php
-				}				
-				?>
+			}
+			?>
 			</tbody>
 		</table>
 		<br/>
@@ -1282,7 +1282,7 @@ class MainWP_Child_Server_Information {
 	}
 
 	protected static function getCompleteURL() {
-		echo esc_html( $_SERVER['HTTP_REFERER'] );
+		echo isset( $_SERVER['HTTP_REFERER'] ) ? esc_html( $_SERVER['HTTP_REFERER'] ) : '';
 	}
 
 	protected static function getUserAgent() {

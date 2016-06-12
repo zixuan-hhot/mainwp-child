@@ -84,7 +84,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 }
 
 class MainWP_Child {
-	public static $version = '3.1.4';
+	public static $version = '3.1.5';
 	private $update_version = '1.3';
 
 	private $callableFunctions = array(
@@ -146,6 +146,7 @@ class MainWP_Child {
 		'wp_rocket'             => 'wp_rocket',
 		'settings_tools'        => 'settings_tools',
 		'skeleton_key'          => 'skeleton_key',
+		'custom_post_type'		=> 'custom_post_type',
 		//'backup_buddy'          => 'backup_buddy'
 	);
 
@@ -3089,20 +3090,7 @@ class MainWP_Child {
 	}
 
 	function get_favicon() {
-		$url     = site_url();
-		$request = wp_remote_get( $url, array( 'timeout' => 20 ) );
-
 		$favi = '';
-		if ( is_array( $request ) && isset( $request['body'] ) ) {
-			// to fix bug
-			$preg_str1 = '/(<link\s+(?:[^\>]*)(?:rel="shortcut\s+icon"\s*)(?:[^>]*)?href="([^"]+)"(?:[^>]*)?>)/is';
-			$preg_str2 = '/(<link\s+(?:[^\>]*)(?:rel="(?:shortcut\s+)?icon"\s*)(?:[^>]*)?href="([^"]+)"(?:[^>]*)?>)/is';
-			if ( preg_match( $preg_str1, $request['body'], $matches ) ) {
-				$favi = $matches[2];
-			} else if ( preg_match( $preg_str2, $request['body'], $matches ) ) {
-				$favi = $matches[2];
-			}
-		}
 
 		if ( empty( $favi ) ) {
 			if ( file_exists( ABSPATH . 'favicon.ico' ) ) {
@@ -3225,6 +3213,7 @@ class MainWP_Child {
 			foreach ( $posts as $post ) {
 				$outPost                  = array();
 				$outPost['id']            = $post->ID;
+				$outPost['post_type']     = $post->post_type;
 				$outPost['status']        = $post->post_status;
 				$outPost['title']         = $post->post_title;
 				$outPost['content']       = $post->post_content;
@@ -3283,7 +3272,8 @@ class MainWP_Child {
 	}
 
 	function get_all_posts() {
-		$this->get_all_posts_by_type( 'post' );
+		$post_type = (isset($_POST['post_type']) ? $_POST['post_type'] : 'post');
+		$this->get_all_posts_by_type( $post_type );
 	}
 
 	function get_terms() {
@@ -4647,6 +4637,10 @@ class MainWP_Child {
 //	function backup_buddy() {
 //		MainWP_Child_Back_Up_Buddy::Instance()->action();
 //	}
+
+	function custom_post_type() {
+        MainWP_Custom_Post_Type::Instance()->action();
+    }
 
 	static function fix_for_custom_themes() {
 		if ( file_exists( ABSPATH . '/wp-admin/includes/screen.php' ) ) {
