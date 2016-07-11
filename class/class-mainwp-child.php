@@ -146,8 +146,7 @@ class MainWP_Child {
 		'wp_rocket'             => 'wp_rocket',
 		'settings_tools'        => 'settings_tools',
 		'skeleton_key'          => 'skeleton_key',
-		'custom_post_type'		=> 'custom_post_type',
-		//'backup_buddy'          => 'backup_buddy'
+		'custom_post_type'		=> 'custom_post_type'		
 	);
 
 	private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
@@ -1247,7 +1246,7 @@ class MainWP_Child {
 
 		MainWP_Child_Back_WP_Up::Instance()->init();
 
-//		MainWP_Child_Back_Up_Buddy::Instance()->init();
+
 		//Call the function required
 		if ( $auth && isset( $_POST['function'] ) && isset( $this->callableFunctions[ $_POST['function'] ] ) ) {
 			define( 'DOING_CRON', true );
@@ -3194,11 +3193,11 @@ class MainWP_Child {
 		$tokens = array();
 		if ( is_array( $extra ) && isset( $extra['tokens'] ) ) {
 			$tokens = $extra['tokens'];
-			if ( 1 === $extra['extract_post_type'] ) {
+			if ( 1 == $extra['extract_post_type'] ) {
 				$args['post_type'] = 'post';
-			} else if ( 2 === $extra['extract_post_type'] ) {
+			} else if ( 2 == $extra['extract_post_type'] ) {
 				$args['post_type'] = 'page';
-			} else if ( 3 === $extra['extract_post_type'] ) {
+			} else if ( 3 == $extra['extract_post_type'] ) {
 				$args['post_type'] = array( 'post', 'page' );
 			}
 		}
@@ -4633,10 +4632,6 @@ class MainWP_Child {
 	function skeleton_key() {
 		MainWP_Child_Skeleton_Key::Instance()->action();
 	}
-
-//	function backup_buddy() {
-//		MainWP_Child_Back_Up_Buddy::Instance()->action();
-//	}
 
 	function custom_post_type() {
         MainWP_Custom_Post_Type::Instance()->action();
