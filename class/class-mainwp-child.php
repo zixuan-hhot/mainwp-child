@@ -84,7 +84,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 }
 
 class MainWP_Child {
-	public static $version = '3.1.5';
+	public static $version = '3.1.6';
 	private $update_version = '1.3';
 
 	private $callableFunctions = array(
@@ -905,6 +905,9 @@ class MainWP_Child {
 		}
 
 		if ( $auth ) {
+			//disable duo auth for mainwp
+			remove_action('init', 'duo_verify_auth', 10);
+
 			//Check if the user exists & is an administrator
 			if ( isset( $_POST['function'] ) && isset( $_POST['user'] ) ) {
 				$user = get_user_by( 'login', $_POST['user'] );
