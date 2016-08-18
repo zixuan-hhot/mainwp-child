@@ -84,7 +84,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 }
 
 class MainWP_Child {
-	public static $version = '3.1.6';
+	public static $version = '3.1.7';
 	private $update_version = '1.3';
 
 	private $callableFunctions = array(
@@ -1003,8 +1003,8 @@ class MainWP_Child {
 				$uploadDir        = $uploadDir[0];
 				$excludes[]       = str_replace( ABSPATH, '', $uploadDir );
 				$excludes[]       = str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '/object-cache.php';
-				if ( ! ini_get( 'safe_mode' ) ) {
-					set_time_limit( 6000 );
+				if ( version_compare(phpversion(), '5.3.0') >= 0 || ! ini_get( 'safe_mode' ) ) {
+					@set_time_limit( 6000 );
 				}
 
 				$newExcludes = array();
@@ -1249,7 +1249,7 @@ class MainWP_Child {
 		MainWP_Child_WP_Rocket::Instance()->init();
 
 		MainWP_Child_Back_WP_Up::Instance()->init();
-                
+
                 new MainWP_Child_Back_Up_Buddy();
 
 		//Call the function required
@@ -4641,10 +4641,10 @@ class MainWP_Child {
 	function custom_post_type() {
         MainWP_Custom_Post_Type::Instance()->action();
     }
-        
+
         function backup_buddy() {
             MainWP_Child_Back_Up_Buddy::Instance()->action();
-        }        
+        }
 
 	static function fix_for_custom_themes() {
 		if ( file_exists( ABSPATH . '/wp-admin/includes/screen.php' ) ) {
