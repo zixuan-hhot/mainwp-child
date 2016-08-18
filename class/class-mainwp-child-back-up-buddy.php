@@ -291,6 +291,7 @@ class MainWP_Child_Back_Up_Buddy {
 
 		$filter_general_settings = array(			
 			'importbuddy_pass_hash',
+                        'importbuddy_pass_length',
 			'backup_directory',
 			'role_access',
 			'archive_limit_age',
@@ -363,6 +364,10 @@ class MainWP_Child_Back_Up_Buddy {
 				}
 			}
 			
+                        if ('general_settings' === $type) {
+                            $newOptions['importbuddy_pass_hash_confirm'] = '';
+                        }
+                        
 			global $wpdb;
 			$option = 'pb_' . pb_backupbuddy::settings( 'slug' );
 			$newOptions = sanitize_option( $option, $newOptions );
