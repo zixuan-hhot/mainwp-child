@@ -980,7 +980,7 @@ class MainWP_Child_Back_Up_Buddy {
 							$integrity .= $scan_note . ' ';
 						}
 					}
-					$integrity .= '<a href="#" serial="' . $serial  . '" class="mwp_bb_reset_integrity_lnk" file-name="' . basename( $file ) . '" title="Rescan integrity. Last checked ' . pb_backupbuddy::$format->date( $backup_integrity['scan_time'] ) . '."> <span class="refresh_gray_gif"></span></a>';
+					$integrity .= '<a href="#" serial="' . $serial  . '" class="mwp_bb_reset_integrity_lnk" file-name="' . basename( $file ) . '" title="Rescan integrity. Last checked ' . pb_backupbuddy::$format->date( $backup_integrity['scan_time'] ) . '."> <i class="fa fa-refresh" aria-hidden="true"></i></a>';
 					$integrity .= '<div class="row-actions"><a title="' . __( 'Backup Status', 'mainwp-child' ) . '" href="#" serial="' . $serial . '" class="mainwp_bb_view_details_lnk thickbox">' . __( 'View Details', 'mainwp-child' ) . '</a></div>';
 					
 					$sumLogFile = backupbuddy_core::getLogDirectory() . 'status-' . $serial . '_' . pb_backupbuddy::$options['log_serial'] . '.txt';
@@ -2154,17 +2154,15 @@ class MainWP_Child_Back_Up_Buddy {
 
             $destination_id = backupbuddy_live::getLiveID();
             $destination_settings = isset(pb_backupbuddy::$options['remote_destinations'][$destination_id]) ? pb_backupbuddy::$options['remote_destinations'][$destination_id] : array();
-            
+                        
             $check_current = !empty($destination_settings) ? true : false;
             
             $error = '';        
             if ( $new_destination_id && is_array($data) ) { 
                     $itxapi_username = isset($destination_settings['itxapi_username']) ? $destination_settings['itxapi_username'] : '';
-                    $itxapi_password = isset($destination_settings['itxapi_password']) ? $destination_settings['itxapi_password'] : '';
                     $itxapi_token = isset($destination_settings['itxapi_token']) ? $destination_settings['itxapi_token'] : '';
                     $destination_settings = array_merge( $destination_settings, $data );
                     $destination_settings['itxapi_username'] = $itxapi_username;
-                    $destination_settings['itxapi_password'] = $itxapi_password;
                     $destination_settings['itxapi_token'] = $itxapi_token;                    
                     pb_backupbuddy::$options['remote_destinations'][$new_destination_id] = $destination_settings;
                     
@@ -2295,7 +2293,7 @@ class MainWP_Child_Back_Up_Buddy {
             require_once( pb_backupbuddy::plugin_path() . '/destinations/stash2/init.php' );
             $settings = &pb_backupbuddy::$options['remote_destinations'][ $destination_id ];
             $settings = pb_backupbuddy_destination_stash2::_formatSettings( $settings );
-
+            
             $destination = pb_backupbuddy::$options['remote_destinations'][ $destination_id ];
             
             if ( 'live' == $destination['type'] ) {
