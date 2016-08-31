@@ -19,9 +19,12 @@ class MainWP_Child_Server_Information {
 			}
 
 			if ( $_POST['what'] == 'warning' ) {
-				$dismissWarnings['warnings'] = self::getWarnings();
-			}
-
+                            if (isset($_POST['warnings']))
+                                $warnings = intval($_POST['warnings']);
+                            else
+                                $warnings = self::getWarnings();                            
+                            $dismissWarnings['warnings'] = $warnings;
+			}                        
 			MainWP_Helper::update_option( 'mainwp_child_dismiss_warnings', $dismissWarnings );
 		}
 	}
@@ -62,7 +65,8 @@ class MainWP_Child_Server_Information {
 
 				var data = {
 					action: 'mainwp-child_dismiss_warnings',
-					what: pAction
+					what: pAction,
+                                        warnings: <?php echo intval($warnings); ?>
 				};
 
 				jQuery.ajax( {
