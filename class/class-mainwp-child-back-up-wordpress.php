@@ -1030,6 +1030,7 @@ class MainWP_Child_Back_Up_Wordpress {
 			}
 
 			update_option( 'hmbkp_schedule_' . $sch_id, $options );
+                        delete_transient( 'hmbkp_schedules' );
 			$out['result'] = 'SUCCESS';
 		} else {
 			$out['result'] = 'NOTCHANGE';
@@ -1099,6 +1100,7 @@ class MainWP_Child_Back_Up_Wordpress {
 			}
 			$out['result'] = 'SUCCESS';
 		}
+                delete_transient( 'hmbkp_schedules' );
 		return $out;
 	}
 
