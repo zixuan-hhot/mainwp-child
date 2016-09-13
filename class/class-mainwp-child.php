@@ -1351,8 +1351,11 @@ class MainWP_Child {
 	}
 
 	public function http_request_reject_unsafe_urls( $r, $url ) {
-		$r['reject_unsafe_urls'] = false;
-
+		$r['reject_unsafe_urls'] = false;                     
+                if ( isset($_POST['wpadmin_user']) && !empty($_POST['wpadmin_user']) && isset($_POST['wpadmin_passwd']) && !empty($_POST['wpadmin_passwd']) ) {
+                    $auth = base64_encode( $_POST['wpadmin_user'] . ':' . $_POST['wpadmin_passwd'] );
+                    $r['headers']['Authorization'] = "Basic $auth";
+                } 
 		return $r;
 	}
 
