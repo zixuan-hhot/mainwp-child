@@ -76,7 +76,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 					}
 
 					// Invalid nonce
-					die( '<mainwp>' . base64_encode( json_encode( array( 'error' => 'Invalid nonce. Try use: ' . $action ) ) ) . '</mainwp>' );
+					die( '<mainwp>' . base64_encode( json_encode( array( 'error' => 'Invalid nonce! Try to use: ' . $action ) ) ) . '</mainwp>' );
 				}
 			endif;
 		}
@@ -150,7 +150,7 @@ class MainWP_Child {
                 'backup_buddy'             => 'backup_buddy',
 	);
 
-	private $FTP_ERROR = 'Failed, please add FTP details for automatic upgrades.';
+	private $FTP_ERROR = 'Failed! Please, add FTP details for automatic updates.';
 
 	private $callableFunctionsNoAuth = array(
 		'stats' => 'getSiteStatsNoAuth',
@@ -389,12 +389,17 @@ class MainWP_Child {
 		if ( is_plugin_active( 'mainwp-child/mainwp-child.php' ) ) {
 			if ( ! get_option( 'mainwp_child_pubkey' ) ) {
 				$child_name = ( $this->branding_robust === 'MainWP' ) ? 'MainWP Child' : $this->branding_robust;
-				$msg        = '<div class="postbox" style="padding-left: 1em; padding-right: 1em; margin-top: 4em;"><p style="text-align: center; background: #dd3d36; color: #fff; font-size: 22px; font-weight: bold;">Attention!</p>' .
-				              '<p style="font-size: 16px;">Please add this site to your ' . $this->branding_robust . ' Dashboard <b>NOW</b> or deactivate the ' . $child_name . ' plugin until you are ready to do so to avoid unexpected security issues.</p>';
+				$msg 		= '<div class="wrap"><div class="postbox" style="margin-top: 4em;"><p style="background: #a00; color: #fff; font-size: 22px; font-weight: bold; margin: 0; padding: .3em;">';
+				$msg        .= __( 'Attention!', 'mainwp-child' ); 
+				$msg 		.= '</p><div style="padding-left: 1em; padding-right: 1em;"><p style="font-size: 16px;">';
+				$msg 		.= __( 'Please add this site to your ', 'mainwp-child' ) . $this->branding_robust . __( ' Dashboard <b>NOW</b> or deactivate the ', 'mainwp-child' ) . $child_name . __( ' plugin until you are ready to do so to avoid unexpected security issues.','mainwp-child' );
+				$msg 		.= '</p>';
 				if ( ! MainWP_Child_Branding::is_branding() ) {
-					$msg .= '<p>You can also turn on the Unique Security ID option in <a href="admin.php?page=mainwp_child_tab">' . $this->branding_robust . ' settings</a> if you would like extra security and additional time to add this site to your Dashboard.   Find out more in this Help Doc <a href="http://docs.mainwp.com/how-do-i-use-the-child-unique-security-id/" target="_blank">How do I use the Child Unique Security ID?</a></p>';
+					$msg 	.= '<p>';
+					$msg 	.= __( 'You can also turn on the unique security ID option in <a href="admin.php?page=mainwp_child_tab">', 'mainwp-child' ) . $this->branding_robust . __( ' settings</a> if you would like extra security and additional time to add this site to your Dashboard. <br/>Find out more in this help document <a href="http://docs.mainwp.com/how-do-i-use-the-child-unique-security-id/" target="_blank">How do I use the child unique security ID?</a>', 'mainwp-child' );
+					$msg 	.= '</p>';
 				}
-				$msg .= '</div>';
+				$msg 		.= '</div></div></div>';
 				echo wp_kses_post( $msg );
 			}
 		}
@@ -769,20 +774,20 @@ class MainWP_Child {
 		//self::render_header('setting');
 		?>
 		<div class="postbox">
-			<h2 class="hndle"><span><?php esc_html_e( 'Connection Settings', 'mainwp-child' ); ?></span></h2>
+			<h2 class="hndle"><span><?php esc_html_e( 'Connection settings', 'mainwp-child' ); ?></span></h2>
 			<div class="inside">
 				<form method="post" action="options-general.php?page=mainwp_child_tab">
-					<div class="howto"><?php esc_html_e( 'The Unique Security ID adds additional protection between the Child plugin and your Main Dashboard. The Unique Security ID will need to match when being added to the Main Dashboard. This is additional security and should not be needed in most situations.', 'mainwp-child' ); ?></div>
+					<div class="howto"><?php esc_html_e( 'The unique security ID adds additional protection between the child plugin and your Dashboard. The unique security ID will need to match when being added to the Dashboard. This is additional security and should not be needed in most situations.', 'mainwp-child' ); ?></div>
 					<div style="margin: 1em 0 4em 0;">
 						<input name="requireUniqueSecurityId"
 						       type="checkbox"
 						       id="requireUniqueSecurityId" <?php if ( '' != get_option( 'mainwp_child_uniqueId' ) ) { echo 'checked'; } ?> />
 						<label for="requireUniqueSecurityId"
-						       style="font-size: 15px;"><?php esc_html_e( 'Require Unique Security ID', 'mainwp-child' ); ?></label>
+						       style="font-size: 15px;"><?php esc_html_e( 'Require unique security ID', 'mainwp-child' ); ?></label>
 					</div>
 					<div>
 						<?php if ( '' != get_option( 'mainwp_child_uniqueId' ) ) {
-							echo '<span style="border: 1px dashed #e5e5e5; background: #fafafa; font-size: 24px; padding: 1em 2em;">' . esc_html__( 'Your Unique Security ID is:', 'mainwp-child' ) . ' <span style="font-weight: bold; color: #7fb100;">' . esc_html( get_option( 'mainwp_child_uniqueId' ) ) . '</span></span>';
+							echo '<span style="border: 1px dashed #e5e5e5; background: #fafafa; font-size: 24px; padding: 1em 2em;">' . esc_html__( 'Your unique security ID is:', 'mainwp-child' ) . ' <span style="font-weight: bold; color: #7fb100;">' . esc_html( get_option( 'mainwp_child_uniqueId' ) ) . '</span></span>';
 						} ?>
 					</div>
 					<p class="submit" style="margin-top: 4em;">
@@ -790,7 +795,7 @@ class MainWP_Child {
 						       name="submit"
 						       id="submit"
 						       class="button button-primary button-hero"
-						       value="<?php esc_html_e( 'Save Changes', 'mainwp-child' ); ?>">
+						       value="<?php esc_html_e( 'Save changes', 'mainwp-child' ); ?>">
 					</p>
 					<input type="hidden" name="nonce" value="<?php echo wp_create_nonce( 'child-settings' );?>">
 				</form>
@@ -913,11 +918,11 @@ class MainWP_Child {
 			if ( isset( $_POST['function'] ) && isset( $_POST['user'] ) ) {
 				$user = get_user_by( 'login', $_POST['user'] );
 				if ( ! $user ) {
-					MainWP_Helper::error( __( 'No such user', 'mainwp-child' ) );
+					MainWP_Helper::error( __( 'That administrator username was not found on this child site. Please verify that it is an existing administrator.', 'mainwp-child' ) );
 				}
 
 				if ( 10 != $user->wp_user_level && ( ! isset( $user->user_level ) || 10 != $user->user_level ) && ! $user->has_cap( 'level_10' ) ) {
-					MainWP_Helper::error( __( 'User is not an administrator', 'mainwp-child' ) );
+					MainWP_Helper::error( __( 'That user is not an administrator. Please use an administrator user to establish the connection.', 'mainwp-child' ) );
 				}
 
 				$this->login( $_REQUEST['user'] );
@@ -1213,11 +1218,11 @@ class MainWP_Child {
 			if ( isset( $_POST['function'] ) && isset( $_POST['user'] ) ) {
 				$user = get_user_by( 'login', $_POST['user'] );
 				if ( ! $user ) {
-					MainWP_Helper::error( __( 'No such user', 'mainwp-child' ) );
+					MainWP_Helper::error( __( 'That administrator username was not found on this child site. Please verify that it is an existing administrator.', 'mainwp-child' ) );
 				}
 
 				if ( 10 != $user->wp_user_level && ( ! isset( $user->user_level ) || 10 != $user->user_level ) && ! $user->has_cap( 'level_10' ) ) {
-					MainWP_Helper::error( __( 'User is not an administrator', 'mainwp-child' ) );
+					MainWP_Helper::error( __( 'That user is not an administrator. Please use an administrator user to establish the connection.', 'mainwp-child' ) );
 				}
 
 				$this->login( $_REQUEST['user'] );
@@ -1366,7 +1371,7 @@ class MainWP_Child {
 		$wp_filesystem = $this->getWPFilesystem();
 
 		if ( ! isset( $_POST['type'] ) || ! isset( $_POST['url'] ) || ( 'plugin' !== $_POST['type'] && 'theme' !== $_POST['type'] ) || '' === $_POST['url'] ) {
-			MainWP_Helper::error( __( 'Bad request.', 'mainwp-child' ) );
+			MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
 		}
 		//        if (file_exists(ABSPATH . '/wp-admin/includes/deprecated.php')) include_once(ABSPATH . '/wp-admin/includes/deprecated.php');
 		if ( file_exists( ABSPATH . '/wp-admin/includes/screen.php' ) ) {
@@ -1625,7 +1630,7 @@ class MainWP_Child {
 				}
 			}
 		} else {
-			MainWP_Helper::error( __( 'Bad request', 'mainwp-child' ) );
+			MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
 		}
 
 		$information['sync'] = $this->getSiteStats( array(), false );
@@ -1724,7 +1729,7 @@ class MainWP_Child {
 						}
 					}
 				} else {
-					MainWP_Helper::error( __( 'Bad request', 'mainwp-child' ) );
+					MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
 				}
 			}
 			if ( count( $premiumPlugins ) > 0 ) {
@@ -1745,7 +1750,7 @@ class MainWP_Child {
 			}
 
 			if ( count( $plugins ) <= 0 && count( $premiumPlugins ) <= 0 ) {
-				MainWP_Helper::error( __( 'Bad request', 'mainwp-child' ) );
+				MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
 			}
 
 			if ( null !== $this->filterFunction ) {
@@ -1827,7 +1832,7 @@ class MainWP_Child {
 						}
 					}
 				} else {
-					MainWP_Helper::error( __( 'Bad request', 'mainwp-child' ) );
+					MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
 				}
 			}
 
@@ -1859,14 +1864,14 @@ class MainWP_Child {
 				$premiumUpgrader = new Theme_Upgrader( new Bulk_Theme_Upgrader_Skin( compact( 'nonce', 'url' ) ) );
 			}
 			if ( count( $themes ) <= 0 && count( $premiumThemes ) <= 0 ) {
-				MainWP_Helper::error( __( 'Bad request', 'mainwp-child' ) );
+				MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
 			}
 
 			if ( null !== $this->filterFunction ) {
 				remove_filter( 'pre_site_transient_update_themes', $this->filterFunction, 99 );
 			}
 		} else {
-			MainWP_Helper::error( __( 'Bad request', 'mainwp-child' ) );
+			MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
 		}
 
 		if ( count( $mwp_premium_updates_todo ) > 0 ) {
@@ -1964,33 +1969,33 @@ class MainWP_Child {
 		$information = array();
 		//Check if the user is valid & login
 		if ( ! isset( $_POST['user'] ) || ! isset( $_POST['pubkey'] ) ) {
-			MainWP_Helper::error( __( 'Invalid request', 'mainwp-child' ) );
+			MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
 		}
 
 		MainWP_Helper::update_option( 'mainwp_child_branding_disconnected', 'yes', 'yes' );
 
 		//Already added - can't readd. Deactivate plugin..
 		if ( get_option( 'mainwp_child_pubkey' ) ) {
-			MainWP_Helper::error( __( 'Public key already set, reset the MainWP Child plugin on your Child site and try again.', 'mainwp-child' ) );
+			MainWP_Helper::error( __( 'Public key already set. Please reset the MainWP Child plugin on the child site and try again.', 'mainwp-child' ) );
 		}
 
 		if ( '' != get_option( 'mainwp_child_uniqueId' ) ) {
 			if ( ! isset( $_POST['uniqueId'] ) || ( '' === $_POST['uniqueId'] ) ) {
-				MainWP_Helper::error( __( 'This Child Site is set to require a Unique Security ID - Please Enter It before connection can be established.', 'mainwp-child' ) );
+				MainWP_Helper::error( __( 'This child site is set to require a unique security ID. Please enter it before the connection can be established.', 'mainwp-child' ) );
 			} else if ( get_option( 'mainwp_child_uniqueId' ) !== $_POST['uniqueId'] ) {
-				MainWP_Helper::error( __( 'The Unique Security ID you have entered does not match Child Security ID - Please Correct It before connection can be established.', 'mainwp-child' ) );
+				MainWP_Helper::error( __( 'The unique security ID mismatch! Please correct it before the connection can be established.', 'mainwp-child' ) );
 			}
 		}
 
 		//Login
 		if ( isset( $_POST['user'] ) ) {
 			if ( ! $this->login( $_POST['user'] ) ) {
-				$hint = "<br/>" . __('Hint: Check if the Administrator User exists on the child site, if not you need to use existing Administrator ', 'mainwp-child');
-				MainWP_Helper::error(__('No such user' . $hint,'mainwp-child'));
+				$hint = "<br/>" . __('Hint: Check if the administrator user exists on the child site, if not, you need to use an existing administrator.', 'mainwp-child');
+				MainWP_Helper::error(__('That administrator username was not found on this child site. Please verify that it is an existing administrator.' . $hint,'mainwp-child'));
 			}
 
 			if ( 10 !== $current_user->wp_user_level && ( ! isset( $current_user->user_level ) || 10 !== $current_user->user_level ) && ! $current_user->has_cap( 'level_10' ) ) {
-				MainWP_Helper::error( __( 'User is not an administrator', 'mainwp-child' ) );
+				MainWP_Helper::error( __( 'That user is not an administrator. Please use an administrator user to establish the connection.', 'mainwp-child' ) );
 			}
 		}
 
@@ -2193,7 +2198,7 @@ class MainWP_Child {
 			if ( is_wp_error( $id ) ) {
 				MainWP_Helper::error( $id->get_error_message() );
 			} else {
-				MainWP_Helper::error( __( 'Could not change the admin password.', 'mainwp-child' ) );
+				MainWP_Helper::error( __( 'Administrator password could not be changed.', 'mainwp-child' ) );
 			}
 		}
 
@@ -2212,7 +2217,7 @@ class MainWP_Child {
 			MainWP_Helper::error( $new_user_id->get_error_message() );
 		}
 		if ( 0 === $new_user_id ) {
-			MainWP_Helper::error( __( 'Undefined error', 'mainwp-child' ) );
+			MainWP_Helper::error( __( 'Undefined error!', 'mainwp-child' ) );
 		}
 
 		if ( $send_password ) {
@@ -3429,7 +3434,7 @@ class MainWP_Child {
 					LIMIT 1", $post_type) );
 
 			if ( ! $next_post ) {
-				$information['error'] = 'Thera are not auto scheduled post';
+				$information['error'] = __( 'No scheduled posts.', 'mainwp-child' );
 			} else {
 				$timestamp                                   = strtotime( $next_post->post_date );
 				$timestamp_gmt                               = $timestamp - get_option( 'gmt_offset' ) * 60 * 60;
@@ -3913,7 +3918,7 @@ class MainWP_Child {
 	function getSiteStatsNoAuth( $information = array() ) {
 		if ( get_option( 'mainwp_child_pubkey' ) ) {
 			$hint = '<br/>' . __('Hint: Go to the child site, deactivate and reactivate the MainWP Child plugin and try again.', 'mainwp-child');
-			MainWP_Helper::error(__('This site already contains a link - please disable and enable the MainWP plugin.','mainwp-child') . $hint);
+			MainWP_Helper::error(__('This site already contains a link. Please deactivate and reactivate the MainWP plugin.','mainwp-child') . $hint);
 		}
 
 		global $wp_version;
@@ -4001,7 +4006,7 @@ class MainWP_Child {
 		} else if ( is_wp_error( $wp_filesystem->errors ) ) {
 			$errorCodes = $wp_filesystem->errors->get_error_codes();
 			if ( ! empty( $errorCodes ) ) {
-				MainWP_Helper::error( __( 'Wordpress Filesystem error: ', 'mainwp-child' ) . $wp_filesystem->errors->get_error_message() );
+				MainWP_Helper::error( __( 'WordPress Filesystem error: ', 'mainwp-child' ) . $wp_filesystem->errors->get_error_message() );
 			}
 		}
 

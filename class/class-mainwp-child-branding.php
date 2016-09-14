@@ -642,10 +642,10 @@ class MainWP_Child_Branding {
 				if ( ! empty( $send_email_message ) ) {
 					$send_email_message = stripslashes( $send_email_message );
 				} else {
-					$send_email_message = 'Your Message was successfully submitted.';
+					$send_email_message = 'Message has been submitted successfully.';
 				}
 			} else {
-				$send_email_message = __( 'Error: send mail failed.' );
+				$send_email_message = __( 'Sending email failed!' );
 			}
 			?>
 			<div
@@ -672,7 +672,7 @@ class MainWP_Child_Branding {
 						<p><label for="mainwp_branding_contact_message_subject"><?php _e('Subject:', 'mainwp-child'); ?></label><br>
 							<input type="text" name="mainwp_branding_contact_message_subject" style="width: 650px;"></p>
 						<div style="max-width: 650px;">
-							<label for="mainwp_branding_contact_message_content"><?php _e('Your Message:', 'mainwp-child'); ?></label><br>
+							<label for="mainwp_branding_contact_message_content"><?php _e('Your message:', 'mainwp-child'); ?></label><br>
 							<?php
 							remove_editor_styles(); // stop custom theme styling interfering with the editor
 							wp_editor( '', 'mainwp_branding_contact_message_content', array(

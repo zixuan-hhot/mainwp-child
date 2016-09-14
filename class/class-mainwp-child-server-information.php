@@ -124,7 +124,7 @@ class MainWP_Child_Server_Information {
 				$warning = '';
 
 				if ( $warnings > 0 ) {
-					$warning .= '<tr><td colspan="2">This site may not connect to your dashboard or may have other issues. Check your <a href="admin.php?page=MainWP_Child_Server_Information">MainWP Server Information page</a> to review and <a href="http://docs.mainwp.com/child-site-issues/">check here for more information on possible fixes</a></td><td style="text-align: right;"><a href="#" id="mainwp-child-connect-warning-dismiss">Dismiss</a></td></tr>';
+					$warning .= '<tr><td colspan="2">This site may not connect to your dashboard or may have other issues. Check your <a href="admin.php?page=MainWP_Child_Server_Information">MainWP server information page</a> to review and <a href="http://docs.mainwp.com/child-site-issues/">check here for more information on possible fixes</a></td><td style="text-align: right;"><a href="#" id="mainwp-child-connect-warning-dismiss">Dismiss</a></td></tr>';
 				}
 				echo $warning;
 				?>
@@ -466,7 +466,7 @@ class MainWP_Child_Server_Information {
 					</a></span>
 
 				<p class="submit">
-					<a class="button-primary mwp-child-get-system-report-btn" href="#"><?php _e( 'Get System Report', 'mainwp' ); ?></a>
+					<a class="button-primary mwp-child-get-system-report-btn" href="#"><?php _e( 'Get system report', 'mainwp' ); ?></a>
 				</p>
 
 				<div id="mwp-server-information"><textarea readonly="readonly" wrap="off"></textarea></div>
@@ -550,9 +550,9 @@ class MainWP_Child_Server_Information {
 				<th scope="col" class="manage-column column-posts mwp-not-generate-row"
 				    style="width: 1px;"></th>
 				<th scope="col" class="manage-column column-posts" style="">
-					<span><?php esc_html_e( 'Server Configuration', 'mainwp-child' ); ?></span></th>
+					<span><?php esc_html_e( 'Server configuration', 'mainwp-child' ); ?></span></th>
 				<th scope="col" class="manage-column column-posts"
-				    style=""><?php esc_html_e( 'Required Value', 'mainwp' ); ?></th>
+				    style=""><?php esc_html_e( 'Required value', 'mainwp' ); ?></th>
 				<th scope="col" class="manage-column column-posts" style=""><?php esc_html_e( 'Value', 'mainwp' ); ?></th>
 				<th scope="col" class="manage-column column-posts" style=""><?php esc_html_e( 'Status', 'mainwp' ); ?></th>
 			</tr>
@@ -575,7 +575,7 @@ class MainWP_Child_Server_Information {
 			?>
 			<tr>
 				<td></td>
-				<td><?php _e( 'Currently Connected to Dashboard URL', 'mainwp-child' ); ?></td>
+				<td><?php _e( 'Currently connected to dashboard URL', 'mainwp-child' ); ?></td>
 				<td><?php echo esc_html( $server ); ?></td>
 				<td></td>
 				<td></td>
@@ -651,7 +651,7 @@ class MainWP_Child_Server_Information {
 			<tr>
 				<td></td>
 				<td><?php esc_html_e( 'Server Name', 'mainwp' ); ?></td>
-				<td colspan="3"><?php self::getSeverName(); ?></td>
+				<td colspan="3"><?php self::getServerName(); ?></td>
 			</tr>
 			<tr>
 				<td></td>
@@ -690,7 +690,7 @@ class MainWP_Child_Server_Information {
 			</tr>
 			<tr>
 				<td></td>
-				<td><?php _e( 'Sever self connect', 'mainwp' ); ?></td>
+				<td><?php _e( 'Server self connect', 'mainwp' ); ?></td>
 				<td colspan="3"><?php self::serverSelfConnect(); ?></td>
 			</tr>
 			<tr>
@@ -705,7 +705,7 @@ class MainWP_Child_Server_Information {
 			</tr>
 			<tr>
 				<td></td>
-				<td><?php esc_html_e( 'Getaway Interface', 'mainwp' ); ?></td>
+				<td><?php esc_html_e( 'Gateway Interface', 'mainwp' ); ?></td>
 				<td colspan="3"><?php self::getServerGetawayInterface(); ?></td>
 			</tr>
 			<tr>
@@ -1245,7 +1245,7 @@ class MainWP_Child_Server_Information {
 		echo esc_html( $_SERVER['SERVER_ADDR'] );
 	}
 
-	protected static function getSeverName() {
+	protected static function getServerName() {
 		echo esc_html( $_SERVER['SERVER_NAME'] );
 	}
 
@@ -1573,7 +1573,7 @@ class MainWP_Child_Server_Information {
 	public static function renderhtaccess() {
 		?>
 		<div class="postbox" id="mainwp-code-display">
-			<h3 class="hndle" style="padding: 8px 12px; font-size: 14px;"><span>.htaccess</span></h3>
+			<h3 class="hndle" style="padding: 8px 12px; font-size: 14px;"><span><?php _e( '.htaccess', 'mainwp-child' ); ?></span></h3>
 
 			<div style="padding: 1em;">
 				<?php
