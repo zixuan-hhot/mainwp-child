@@ -3102,14 +3102,17 @@ class MainWP_Child {
 	}
 
 	function get_favicon() {
+            
 		$favi = '';
-
-		if ( empty( $favi ) ) {
-			if ( file_exists( ABSPATH . 'favicon.ico' ) ) {
-				$favi = 'favicon.ico';
-			} else if ( file_exists( ABSPATH . 'favicon.png' ) ) {
-				$favi = 'favicon.png';
-			}
+                if( function_exists('get_site_icon_url') )
+                    $favi = get_site_icon_url();
+                 
+		if ( empty( $favi ) ) {                        
+                    if ( file_exists( ABSPATH . 'favicon.ico' ) ) {
+                            $favi = 'favicon.ico';
+                    } else if ( file_exists( ABSPATH . 'favicon.png' ) ) {
+                            $favi = 'favicon.png';
+                    }
 		}
 
 		return $favi;
