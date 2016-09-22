@@ -3031,7 +3031,7 @@ class MainWP_Child {
 
 		//Directory listings!
 		$information['directories'] = $this->scanDir( ABSPATH, 3 );
-		$cats                       = get_categories( array( 'hide_empty' => 0, 'hierarchical' => true, 'number' => 100 ) );
+		$cats                       = get_categories( array( 'hide_empty' => 0, 'hierarchical' => true, 'number' => 300 ) );
 		$categories                 = array();
 		foreach ( $cats as $cat ) {
 			$categories[] = $cat->name;
@@ -3675,11 +3675,11 @@ class MainWP_Child {
 				$out['active']      = ( $theme->get( 'Name' ) === $theme_name ) ? 1 : 0;
 				$out['slug']        = $theme->get_stylesheet();
 				if ( ! $filter ) {
-					if ( '' === $keyword || stristr( $out['title'], $keyword ) ) {
+					if ( '' == $keyword || stristr( $out['title'], $keyword ) ) {
 						$rslt[] = $out;
 					}
 				} else if ( $out['active'] === ( ( 'active' === $status ) ? 1 : 0 ) ) {
-					if ( '' === $keyword || stristr( $out['title'], $keyword ) ) {
+					if ( '' == $keyword || stristr( $out['title'], $keyword ) ) {
 						$rslt[] = $out;
 					}
 				}
