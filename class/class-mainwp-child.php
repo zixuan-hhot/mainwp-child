@@ -1260,6 +1260,7 @@ class MainWP_Child {
 		//Call the function required
 		if ( $auth && isset( $_POST['function'] ) && isset( $this->callableFunctions[ $_POST['function'] ] ) ) {
 			define( 'DOING_CRON', true );
+                        require_once( ABSPATH . 'wp-admin/admin.php' );
 			MainWP_Child::fix_for_custom_themes();
 			call_user_func( array( $this, $this->callableFunctions[ $_POST['function'] ] ) );
 		} else if ( isset( $_POST['function'] ) && isset( $this->callableFunctionsNoAuth[ $_POST['function'] ] ) ) {
@@ -3738,8 +3739,14 @@ class MainWP_Child {
 			$all_plugins = get_plugins();
 			foreach ( $plugins as $idx => $plugin ) {
 				if ( $plugin !== $this->plugin_slug ) {
-					if ( isset( $all_plugins[ $plugin ] ) ) {
-						$tmp['plugin'] = $plugin;
+					if ( isset( $all_plugins[ $plugin ] ) ) {						
+                                                if (is_plugin_active($plugin)) {
+                                                    $thePlugin = get_plugin_data( $plugin );
+                                                    if ( null !== $thePlugin && '' !== $thePlugin ) {
+                                                            deactivate_plugins( $plugin );
+                                                    }
+                                                }     
+                                                $tmp['plugin'] = $plugin;
 						if ( true === $pluginUpgrader->delete_old_plugin( null, null, null, $tmp ) ) {
 							$args = array( 'action' => 'delete', 'Name' => $all_plugins[ $plugin ]['Name'] );
 							do_action( 'mainwp_child_plugin_action', $args );
