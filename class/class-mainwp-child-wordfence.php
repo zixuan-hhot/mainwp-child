@@ -1036,6 +1036,9 @@ class MainWP_Child_Wordfence {
         } 
         
         private static function _getWAFData() {
+                if(!class_exists('wfWAF'))
+                    return false;
+                
 		$data['learningMode'] = wfWAF::getInstance()->isInLearningMode();
 		$data['rules'] = wfWAF::getInstance()->getRules();
 		/** @var wfWAFRule $rule */

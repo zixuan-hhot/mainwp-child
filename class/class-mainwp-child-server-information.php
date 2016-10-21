@@ -1583,4 +1583,69 @@ class MainWP_Child_Server_Information {
 		</div>
 		<?php
 	}
+        
+        public static function renderConnectionDetails() {
+            global $current_user;
+            $details = array(
+                'siteurl' => array(
+                                'title' => __('Site URL', 'mainwp'),
+                                'value' => get_bloginfo( 'url' ),
+                                'desc' => get_bloginfo( 'url' )                            
+                            ),
+                'adminuser' => array(
+                                'title' => __('Administrator name', 'mainwp'),
+                                'value' => $current_user->user_login,
+                                'desc' => __('This is your Administrator username, however, you can use any existing Administrator username.', 'mainwp')                            
+                            ),
+                'friendly_name' => array(
+                                'title' => __('Friendly site name', 'mainwp'),
+                                'value' => get_bloginfo( 'name' ),
+                                'desc' => __('For the friendly site name, you can use any name, this is just a suggestion.', 'mainwp')                            
+                            ),
+                'uniqueid' => array(
+                                'title' => __('Child unique security id', 'mainwp'),
+                                'value' => !empty(get_option('mainwp_child_uniqueId')) ? get_option('mainwp_child_uniqueId') : __('Leave the field blank', 'mainwp-child'),
+                                'desc' => __('Child unique security id is not required, however, since you have enabled it, you need to add it to your MainWP dashboad.', 'mainwp')                            
+                            ),
+                'verify_ssl' => array(
+                                'title' => __('Verify certificate', 'mainwp'),
+                                'value' =>  __('Yes', 'mainwp-child'),
+                                'desc' => __('If there is an issue with SSL certificate on this site, try to set this option to No.', 'mainwp')                            
+                            ),
+                'ssl_version' => array(
+                                'title' => __('SSL version', 'mainwp'),
+                                'value' => __('Auto Detect', 'mainwp-child'),
+                                'desc' => __('Auto Detect', 'mainwp-child'),                            
+                            ),
+
+            );
+		?>
+		<div class="postbox" id="connection_detail">
+			<h3 class="mainwp_box_title"><span><?php _e( 'Connection details', 'mainwp-child' ); ?></span></h3>
+			<div class="inside">
+                            <div class="mainwp-postbox-actions-top mainwp-padding-5">
+                            <?php
+                                _e('If you are trying to connect this child site to your Mainwp Dashboard, you can use following details to do that. Please note that these are only suggested values.', 'mainwp');
+                            ?>
+                            </div>
+                            <table id="mainwp-table" class="wp-list-table widefat" cellspacing="0" style="border: 0">
+                                <tbody>
+                                    <?php                            
+                                        foreach ($details as $row) {
+                                        ?>
+                                            <tr>
+                                                <th style="width: 20%"><strong><?php echo $row['title']; ?></strong></th>
+                                                <td style="width: 20%"><strong><?php echo $row['value']; ?></strong></td>
+                                                <td><?php echo $row['desc']; ?></td>
+                                            </tr>
+                                        <?php
+                                        }                            
+                                    ?>                                    	
+                                </tbody>
+                            </table>
+			</div>
+		</div>
+		<?php
+	}
+        
 }

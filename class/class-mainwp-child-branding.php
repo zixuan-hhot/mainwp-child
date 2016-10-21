@@ -114,6 +114,7 @@ class MainWP_Child_Branding {
 		MainWP_Helper::update_option( 'mainwp_branding_remove_restore', $settings['child_remove_restore'] );
 		MainWP_Helper::update_option( 'mainwp_branding_remove_setting', $settings['child_remove_setting'] );
 		MainWP_Helper::update_option( 'mainwp_branding_remove_server_info', $settings['child_remove_server_info'] );
+                MainWP_Helper::update_option( 'mainwp_branding_remove_connection_detail', (isset($settings['child_remove_connection_detail']) ? $settings['child_remove_connection_detail'] : 0) );                
 		MainWP_Helper::update_option( 'mainwp_branding_remove_wp_tools', $settings['child_remove_wp_tools'] );
 		MainWP_Helper::update_option( 'mainwp_branding_remove_wp_setting', $settings['child_remove_wp_setting'] );
 		MainWP_Helper::update_option( 'mainwp_branding_remove_permalink', $settings['child_remove_permalink'] );
