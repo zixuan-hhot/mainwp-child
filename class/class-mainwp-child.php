@@ -1515,7 +1515,7 @@ class MainWP_Child {
 				if ( ! empty( $fileName ) ) {
 					do_action( 'mainwp_child_installPluginTheme', $args );
 					if ( isset( $_POST['activatePlugin'] ) && 'yes' === $_POST['activatePlugin'] ) {
-						activate_plugin( $path . $fileName, '', false, true );
+						activate_plugin( $path . $fileName, '' /* false, true */ );
 						do_action( 'activate_plugin', $args['slug'], null );
 					}
 				}
@@ -2149,9 +2149,8 @@ class MainWP_Child {
                 
 		global $current_user;
 		$reassign = ( isset( $current_user ) && isset( $current_user->ID ) ) ? $current_user->ID : 0;                
-                
-		if ( 'delete' === $action ) {
-			include_once( ABSPATH . '/wp-admin/includes/user.php' );
+                include_once( ABSPATH . '/wp-admin/includes/user.php' );
+		if ( 'delete' === $action ) {			
 			wp_delete_user( $userId, $reassign );
 		} else if ( 'changeRole' === $action ) {
 			$my_user         = array();
