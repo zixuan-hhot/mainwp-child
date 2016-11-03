@@ -240,7 +240,11 @@ class MainWP_Client_Report {
 				$args['date_to'] = date( 'Y-m-d', $args['date_to'] );
 			}
 		}
-
+                
+                if (MainWP_Child_Branding::is_branding()) {
+                    $args['hide_child_reports'] = 1;
+                }
+                
 		$args['records_per_page'] = 9999;
 		//        error_log(print_r($args, true));
 
