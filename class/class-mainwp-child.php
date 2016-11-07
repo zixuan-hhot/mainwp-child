@@ -417,7 +417,7 @@ class MainWP_Child {
 		$fix_update_plugins = array();
 		if ( is_array( $plugin_updates ) ) {
 			foreach ( $plugin_updates as $slug => $plugin_update ) {
-				if ( in_array( $slug, array( 'ithemes-security-pro/ithemes-security-pro.php', 'monarch/monarch.php', 'cornerstone/cornerstone.php') ) ) {
+				if ( in_array( $slug, array( 'ithemes-security-pro/ithemes-security-pro.php', 'monarch/monarch.php', 'cornerstone/cornerstone.php', 'updraftplus/updraftplus.php') ) ) {
 					$fix_update_plugins[ $slug ] = $plugin_update;
 				}
 			}
