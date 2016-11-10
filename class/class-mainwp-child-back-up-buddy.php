@@ -252,6 +252,9 @@ class MainWP_Child_Back_Up_Buddy {
                                 case 'remote_send':
                                         $information = $this->remote_send();
                                         break;
+                                case 'remote_list':
+                                    $information = $this->remote_list();
+                                    break;
                                 case 'get_main_log':
                                         $information = $this->get_main_log();
                                         break;
@@ -1694,6 +1697,15 @@ class MainWP_Child_Back_Up_Buddy {
             } else {
                 return array('error' => 'Invalid request.');
             }       
+        }
+        
+        function remote_list() {            
+            $information = array();
+            if (isset(pb_backupbuddy::$options['remote_destinations'])) { // update
+                $information['remote_destinations'] = pb_backupbuddy::$options['remote_destinations'];
+            }             
+            $information['result'] = 'SUCCESS';
+            return $information;
         }
         
         function remote_delete() {            

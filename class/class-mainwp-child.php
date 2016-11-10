@@ -3233,12 +3233,13 @@ class MainWP_Child {
 		}
 
 		$information['recent_comments'] = $this->get_recent_comments( array( 'approve', 'hold' ), 5 );
-		$information['recent_posts']    = $this->get_recent_posts( array( 'publish', 'draft', 'pending', 'trash' ), 5 );
+		$information['recent_posts']    = $this->get_recent_posts( array( 'publish', 'draft', 'pending', 'trash', 'future' ), 5 );
 		$information['recent_pages']    = $this->get_recent_posts( array(
 			'publish',
 			'draft',
 			'pending',
 			'trash',
+                        'future'
 		), 5, 'page' );
 
 		$securityIssuess = 0;
