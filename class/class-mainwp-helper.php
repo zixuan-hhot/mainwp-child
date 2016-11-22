@@ -121,19 +121,28 @@ class MainWP_Helper {
 
 	}
 
-	static function uploadImage( $img_url, $img_data = array()  ) {
+	static function uploadImage( $img_url, $img_data = array() , $check_file_existed = false ) {
 		if (!is_array($img_data))
 			$img_data = array();
 		include_once( ABSPATH . 'wp-admin/includes/file.php' ); //Contains download_url
+                $upload_dir     = wp_upload_dir();
+                
+                if ($check_file_existed) {
+                    $local_img_url  = $upload_dir['url'] . '/' . basename( $img_url );
+                    $attach_id = MainWP_Helper::get_image_id($local_img_url);
+                    if ($attach_id) {
+                        return array( 'id' => $attach_id, 'url' => $local_img_url );
+                    }
+                }
+                
 		//Download $img_url
 		$temporary_file = download_url( $img_url );
 
 		if ( is_wp_error( $temporary_file ) ) {
 			throw new Exception( 'Error: ' . $temporary_file->get_error_message() );
-		} else {
-			$upload_dir     = wp_upload_dir();
+		} else {			
 			$local_img_path = $upload_dir['path'] . DIRECTORY_SEPARATOR . basename( $img_url ); //Local name
-			$local_img_url  = $upload_dir['url'] . '/' . basename( $img_url );
+			$local_img_url  = $upload_dir['url'] . '/' . basename( $img_url );                        
 			$moved          = @rename( $temporary_file, $local_img_path );
 			if ( $moved ) {
 				$wp_filetype = wp_check_filetype( basename( $img_url ), null ); //Get the filetype to set the mimetype
@@ -159,6 +168,12 @@ class MainWP_Helper {
 
 		return null;
 	}
+        
+        static function get_image_id($image_url) {
+            global $wpdb;
+            $attachment = $wpdb->get_col($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE guid='%s';", $image_url )); 
+            return $attachment[0]; 
+        }
 
 	static function uploadFile( $file_url, $path, $file_name ) {
 		$file_name      = sanitize_file_name( $file_name );
@@ -271,7 +286,12 @@ class MainWP_Helper {
 		}
 
 		$wpr_options = isset( $_POST['wpr_options'] ) ? $_POST['wpr_options'] : array();
-
+                
+                $edit_post_id = 0;
+                if (isset($post_custom['_mainwp_edit_post_id']) && $post_custom['_mainwp_edit_post_id']) { 
+                    $edit_post_id = current($post_custom['_mainwp_edit_post_id']);
+                }
+                
 		//Search for all the images added to the new post
 		//some images have a href tag to click to navigate to the image.. we need to replace this too
 		$foundMatches = preg_match_all( '/(<a[^>]+href=\"(.*?)\"[^>]*>)?(<img[^>\/]*src=\"((.*?)(png|gif|jpg|jpeg))\")/ix', $new_post['post_content'], $matches, PREG_SET_ORDER );
@@ -294,7 +314,12 @@ class MainWP_Helper {
 				}
 
 				try {
-					$downloadfile      = MainWP_Helper::uploadImage( $originalImgUrl );
+                                        // in the case edit post will check if file existed
+                                        if ($edit_post_id) {
+                                            $downloadfile      = MainWP_Helper::uploadImage( $originalImgUrl , array(), true);
+                                        } else {
+                                            $downloadfile      = MainWP_Helper::uploadImage( $originalImgUrl );                                            
+                                        }                                        
 					$localUrl          = $downloadfile['url'];
 					$linkToReplaceWith = dirname( $localUrl );
 					if ( '' !== $hrefLink ) {
@@ -331,7 +356,7 @@ class MainWP_Helper {
 					if (is_array($post_gallery_images)) {
 						foreach($post_gallery_images as $gallery){
 							if (isset($gallery['src'])) {
-								try {
+								try {                                                                    
 									$upload = MainWP_Helper::uploadImage( $gallery['src'], $gallery ); //Upload image to WP
 									if ( null !== $upload ) {
 										$replaceAttachedIds[$gallery['id']] = $upload['id'];
@@ -407,6 +432,15 @@ class MainWP_Helper {
 		remove_filter( 'content_save_pre', 'wp_filter_post_kses' );  // to fix brake scripts or html
 		$post_status             = $new_post['post_status'];
 		$new_post['post_status'] = 'auto-draft';
+                
+                // update post
+                if ($edit_post_id) {          
+                    // check if post existed
+                    $current_post = get_post($edit_post_id);
+                    if ( $current_post && ( (!isset($new_post['post_type']) && $current_post->post_type == 'post') || (isset($new_post['post_type']) && $new_post['post_type'] == $current_post->post_type) ) ) {
+                        $new_post['ID'] = $edit_post_id;
+                    }
+                }                    
 		$new_post_id             = wp_insert_post( $new_post, $wp_error );
 
 		//Show errors if something went wrong
@@ -461,9 +495,12 @@ class MainWP_Helper {
 		$not_allowed[] = '_saved_draft_publish_date_to';
 		$not_allowed[] = '_post_to_only_existing_categories';
 		$not_allowed[] = '_mainwp_robot_post_comments';
-
-		$post_to_only_existing_categories = false;
-		foreach ( $post_custom as $meta_key => $meta_values ) {
+                $not_allowed[] = '_mainwp_edit_post_site_id';
+                $not_allowed[] = '_mainwp_edit_post_id';
+                $not_allowed[] = '_edit_post_status';
+                
+		$post_to_only_existing_categories = false;                
+		foreach ( $post_custom as $meta_key => $meta_values ) {                        
 			if ( ! in_array( $meta_key, $not_allowed ) ) {
 				foreach ( $meta_values as $meta_value ) {
 					if (strpos($meta_key, "_mainwp_spinner_") === 0)
@@ -472,10 +509,10 @@ class MainWP_Helper {
 					if ( ! $seo_ext_activated ) {
 						// if Wordpress SEO plugin is not activated do not save yoast post meta
 						if ( strpos( $meta_key, '_yoast_wpseo_' ) === false ) {
-							add_post_meta( $new_post_id, $meta_key, $meta_value );
+                                                    update_post_meta( $new_post_id, $meta_key, $meta_value );
 						}
 					} else {
-						add_post_meta( $new_post_id, $meta_key, $meta_value );
+						update_post_meta( $new_post_id, $meta_key, $meta_value );
 					}
 				}
 			} else if ( '_sticky' === $meta_key ) {
@@ -535,7 +572,8 @@ class MainWP_Helper {
 				}
 			}
 		}
-
+                
+                $featured_image_exist = false;
 		//If featured image exists - set it
 		if ( null !== $post_featured_image ) {
 			try {
@@ -543,12 +581,17 @@ class MainWP_Helper {
 
 				if ( null !== $upload ) {
 					update_post_meta( $new_post_id, '_thumbnail_id', $upload['id'] ); //Add the thumbnail to the post!
+                                        $featured_image_exist = true;
 				}
 			} catch ( Exception $e ) {
 
 			}
 		}
-
+                
+                if (!$featured_image_exist) {
+                    delete_post_meta($new_post_id, '_thumbnail_id');
+                }
+                
 		// post plus extension process
 		if ( $is_post_plus ) {
 			$random_privelege      = isset( $post_custom['_saved_draft_random_privelege'] ) ? $post_custom['_saved_draft_random_privelege'] : null;
@@ -570,7 +613,7 @@ class MainWP_Helper {
 					wp_update_post( array( 'ID' => $new_post_id, 'post_author' => $random_post_authors[ $key ] ) );
 				}
 			}
-
+                        
 			$random_category = isset( $post_custom['_saved_draft_random_category'] ) ? $post_custom['_saved_draft_random_category'] : false;
 			$random_category = is_array( $random_category ) ? current( $random_category ) : null;
 			if ( ! empty( $random_category ) ) {
@@ -589,13 +632,19 @@ class MainWP_Helper {
 			}
 		}
 		// end of post plus
+                
+                // to support custom post author
+                $custom_post_author = apply_filters('mainwp_create_post_custom_author', false, $new_post_id);
+                if (!empty($custom_post_author)) {
+                    wp_update_post( array( 'ID' => $new_post_id, 'post_author' => $custom_post_author ) );
+                }
 
 		// MainWP Robot
 		if ( $is_robot_post ) {
 			$all_comments = $post_custom['_mainwp_robot_post_comments'];
 			MainWP_Child_Robot::Instance()->wpr_insertcomments( $new_post_id, $all_comments );
 		}
-
+                   
 		$ret['success']  = true;
 		$ret['link']     = $permalink;
 		$ret['added_id'] = $new_post_id;

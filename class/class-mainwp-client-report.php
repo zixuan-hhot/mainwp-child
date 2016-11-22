@@ -246,7 +246,7 @@ class MainWP_Client_Report {
                 }
                 
 		$args['records_per_page'] = 9999;
-		//        error_log(print_r($args, true));
+		
 
 		if ( self::$mainwpChildReports ) {
 			$records = mainwp_wp_stream_query( $args );
