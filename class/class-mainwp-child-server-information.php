@@ -598,7 +598,7 @@ class MainWP_Child_Server_Information {
 				<td style="background: #333; color: #fff;"
 				    colspan="5"><?php esc_html_e( 'PHP SETTINGS', 'mainwp-child' ); ?></td>
 			</tr><?php
-			self::renderRow( 'PHP Version', '>=', '5.3', 'getPHPVersion' );
+			self::renderRow( 'PHP Version', '>=', '5.6', 'getPHPVersion' );
 			?>
 			<tr>
 				<td></td>
