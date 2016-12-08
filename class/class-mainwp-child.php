@@ -84,7 +84,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 }
 
 class MainWP_Child {
-	public static $version = '3.2.1';
+	public static $version = '3.2.3';
 	private $update_version = '1.3';
 
 	private $callableFunctions = array(
@@ -146,8 +146,8 @@ class MainWP_Child {
 		'wp_rocket'             => 'wp_rocket',
 		'settings_tools'        => 'settings_tools',
 		'skeleton_key'          => 'skeleton_key',
-		'custom_post_type'	=> 'custom_post_type',
-                'backup_buddy'             => 'backup_buddy',
+		'custom_post_type'	    => 'custom_post_type',
+        'backup_buddy'          => 'backup_buddy',
 	);
 
 	private $FTP_ERROR = 'Failed! Please, add FTP details for automatic updates.';
@@ -186,7 +186,7 @@ class MainWP_Child {
 		add_action( 'init', array( &$this, 'parse_init' ), 33 );
 		add_action( 'admin_menu', array( &$this, 'admin_menu' ) );
 		add_action( 'admin_init', array( &$this, 'admin_init' ) );
-                add_action( 'admin_head', array( &$this, 'admin_head' ) );
+		add_action( 'admin_head', array( &$this, 'admin_head' ) );
 		add_action( 'init', array( &$this, 'localization' ), 33 );
 		add_action( 'pre_current_active_plugins', array( &$this, 'pre_current_active_plugins' ) );
 
@@ -196,9 +196,7 @@ class MainWP_Child {
 
 		$this->checkOtherAuth();
 
-		if ( is_admin() ) {
-			MainWP_Clone::init();
-		}
+		MainWP_Clone::get()->init();
 		MainWP_Child_Server_Information::init();
 		MainWP_Client_Report::init();
 		MainWP_Child_Plugins_Check::Instance();
@@ -2129,12 +2127,13 @@ class MainWP_Child {
 				}
 			}
 		} else if ( 'get_edit' === $action ) {
-                        $postId = $_POST['id'];
-                        $post_type = $_POST['post_type'];
-                        if ($post_type == 'post')
-                            $my_post = $this->get_post_edit($postId);			
-                        else
-                            $my_post = $this->get_page_edit($postId);			
+            $postId = $_POST['id'];
+            $post_type = $_POST['post_type'];
+            if ( $post_type == 'post' ) {
+	            $my_post = $this->get_post_edit( $postId );
+            } else {
+	            $my_post = $this->get_page_edit( $postId );
+            }
 		} else {
 			$information['status'] = 'FAIL';
 		}
@@ -2145,153 +2144,153 @@ class MainWP_Child {
 		$information['my_post'] = $my_post;
 		MainWP_Helper::write( $information );
 	}
-                
-        function get_post_edit($id) {            
-            $post = get_post( $id );
-            if ( $post ) {       
-                    $categoryObjects          = get_the_category( $post->ID );
-                    $categories               = '';
-                    foreach ( $categoryObjects as $cat ) {
-                            if ( '' !== $categories ) {
-                                    $categories .= ', ';
-                            }
-                            $categories .= $cat->name;
-                    }
-                    $post_category = $categories;
-                    
-                    $tagObjects = get_the_tags( $post->ID );
-                    $tags       = '';
-                    if ( is_array( $tagObjects ) ) {
-                            foreach ( $tagObjects as $tag ) {
-                                    if ( '' !== $tags ) {
-                                            $tags .= ', ';
-                                    }
-                                    $tags .= $tag->name;
-                            }
-                    }
-                    $post_tags = $tags;
-                    
-                    $post_custom = get_post_custom( $id );
-                    
-                    $galleries = get_post_gallery( $id, false );
-                    $post_gallery_images = array();
 
-                    if ( is_array($galleries) && isset($galleries['ids']) ) {
-                            $attached_images = explode( ',', $galleries['ids'] );
-                            foreach( $attached_images as $attachment_id ) {
-                                    $attachment = get_post( $attachment_id );
-                                    if ( $attachment ) {
-                                            $post_gallery_images[] = array(
-                                                    'id' => $attachment_id,
-                                                    'alt' => get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
-                                                    'caption' => $attachment->post_excerpt,
-                                                    'description' => $attachment->post_content,
-                                                    'src' => $attachment->guid,
-                                                    'title' => $attachment->post_title
-                                            );
-                                    }
-                            }
-                    }
-
-                    include_once( ABSPATH . 'wp-includes' . DIRECTORY_SEPARATOR . 'post-thumbnail-template.php' );
-                    $post_featured_image = get_post_thumbnail_id( $id );
-                    $child_upload_dir   = wp_upload_dir();
-                    $new_post = array(
-                            'edit_id'        => $id,
-                            'is_sticky'      => is_sticky( $id ) ? 1 : 0,
-                            'post_title'     => $post->post_title,
-                            'post_content'   => $post->post_content,
-                            'post_status'    => $post->post_status, //was 'publish'
-                            'post_date'      => $post->post_date,
-                            'post_date_gmt'  => $post->post_date_gmt,
-                            'post_tags'      => $post_tags,
-                            'post_name'      => $post->post_name,
-                            'post_excerpt'   => $post->post_excerpt,
-                            'comment_status' => $post->comment_status,
-                            'ping_status'    => $post->ping_status                            
-                    );
-
-                    if ( $post_featured_image != null ) { //Featured image is set, retrieve URL
-                            $img                 = wp_get_attachment_image_src( $post_featured_image, 'full' );
-                            $post_featured_image = $img[0];
-                    }
-                    
-                    $post_data = array(
-                            'new_post'            => base64_encode( serialize( $new_post ) ),
-                            'post_custom'         => base64_encode( serialize( $post_custom ) ),
-                            'post_category'       => base64_encode( $post_category ),
-                            'post_featured_image' => base64_encode( $post_featured_image ),
-                            'post_gallery_images' => base64_encode( serialize( $post_gallery_images ) ),
-                            'child_upload_dir'   => base64_encode( serialize( $child_upload_dir ) ),
-                    );
-                   return $post_data;
-
+    function get_post_edit($id) {
+        $post = get_post( $id );
+        if ( $post ) {
+            $categoryObjects          = get_the_category( $post->ID );
+            $categories               = '';
+            foreach ( $categoryObjects as $cat ) {
+	            if ( '' !== $categories ) {
+		            $categories .= ', ';
+	            }
+	            $categories .= $cat->name;
             }
-            return false;
+            $post_category = $categories;
+
+            $tagObjects = get_the_tags( $post->ID );
+            $tags       = '';
+            if ( is_array( $tagObjects ) ) {
+	            foreach ( $tagObjects as $tag ) {
+		            if ( '' !== $tags ) {
+			            $tags .= ', ';
+		            }
+		            $tags .= $tag->name;
+	            }
+            }
+            $post_tags = $tags;
+
+            $post_custom = get_post_custom( $id );
+
+            $galleries = get_post_gallery( $id, false );
+            $post_gallery_images = array();
+
+            if ( is_array($galleries) && isset($galleries['ids']) ) {
+	            $attached_images = explode( ',', $galleries['ids'] );
+	            foreach( $attached_images as $attachment_id ) {
+		            $attachment = get_post( $attachment_id );
+		            if ( $attachment ) {
+			            $post_gallery_images[] = array(
+				            'id' => $attachment_id,
+				            'alt' => get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
+				            'caption' => $attachment->post_excerpt,
+				            'description' => $attachment->post_content,
+				            'src' => $attachment->guid,
+				            'title' => $attachment->post_title
+			            );
+		            }
+	            }
+            }
+
+            include_once( ABSPATH . 'wp-includes' . DIRECTORY_SEPARATOR . 'post-thumbnail-template.php' );
+            $post_featured_image = get_post_thumbnail_id( $id );
+            $child_upload_dir   = wp_upload_dir();
+            $new_post = array(
+	            'edit_id'        => $id,
+	            'is_sticky'      => is_sticky( $id ) ? 1 : 0,
+	            'post_title'     => $post->post_title,
+	            'post_content'   => $post->post_content,
+	            'post_status'    => $post->post_status, //was 'publish'
+	            'post_date'      => $post->post_date,
+	            'post_date_gmt'  => $post->post_date_gmt,
+	            'post_tags'      => $post_tags,
+	            'post_name'      => $post->post_name,
+	            'post_excerpt'   => $post->post_excerpt,
+	            'comment_status' => $post->comment_status,
+	            'ping_status'    => $post->ping_status
+            );
+
+            if ( $post_featured_image != null ) { //Featured image is set, retrieve URL
+	            $img                 = wp_get_attachment_image_src( $post_featured_image, 'full' );
+	            $post_featured_image = $img[0];
+            }
+
+            $post_data = array(
+	            'new_post'            => base64_encode( serialize( $new_post ) ),
+	            'post_custom'         => base64_encode( serialize( $post_custom ) ),
+	            'post_category'       => base64_encode( $post_category ),
+	            'post_featured_image' => base64_encode( $post_featured_image ),
+	            'post_gallery_images' => base64_encode( serialize( $post_gallery_images ) ),
+	            'child_upload_dir'   => base64_encode( serialize( $child_upload_dir ) ),
+            );
+            return $post_data;
+
         }
-        
-        function get_page_edit($id) {
-            $post = get_post( $id );
-            if ( $post ) {
-                    $post_custom = get_post_custom( $id );
-                    //post_slug = base64_decode( get_post_meta( $id, '_slug', true ) );
-                    include_once( ABSPATH . 'wp-includes' . DIRECTORY_SEPARATOR . 'post-thumbnail-template.php' );
-                    $post_featured_image = get_post_thumbnail_id( $id );
-                    $child_upload_dir = wp_upload_dir();
-                    
-                    $new_post = array(
-                            'edit_id'        => $id,
-                            'post_title' => $post->post_title,
-                            'post_content' => $post->post_content,
-                            'post_status' => $post->post_status, 
-                            'post_date' => $post->post_date,
-                            'post_date_gmt' => $post->post_date_gmt,
-                            'post_type' => 'page',
-                            'post_name' => $post->post_name,
-                            'post_excerpt' => $post->post_excerpt,
-                            'comment_status' => $post->comment_status,
-                            'ping_status' => $post->ping_status                            
-                    );
-                                        
+        return false;
+    }
 
-                    if ( $post_featured_image != null ) { //Featured image is set, retrieve URL
-                            $img = wp_get_attachment_image_src( $post_featured_image, 'full' );
-                            $post_featured_image = $img[0];
-                    }
+    function get_page_edit($id) {
+        $post = get_post( $id );
+        if ( $post ) {
+            $post_custom = get_post_custom( $id );
+            //post_slug = base64_decode( get_post_meta( $id, '_slug', true ) );
+            include_once( ABSPATH . 'wp-includes' . DIRECTORY_SEPARATOR . 'post-thumbnail-template.php' );
+            $post_featured_image = get_post_thumbnail_id( $id );
+            $child_upload_dir = wp_upload_dir();
 
-                    $galleries = get_post_gallery( $id, false );
-                    $post_gallery_images = array();
+            $new_post = array(
+                    'edit_id'        => $id,
+                    'post_title' => $post->post_title,
+                    'post_content' => $post->post_content,
+                    'post_status' => $post->post_status,
+                    'post_date' => $post->post_date,
+                    'post_date_gmt' => $post->post_date_gmt,
+                    'post_type' => 'page',
+                    'post_name' => $post->post_name,
+                    'post_excerpt' => $post->post_excerpt,
+                    'comment_status' => $post->comment_status,
+                    'ping_status' => $post->ping_status
+            );
 
-                    if ( is_array($galleries) && isset($galleries['ids']) ) {
-                            $attached_images = explode( ',', $galleries['ids'] );							
-                            foreach( $attached_images as $attachment_id ) {
-                                    $attachment = get_post( $attachment_id );
-                                    if ( $attachment ) {
-                                            $post_gallery_images[] = array(
-                                                    'id' => $attachment_id,
-                                                    'alt' => get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
-                                                    'caption' => $attachment->post_excerpt,
-                                                    'description' => $attachment->post_content,									
-                                                    'src' => $attachment->guid,
-                                                    'title' => $attachment->post_title
-                                            );
-                                    }
+
+            if ( $post_featured_image != null ) { //Featured image is set, retrieve URL
+                    $img = wp_get_attachment_image_src( $post_featured_image, 'full' );
+                    $post_featured_image = $img[0];
+            }
+
+            $galleries = get_post_gallery( $id, false );
+            $post_gallery_images = array();
+
+            if ( is_array($galleries) && isset($galleries['ids']) ) {
+                    $attached_images = explode( ',', $galleries['ids'] );
+                    foreach( $attached_images as $attachment_id ) {
+                            $attachment = get_post( $attachment_id );
+                            if ( $attachment ) {
+                                    $post_gallery_images[] = array(
+                                            'id' => $attachment_id,
+                                            'alt' => get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
+                                            'caption' => $attachment->post_excerpt,
+                                            'description' => $attachment->post_content,
+                                            'src' => $attachment->guid,
+                                            'title' => $attachment->post_title
+                                    );
                             }
                     }
-                    
-                    $post_data = array(
-                            'new_post' => base64_encode( serialize( $new_post ) ),
-                            'post_custom' => base64_encode( serialize( $post_custom ) ),
-                            'post_featured_image' => base64_encode( $post_featured_image ),
-                            'post_gallery_images' => base64_encode( serialize( $post_gallery_images ) ),    
-                            'child_upload_dir' => base64_encode( serialize( $child_upload_dir ) ),                        
-                    );                    
-                    return $post_data;
             }
-            return false;
+
+            $post_data = array(
+                    'new_post' => base64_encode( serialize( $new_post ) ),
+                    'post_custom' => base64_encode( serialize( $post_custom ) ),
+                    'post_featured_image' => base64_encode( $post_featured_image ),
+                    'post_gallery_images' => base64_encode( serialize( $post_gallery_images ) ),
+                    'child_upload_dir' => base64_encode( serialize( $child_upload_dir ) ),
+            );
+            return $post_data;
         }
-        
-        
+        return false;
+    }
+
+
 	function user_action() {
 		//Read form data
 		$action    = $_POST['action'];
@@ -2302,8 +2301,9 @@ class MainWP_Child {
                 
 		global $current_user;
 		$reassign = ( isset( $current_user ) && isset( $current_user->ID ) ) ? $current_user->ID : 0;                
-                include_once( ABSPATH . '/wp-admin/includes/user.php' );
-		if ( 'delete' === $action ) {			
+        include_once( ABSPATH . '/wp-admin/includes/user.php' );
+
+		if ( 'delete' === $action ) {
 			wp_delete_user( $userId, $reassign );
 		} else if ( 'changeRole' === $action ) {
 			$my_user         = array();
@@ -3392,7 +3392,7 @@ class MainWP_Child {
 			'draft',
 			'pending',
 			'trash',
-                        'future'
+            'future'
 		), 5, 'page' );
 
 		$securityIssuess = 0;
