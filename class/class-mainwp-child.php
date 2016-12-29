@@ -147,7 +147,8 @@ class MainWP_Child {
 		'settings_tools'        => 'settings_tools',
 		'skeleton_key'          => 'skeleton_key',
 		'custom_post_type'	    => 'custom_post_type',
-        'backup_buddy'          => 'backup_buddy',
+                'backup_buddy'          => 'backup_buddy',
+                'get_site_icon'       => 'get_site_icon'
 	);
 
 	private $FTP_ERROR = 'Failed! Please, add FTP details for automatic updates.';
@@ -3479,7 +3480,7 @@ class MainWP_Child {
 			}
 		}
 
-		$information['faviIcon'] = $this->get_favicon();
+		$information['faviIcon'] = $this->get_favicon(); // fast get
 
 		$last_post = wp_get_recent_posts( array( 'numberposts' => absint( '1' ) ) );
 		if ( isset( $last_post[0] ) ) {
@@ -3501,12 +3502,27 @@ class MainWP_Child {
 
 		return $information;
 	}
-
-	function get_favicon() {
-		$favi = '';
-
+        
+        function get_site_icon() {        
+            $information = array();
+            $url = $this->get_favicon(true);            
+            if (!empty($url))
+                $information['faviIconUrl'] = $url;            
+            MainWP_Helper::write( $information );
+        }
+        
+	function get_favicon( $parse_page = false ) {
+            
+                $favi_url = '';                
+		$favi = ''; // to compatible
+                
+                $site_url = get_option( 'siteurl' );
+                if ( substr( $site_url, - 1 ) != '/' ) {
+                    $site_url .= '/';
+                }
+                
 		if ( function_exists( 'get_site_icon_url' ) && has_site_icon() ) {
-			$favi = get_site_icon_url();
+			$favi = $favi_url = get_site_icon_url();
 		}
 
 		if ( empty( $favi ) ) {                        
@@ -3515,9 +3531,46 @@ class MainWP_Child {
                     } else if ( file_exists( ABSPATH . 'favicon.png' ) ) {
                             $favi = 'favicon.png';
                     }
+                    
+                    if (!empty($favi)) {
+                        $favi_url =  $site_url . $favi;  		
+                    }                    
 		}
-
-		return $favi;
+                
+                if ($parse_page) {
+                    // try to parse page
+                    if (empty($favi_url)) {                   
+                        $request = wp_remote_get( $site_url, array( 'timeout' => 50 ) );
+                        $favi = '';
+                        if ( is_array( $request ) && isset( $request['body'] ) ) {
+                          // to fix bug
+                          $preg_str1 = '/(<link\s+(?:[^\>]*)(?:rel="shortcut\s+icon"\s*)(?:[^>]*)?href="([^"]+)"(?:[^>]*)?>)/is';
+                          $preg_str2 = '/(<link\s+(?:[^\>]*)(?:rel="(?:shortcut\s+)?icon"\s*)(?:[^>]*)?href="([^"]+)"(?:[^>]*)?>)/is';
+                          
+                          if ( preg_match( $preg_str1, $request['body'], $matches ) ) {
+                            $favi = $matches[2];
+                          } else if ( preg_match( $preg_str2, $request['body'], $matches ) ) {
+                            $favi = $matches[2];
+                          }
+                        }
+                                                
+                        if (!empty($favi)){
+                            if (false === strpos($favi, 'http')){
+                                $favi_url = $site_url . $favi;
+                            } else {
+                                $favi_url = $favi;
+                            }
+                        }
+                    }   
+                    
+                    if (!empty($favi_url)) {                        
+                        return $favi_url;             
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return $favi_url;
+                }
 	}
 
 	function scanDir( $pDir, $pLvl ) {
