@@ -53,10 +53,10 @@ class MainWP_Child_Back_Up_Wordpress {
 			$information['error'] = 'NO_BACKUPWORDPRESS';
 			MainWP_Helper::write( $information );
 		}
-                
-                if (false === get_option('mainwp_backupwordpress_ext_enabled'))
-                    MainWP_Helper::update_option( 'mainwp_backupwordpress_ext_enabled', 'Y' );
-                
+
+        if (false === get_option('mainwp_backupwordpress_ext_enabled'))
+            MainWP_Helper::update_option( 'mainwp_backupwordpress_ext_enabled', 'Y' );
+
 		if ( isset( $_POST['mwp_action'] ) ) {
 			switch ( $_POST['mwp_action'] ) {
 				case 'set_showhide':
@@ -174,7 +174,7 @@ class MainWP_Child_Back_Up_Wordpress {
             }
         }
         
-	function set_showhide() {		
+	function set_showhide() {
 		$hide = isset( $_POST['showhide'] ) && ( 'hide' === $_POST['showhide'] ) ? 'hide' : '';
 		MainWP_Helper::update_option( 'mainwp_backupwordpress_hide_plugin', $hide );
 		$information['result'] = 'SUCCESS';

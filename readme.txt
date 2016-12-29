@@ -6,8 +6,8 @@ Author: mainwp
 Author URI: https://mainwp.com
 Plugin URI: https://mainwp.com
 Requires at least: 3.6
-Tested up to: 4.6.1
-Stable tag: 3.2.3
+Tested up to: 4.7
+Stable tag: 3.2.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html 
 
@@ -57,8 +57,12 @@ To see full documentation and FAQs please visit [MainWP Documentation](http://do
 
 == Changelog ==
 
+= 3.2.4 - 12-09-16 =
+* Fixed: Conflict with SendGrid
+
 = 3.2.3 - 12-08-16 =
 * Fixed: Compatibility issues with PHP versions
+* Preventative: Security improvements
 
 = 3.2.2 - 12-01-16 =
 * Fixed: an issue with activating the BackUpWordPress plugin

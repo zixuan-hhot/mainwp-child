@@ -87,7 +87,7 @@ class MainWP_Client_Report {
 				case 'set_showhide':
 					$information = $this->set_showhide();
 					break;
-                                case 'save_settings':
+                case 'save_settings':
 					$information = $this->save_settings();
 					break;
 			}
@@ -243,13 +243,13 @@ class MainWP_Client_Report {
 				$args['date_to'] = date( 'Y-m-d', $args['date_to'] );
 			}
 		}
-                
-                if (MainWP_Child_Branding::is_branding()) {
-                    $args['hide_child_reports'] = 1;
-                }
-                
+
+        if ( MainWP_Child_Branding::is_branding() ) {
+            $args['hide_child_reports'] = 1;
+        }
+
 		$args['records_per_page'] = 9999;
-		
+
 
 		if ( self::$mainwpChildReports ) {
 			$records = mainwp_wp_stream_query( $args );
@@ -653,8 +653,9 @@ class MainWP_Client_Report {
 		if ( empty( $record ) ) {
 			return '';
 		}
-		
-                $meta_key = $data;
+
+		$record_id = $record->ID;
+		$meta_key = $data;
 
 		if ( 3 === self::$streamVersionNumber && 'author_meta' === $meta_key ) {
 			$meta_key = 'user_meta';
@@ -688,16 +689,16 @@ class MainWP_Client_Report {
 
 		return $information;
 	}
-        
-        function save_settings() {            
-            $settings = isset( $_POST['settings'] ) ?  $_POST['settings'] : array();
-            $report_settings = get_option('mainwp_wp_stream', array());
-            $report_settings['general_records_ttl'] = $settings['records_ttl'];
-            $report_settings['general_period_of_time'] = $settings['period_of_time'];
-            update_option('mainwp_wp_stream', $report_settings);
-            $information['result'] = 'success';
-            return $information;            
-        }
+
+    function save_settings() {
+        $settings = isset( $_POST['settings'] ) ?  $_POST['settings'] : array();
+        $report_settings = get_option( 'mainwp_wp_stream', array() );
+        $report_settings['general_records_ttl'] = $settings['records_ttl'];
+        $report_settings['general_period_of_time'] = $settings['period_of_time'];
+        update_option('mainwp_wp_stream', $report_settings);
+        $information['result'] = 'success';
+        return $information;
+    }
 
 	public function creport_init() {
 		if ( get_option( 'mainwp_creport_ext_branding_enabled' ) !== 'Y' ) {

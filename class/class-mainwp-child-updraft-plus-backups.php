@@ -376,7 +376,7 @@ class MainWP_Child_Updraft_Plus_Backups {
                                                         $opts           = UpdraftPlus_Options::get_updraft_option( 'updraft_dropbox' );
                                                         if (isset($settings['is_general']) && !empty($settings['is_general'])){
                                                             $opts['folder'] = $this->replace_tokens($settings[ $key ]['folder']);
-                                                        } else {							
+                                                        } else {
                                                             $opts['appkey'] = $settings[ $key ]['appkey'];
                                                             $opts['secret'] = $settings[ $key ]['secret'];
                                                             $opts['folder'] = $this->replace_tokens($settings[ $key ]['folder']);
@@ -415,17 +415,17 @@ class MainWP_Child_Updraft_Plus_Backups {
 						} else if ( 'updraft_s3' === $key ) {
 							$opts             = UpdraftPlus_Options::get_updraft_option( 'updraft_s3' );
                                                    	$opts['accesskey'] = $settings[ $key ]['accesskey'];
-							$opts['secretkey']   = $settings[ $key ]['secretkey'];                                                                          
+							$opts['secretkey']   = $settings[ $key ]['secretkey'];
 							$opts['path']   = $this->replace_tokens($settings[ $key ]['path']);
                                                         $opts['rrs']   = $settings[ $key ]['rrs'];
                                                         $opts['server_side_encryption']   = $settings[ $key ]['server_side_encryption'];
 							UpdraftPlus_Options::update_updraft_option( $key, $opts );
 						} else if ( 'updraft_s3generic' === $key ) {
-							$opts = UpdraftPlus_Options::get_updraft_option( 'updraft_s3generic' );                                                        
+							$opts = UpdraftPlus_Options::get_updraft_option( 'updraft_s3generic' );
                                                    	$opts['endpoint'] = $settings[ $key ]['endpoint'];
-							$opts['accesskey']   = $settings[ $key ]['accesskey'];                                                                          
-                                                        $opts['secretkey']   = $settings[ $key ]['secretkey'];    
-							$opts['path']   = $this->replace_tokens($settings[ $key ]['path']);                                                        
+							$opts['accesskey']   = $settings[ $key ]['accesskey'];
+                                                        $opts['secretkey']   = $settings[ $key ]['secretkey'];
+							$opts['path']   = $this->replace_tokens($settings[ $key ]['path']);
 							UpdraftPlus_Options::update_updraft_option( $key, $opts );
 						} else {
 							UpdraftPlus_Options::update_updraft_option( $key, $settings[ $key ] );
@@ -470,25 +470,25 @@ class MainWP_Child_Updraft_Plus_Backups {
 
 		return $out;
 	}
-        
-        function replace_tokens($str = '') {            
-            if (stripos($str, '%sitename%') !== false) {
-                $replace_token = get_bloginfo( 'name' );
-                $replace_token = sanitize_file_name($replace_token);
-                $replace_token = strtolower($replace_token); 
-                $str = str_ireplace("%sitename%", $replace_token, $str);
-            } 
-            
-            if (stripos($str, '%siteurl%') !== false) {
-                $replace_token = get_bloginfo( 'url' );
-                $replace_token = preg_replace('/^https?:\/\//i', '', $replace_token);
-                $replace_token = sanitize_file_name($replace_token);
-                $str = str_ireplace("%siteurl%", $replace_token, $str);
-            }    
-            return $str;
+
+    function replace_tokens($str = '') {
+        if (stripos($str, '%sitename%') !== false) {
+            $replace_token = get_bloginfo( 'name' );
+            $replace_token = sanitize_file_name($replace_token);
+            $replace_token = strtolower($replace_token);
+            $str = str_ireplace("%sitename%", $replace_token, $str);
         }
-        
-        function addons_connect() {
+
+        if (stripos($str, '%siteurl%') !== false) {
+            $replace_token = get_bloginfo( 'url' );
+            $replace_token = preg_replace('/^https?:\/\//i', '', $replace_token);
+            $replace_token = sanitize_file_name($replace_token);
+            $str = str_ireplace("%siteurl%", $replace_token, $str);
+        }
+        return $str;
+    }
+
+    function addons_connect() {
 		if ( ! defined( 'UDADDONS2_SLUG' ) ) {
 			return array( 'error' => 'NO_PREMIUM' );
 		}
@@ -1362,8 +1362,7 @@ class MainWP_Child_Updraft_Plus_Backups {
 
 		$mess = array();
 		parse_str( $_POST['restoreopts'], $res );
-            	if ( isset( $res['updraft_restore'] ) ) {
-
+        if ( isset( $res['updraft_restore'] ) ) {
 			set_error_handler( array( $this, 'get_php_errors' ), E_ALL & ~E_STRICT );
 
 			$elements = array_flip( $res['updraft_restore'] );

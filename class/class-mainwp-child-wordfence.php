@@ -8,13 +8,13 @@ class MainWP_Child_Wordfence {
 	public static $options_filter = array(
 		'alertEmails',
 		'alertOn_adminLogin',
-                'alertOn_firstAdminLoginOnly',
+        'alertOn_firstAdminLoginOnly',
 		'alertOn_block',
 		'alertOn_critical',
 		'alertOn_loginLockout',
 		'alertOn_lostPasswdForm',
 		'alertOn_nonAdminLogin',
-                'alertOn_firstNonAdminLoginOnly',
+        'alertOn_firstNonAdminLoginOnly',
 		'alertOn_update',
 		'alertOn_warnings',
 		'alert_maxHourly',
@@ -103,10 +103,9 @@ class MainWP_Child_Wordfence {
 		'email_summary_interval',
 		'email_summary_excluded_directories',
 		'allowed404s',
-                'wafAlertOnAttacks'
+        'wafAlertOnAttacks'
                 //'ajaxWatcherDisabled_front', // do not update those values when save settings
                 //'ajaxWatcherDisabled_admin' 
-                
 	);
 
         public static $diagnosticParams = array(
