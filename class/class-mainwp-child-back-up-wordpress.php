@@ -24,11 +24,8 @@ class MainWP_Child_Back_Up_Wordpress {
 		}
                 
                 if (!$this->is_plugin_installed)
-                    return;
-                    
-                add_action( 'mainwp_child_site_stats', array( $this, 'do_site_stats' ) );
-                add_action( 'mainwp_extensions_reports_backups', array( $this, 'do_reports_backups' ) );
-                
+                    return;                    
+                add_action( 'mainwp_child_site_stats', array( $this, 'do_site_stats' ) );                
 		if ( get_option( 'mainwp_backupwordpress_hide_plugin' ) === 'hide' ) {
 			add_filter( 'all_plugins', array( $this, 'all_plugins' ) );
 			add_action( 'admin_menu', array( $this, 'remove_menu' ) );
@@ -151,10 +148,10 @@ class MainWP_Child_Back_Up_Wordpress {
 	}
         
         function do_site_stats() {            
-            do_action( 'mainwp_client_reports_backups', 'backupwordpress');					
+            do_action( 'mainwp_child_reports_log', 'backupwordpress');					
 	}
         
-        function do_reports_backups($ext = '') {  
+        function do_reports_log($ext = '') {  
             if ($ext !== 'backupwordpress')
                 return;
             // Refresh the schedules from the database to make sure we have the latest changes

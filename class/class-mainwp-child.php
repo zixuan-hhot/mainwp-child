@@ -1302,7 +1302,8 @@ class MainWP_Child {
 		MainWP_Child_Back_WP_Up::Instance()->init();
                 
         new MainWP_Child_Back_Up_Buddy();
-
+        MainWP_Child_Wordfence::Instance()->wordfence_init();
+        
         global $_wp_submenu_nopriv;
         if ($_wp_submenu_nopriv === null)
             $_wp_submenu_nopriv = array(); // fix warning
@@ -1336,8 +1337,7 @@ class MainWP_Child {
 		MainWP_Child_Branding::Instance()->branding_init();
 		MainWP_Client_Report::Instance()->creport_init();
 		MainWP_Child_Pagespeed::Instance()->init();
-		MainWP_Child_Links_Checker::Instance()->init();
-		MainWP_Child_Wordfence::Instance()->wordfence_init();
+		MainWP_Child_Links_Checker::Instance()->init();		
 		MainWP_Child_iThemes_Security::Instance()->ithemes_init();
 	}
 
@@ -1688,7 +1688,7 @@ class MainWP_Child {
 		MainWP_Helper::write( $information );
 	}
 
-	/**
+	/**getSiteStats
 	 * Expects $_POST['type'] == plugin/theme
 	 * $_POST['list'] == 'theme1,theme2' or 'plugin1,plugin2'
 	 */
@@ -3217,7 +3217,7 @@ class MainWP_Child {
 		}
 
 		$information['version']   = self::$version;
-		$information['wpversion'] = $wp_version;
+		$information['wpversion'] = $wp_version;                
 		$information['siteurl']   = get_option( 'siteurl' );
                 
                 $information['site_info']   = array(
@@ -3470,7 +3470,7 @@ class MainWP_Child {
 		$information['categories'] = $categories;
 		$information['totalsize']  = $this->getTotalFileSize();
 		$information['dbsize']     = MainWP_Child_DB::get_size();
-
+                
 		$auths                  = get_option( 'mainwp_child_auth' );
 		$information['extauth'] = ( $auths && isset( $auths[ $this->maxHistory ] ) ? $auths[ $this->maxHistory ] : null );
 
@@ -3507,6 +3507,29 @@ class MainWP_Child {
 				}
 				$information['syncWPRocketData'] = $data;
 			}
+                        
+                        if ( isset( $othersData['syncPageSpeedData'] ) && !empty($othersData['syncPageSpeedData'])) {
+                            if ( MainWP_Child_Pagespeed::Instance()->is_plugin_installed ) {                
+				$information['syncPageSpeedData'] = MainWP_Child_Pagespeed::Instance()->sync_data();
+                            }
+			}
+                        
+                        if ( isset( $othersData['syncBrokenLinksCheckerData'] ) && !empty($othersData['syncBrokenLinksCheckerData'])) {
+                            if ( MainWP_Child_Links_Checker::Instance()->is_plugin_installed ) {                                  
+				$information['syncBrokenLinksCheckerData'] =  MainWP_Child_Links_Checker::Instance()->sync_data();
+                            }
+			}
+                        
+                        if ( isset( $othersData['syncClientReportData'] ) && !empty($othersData['syncClientReportData'])) {
+                            $creport_sync_data = array();
+                            if ( ($firsttime = get_option('mainwp_creport_first_time_activated')) !== false ) {
+                                $creport_sync_data['firsttime_activated'] = $firsttime;
+                            }                            
+                            if (!empty($creport_sync_data)) {
+                                $information['syncClientReportData'] =  $creport_sync_data;
+                            }                            
+			}
+                        
 		}
 
 		$information['faviIcon'] = $this->get_favicon();
