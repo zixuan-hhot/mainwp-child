@@ -1563,7 +1563,25 @@ class MainWP_Child_Server_Information {
 
 			<div style="padding: 1em;">
 				<?php
-				@show_source( ABSPATH . 'wp-config.php' );
+				if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
+					@show_source( ABSPATH . 'wp-config.php' );
+				} else {
+					$files = @get_included_files();
+					$configFound = false;
+					if ( is_array( $files ) ) {
+						foreach ( $files as $file ) {
+							if ( stristr( $file, 'wp-config.php' ) ) {
+								$configFound = true;
+								@show_source( $file );
+								break;
+							}
+						}
+					}
+
+					if ( !$configFound ) {
+						_e( 'wp-config.php not found', 'mainwp' );
+					}
+				}
 				?>
 			</div>
 		</div>
@@ -1596,22 +1614,22 @@ class MainWP_Child_Server_Information {
                 'adminuser' => array(
                                 'title' => __('Administrator name', 'mainwp-child'),
                                 'value' => $current_user->user_login,
-                                'desc' => __('This is your Administrator username, however, you can use any existing Administrator username.', 'mainwp-child')                            
+                                'desc' => __('This is your Administrator username, however, you can use any existing Administrator username.', 'mainwp-child')
                             ),
                 'friendly_name' => array(
                                 'title' => __('Friendly site name', 'mainwp-child'),
                                 'value' => get_bloginfo( 'name' ),
-                                'desc' => __('For the friendly site name, you can use any name, this is just a suggestion.', 'mainwp-child')                            
+                                'desc' => __('For the friendly site name, you can use any name, this is just a suggestion.', 'mainwp-child')
                             ),
                 'uniqueid' => array(
                                 'title' => __('Child unique security id', 'mainwp-child'),
                                 'value' => !empty($uniqueId) ? $uniqueId : __('Leave the field blank', 'mainwp-child'),
-                                'desc' => __('Child unique security id is not required, however, since you have enabled it, you need to add it to your MainWP dashboad.', 'mainwp-child')                            
+                                'desc' => __('Child unique security id is not required, however, since you have enabled it, you need to add it to your MainWP dashboad.', 'mainwp-child')
                             ),
                 'verify_ssl' => array(
                                 'title' => __('Verify certificate', 'mainwp-child'),
                                 'value' =>  __('Yes', 'mainwp-child'),
-                                'desc' => __('If there is an issue with SSL certificate on this site, try to set this option to No.', 'mainwp-child')                            
+                                'desc' => __('If there is an issue with SSL certificate on this site, try to set this option to No.', 'mainwp-child')
                             ),
                 'ssl_version' => array(
                                 'title' => __('SSL version', 'mainwp-child'),

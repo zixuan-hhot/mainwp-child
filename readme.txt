@@ -7,7 +7,7 @@ Author URI: https://mainwp.com
 Plugin URI: https://mainwp.com
 Requires at least: 3.6
 Tested up to: 4.7
-Stable tag: 3.2.5
+Stable tag: 3.2.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html 
 
@@ -57,11 +57,15 @@ To see full documentation and FAQs please visit [MainWP Documentation](http://do
 
 == Changelog ==
 
+= 3.2.6 - 1-5-17 =
+* Added: support for the Divi (Elegant Themes) themes updates
+
 = 3.2.5 - 12-30-16 =
 * Added: support for the new WP Rocket options
 * Added: support for the new display favicon process
 * Updated: site connection process (MD5 encryption not supported)
 * Updated: multiple functions refactored
+* Preventative: Security improvements
 
 = 3.2.4 - 12-09-16 =
 * Fixed: Conflict with SendGrid

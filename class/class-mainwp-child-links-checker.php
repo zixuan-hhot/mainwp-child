@@ -3,8 +3,8 @@
 class MainWP_Child_Links_Checker {
 
 	public static $instance = null;
-        public $is_plugin_installed = false;
- 
+    public $is_plugin_installed = false;
+
 	static function Instance() {
 		if ( null === MainWP_Child_Links_Checker::$instance ) {
 			MainWP_Child_Links_Checker::$instance = new MainWP_Child_Links_Checker();
@@ -14,12 +14,12 @@ class MainWP_Child_Links_Checker {
 	}
 
 	public function __construct() {
-                require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+        require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 		if ( is_plugin_active( 'broken-link-checker/broken-link-checker.php' ) ) {
-                    $this->is_plugin_installed = true;			
+                    $this->is_plugin_installed = true;
 		}
 	}
-        
+
 	public function action() {
 		$information = array();
 		if ( ! defined( 'BLC_ACTIVE' ) || ! function_exists( 'blc_init' ) ) {
@@ -185,17 +185,16 @@ class MainWP_Child_Links_Checker {
 	function sync_data( $strategy = '' ) {		
 		$information = array();
 		$data        = $this->get_count_links();
-                if (is_array($data))
-                    $information['data'] = $data;
+        if (is_array($data))
+            $information['data'] = $data;
 		return $information;
 	}
 	
 	function sync_links_data() {
-                if (!defined('BLC_DIRECTORY'))
-                    return;
-                require_once BLC_DIRECTORY . '/includes/link-query.php';
-                require_once BLC_DIRECTORY . '/includes/modules.php';
-                
+        if (!defined('BLC_DIRECTORY')) return;
+        require_once BLC_DIRECTORY . '/includes/link-query.php';
+        require_once BLC_DIRECTORY . '/includes/modules.php';
+
 		$blc_link_query      = blcLinkQuery::getInstance();
 		$total         = $blc_link_query->get_filter_links( 'all', array( 'count_only' => true ) );
 		
@@ -233,12 +232,11 @@ class MainWP_Child_Links_Checker {
 	}
 	
 	function get_count_links() {
-                if (!defined('BLC_DIRECTORY'))
-                    return;
-                
-                require_once BLC_DIRECTORY . '/includes/link-query.php';
-                require_once BLC_DIRECTORY . '/includes/modules.php';
-                
+        if (!defined('BLC_DIRECTORY')) return;
+
+        require_once BLC_DIRECTORY . '/includes/link-query.php';
+        require_once BLC_DIRECTORY . '/includes/modules.php';
+
 		$data = array();
 		$blc_link_query      = blcLinkQuery::getInstance();
 		$data['broken']      = $blc_link_query->get_filter_links( 'broken', array( 'count_only' => true ) );

@@ -4,7 +4,7 @@ class MainWP_Child_Pagespeed {
 
 	public static $instance = null;
         public $is_plugin_installed = false;
-        
+
         static function Instance() {
 		if ( null === MainWP_Child_Pagespeed::$instance ) {
 			MainWP_Child_Pagespeed::$instance = new MainWP_Child_Pagespeed();
@@ -14,11 +14,11 @@ class MainWP_Child_Pagespeed {
 	}
 
 	public function __construct() {
-                require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+        require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 		if ( is_plugin_active( 'google-pagespeed-insights/google-pagespeed-insights.php' ) ) {
-                    $this->is_plugin_installed = true;			
+                    $this->is_plugin_installed = true;
 		}
-                
+
 		add_action( 'mainwp_child_deactivation', array( $this, 'child_deactivation' ) );
 	}
 
@@ -27,7 +27,7 @@ class MainWP_Child_Pagespeed {
 		if ( ! defined( 'GPI_ACTIVE' ) ) {
 			$information['error'] = 'NO_GOOGLEPAGESPEED';
 			MainWP_Helper::write( $information );
-		}                    
+		}
 		if ( isset( $_POST['mwp_action'] ) ) {
 			MainWP_Helper::update_option('mainwp_pagespeed_ext_enabled', 'Y', 'yes');
 			switch ( $_POST['mwp_action'] ) {
@@ -283,8 +283,8 @@ class MainWP_Child_Pagespeed {
 
 		return $information;
 	}
-        
-        static function cal_pagespeed_data( $strategy ) {
+
+	static function cal_pagespeed_data( $strategy ) {
 		global $wpdb;
 		if ( ! defined( 'GPI_DIRECTORY' ) ) {
 			return 0;

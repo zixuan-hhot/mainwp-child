@@ -979,11 +979,12 @@ class MainWP_Helper {
 
 		return ( $gmtOffset ? ( $gmtOffset * HOUR_IN_SECONDS ) + $timestamp : $timestamp );
 	}
-        
-        public static function formatDate( $timestamp ) {
+
+    public static function formatDate( $timestamp ) {
 		return date_i18n( get_option( 'date_format' ), $timestamp );
 	}
-        public static function formatTime( $timestamp ) {
+
+    public static function formatTime( $timestamp ) {
 		return date_i18n( get_option( 'time_format' ), $timestamp );
 	}
 
