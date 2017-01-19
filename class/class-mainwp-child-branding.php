@@ -274,11 +274,11 @@ class MainWP_Child_Branding {
 		}
 		// enable branding in case child plugin is deactive
 		add_filter( 'all_plugins', array( $this, 'branding_child_plugin' ) );
-                
-                if ( self::is_branding() ) {
-                    add_filter( 'site_transient_update_plugins', array( &$this, 'remove_update_nag' ) );
-                }
-                
+
+        if ( self::is_branding() ) {
+            add_filter( 'site_transient_update_plugins', array( &$this, 'remove_update_nag' ) );
+        }
+
 		if ( get_option( 'mainwp_branding_ext_enabled' ) !== 'Y' ) {
 			return;
 		}
@@ -302,7 +302,7 @@ class MainWP_Child_Branding {
 				) );
 				add_action( 'admin_bar_menu', array( $this, 'add_support_button_in_top_admin_bar' ), 100 );
 			}
-		}		
+		}
 		if ( get_option( 'mainwp_branding_disable_wp_branding' ) !== 'Y' ) {
 			add_filter( 'wp_footer', array( &$this, 'branding_global_footer' ), 15 );
 			add_action( 'wp_dashboard_setup', array( &$this, 'custom_dashboard_widgets' ), 999 );
@@ -800,7 +800,7 @@ class MainWP_Child_Branding {
 		}
 	}
 
-        function remove_update_nag( $value ) {
+    function remove_update_nag( $value ) {
 		if ( isset( $_POST['mainwpsignature'] ) ) {
 			return $value;
 		}
@@ -809,7 +809,7 @@ class MainWP_Child_Branding {
 		}
 		return $value;
 	}
-        
+
 	public function update_child_header( $plugins, $header ) {
 		$plugin_key = '';
 		foreach ( $plugins as $key => $value ) {

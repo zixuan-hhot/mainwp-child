@@ -84,7 +84,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 }
 
 class MainWP_Child {
-	public static $version = '3.2.6';
+	public static $version = '3.2.7';
 	private $update_version = '1.3';
 
 	private $callableFunctions = array(
@@ -2102,14 +2102,15 @@ class MainWP_Child {
 		//Read form data
 		$action = $_POST['action'];
 		$postId = $_POST['id'];
-                $my_post = array();
+        $my_post = array();
+
 		if ( 'publish' === $action ) {
 			wp_publish_post( $postId );
 		} else if ( 'update' === $action ) {
 			$postData = $_POST['post_data'];
 			$my_post  = is_array( $postData ) ? $postData : array();
 			wp_update_post( $my_post );
-		} else if ( 'unpublish' === $action ) {			
+		} else if ( 'unpublish' === $action ) {
 			$my_post['ID']          = $postId;
 			$my_post['post_status'] = 'draft';
 			wp_update_post( $my_post );
@@ -2135,13 +2136,13 @@ class MainWP_Child {
 				}
 			}
 		} else if ( 'get_edit' === $action ) {
-                        $postId = $_POST['id'];
-                        $post_type = $_POST['post_type'];
-                        if ( $post_type == 'post' ) {
-                                $my_post = $this->get_post_edit( $postId );
-                        } else {
-                                $my_post = $this->get_page_edit( $postId );
-                        }
+            $postId = $_POST['id'];
+            $post_type = $_POST['post_type'];
+            if ( $post_type == 'post' ) {
+	            $my_post = $this->get_post_edit( $postId );
+            } else {
+	            $my_post = $this->get_page_edit( $postId );
+            }
 		} else {
 			$information['status'] = 'FAIL';
 		}
@@ -2395,11 +2396,11 @@ class MainWP_Child {
                         if ( ! empty( $new_role ) && empty( $editable_roles[$new_role] ) )
                             return array('error' => 'You can&#8217;t give users that role.');                                
                 } 
-                
+
                 $email = '';
-                if (isset($data['email']))
-                    $email = trim($data['email']);	            
-                
+                if ( isset( $data['email'] ) )
+                    $email = trim( $data['email'] );
+
                 if ( !empty( $email ) )
                         $user->user_email = sanitize_text_field( wp_unslash( $email ) );
                 else
