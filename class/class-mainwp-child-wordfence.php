@@ -35,7 +35,10 @@ class MainWP_Child_Wordfence {
 		'loginSecurityEnabled',
 		'other_scanOutside',
 		'scan_exclude',
+                'scan_maxIssues',
+                'scan_maxDuration',
 		'scansEnabled_checkReadableConfig',
+                'scansEnabled_suspectedFiles',
 		'scansEnabled_comments',
 		'scansEnabled_core',
 		'scansEnabled_diskSpace',
@@ -43,12 +46,15 @@ class MainWP_Child_Wordfence {
 		'scansEnabled_fileContents',
 		'scan_include_extra', 		
 		'scansEnabled_heartbleed',
+                'scansEnabled_checkHowGetIPs',
 		'scansEnabled_highSense',
+                'lowResourceScansEnabled',
 		'scansEnabled_malware',
 		'scansEnabled_oldVersions',
 		"scansEnabled_suspiciousAdminUsers",
 		'scansEnabled_passwds',
 		'scansEnabled_plugins',
+                'scansEnabled_coreUnknown',
 		'scansEnabled_posts',
 		'scansEnabled_scanImages',
 		'scansEnabled_themes',
@@ -354,9 +360,9 @@ class MainWP_Child_Wordfence {
 
 	public function wordfence_init() {
 		if ( get_option( 'mainwp_wordfence_ext_enabled' ) !== 'Y' ) return;
-        if ( ! $this->is_wordfence_installed ) return;
+                if ( ! $this->is_wordfence_installed ) return;
 
-        add_action( 'mainwp_child_site_stats', array( $this, 'do_site_stats' ) );
+                add_action( 'mainwp_child_site_stats', array( $this, 'do_site_stats' ) );
 		if ( get_option( 'mainwp_wordfence_hide_plugin' ) === 'hide' ) {
 			add_filter( 'all_plugins', array( $this, 'all_plugins' ) );
 			add_action( 'admin_menu', array( $this, 'remove_menu' ) );
@@ -367,11 +373,12 @@ class MainWP_Child_Wordfence {
 
     function do_site_stats() {
         do_action( 'mainwp_child_reports_log', 'wordfence' );
-	}
+    }
 
     public function do_reports_log($ext = '') {
         if ( $ext !== 'wordfence' ) return;
-
+        if ( ! $this->is_wordfence_installed ) return;
+        
         global $wpdb;
 
         $lastcheck = get_option('mainwp_wordfence_lastcheck_scan');
