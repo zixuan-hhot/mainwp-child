@@ -25,8 +25,8 @@ class MainWP_Child_Back_Up_Buddy {
 			return;
 		}
 
-                add_action( 'wp_ajax_mainwp_backupbuddy_download_archive', array( $this, 'download_archive' ) );
-                add_action( 'mainwp_child_site_stats', array( $this, 'do_site_stats' ) );
+        add_action( 'wp_ajax_mainwp_backupbuddy_download_archive', array( $this, 'download_archive' ) );
+        add_action( 'mainwp_child_site_stats', array( $this, 'do_site_stats' ) );
 
 		if ( get_option( 'mainwp_backupbuddy_hide_plugin' ) === 'hide' ) {
 			add_filter( 'all_plugins', array( $this, 'all_plugins' ) );
@@ -85,7 +85,7 @@ class MainWP_Child_Back_Up_Buddy {
         if (!$this->is_backupbuddy_installed) {
             return;
         }
-                
+
         $backups = array();
 		$backup_sort_dates = array();
 
@@ -127,7 +127,7 @@ class MainWP_Child_Back_Up_Buddy {
 				// Defaults...
 				$detected_type = '';
 				$modified_time = 0;
-				
+
 				if ( is_array( $backup_integrity ) ) {
 					// Calculate time ago.
 					$time_ago = '';
@@ -145,8 +145,8 @@ class MainWP_Child_Back_Up_Buddy {
 					$backup_type = $detected_type;
 					if (!empty($modified_time)) {
 						do_action( 'mainwp_reports_backupbuddy_backup', $message, $backup_type, $modified_time);
-                                                MainWP_Helper::update_lasttime_backup('backupbuddy', $modified_time); // to support backup before update feature
-                                        }
+                        MainWP_Helper::update_lasttime_backup('backupbuddy', $modified_time); // to support backup before update feature
+                    }
 				}
 			}
 		}

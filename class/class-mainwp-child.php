@@ -84,7 +84,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 }
 
 class MainWP_Child {
-	public static $version = '3.2.7';
+	public static $version = '3.3';
 	private $update_version = '1.3';
 
 	private $callableFunctions = array(
@@ -147,9 +147,9 @@ class MainWP_Child {
 		'settings_tools'        => 'settings_tools',
 		'skeleton_key'          => 'skeleton_key',
 		'custom_post_type'	=> 'custom_post_type',
-                'backup_buddy'          => 'backup_buddy',
-                'get_site_icon'         => 'get_site_icon',
-                'vulner_checker'        => 'vulner_checker'
+        'backup_buddy'          => 'backup_buddy',
+        'get_site_icon'         => 'get_site_icon',
+        'vulner_checker'        => 'vulner_checker'
 	);
 
 	private $FTP_ERROR = 'Failed! Please, add FTP details for automatic updates.';
@@ -3424,7 +3424,7 @@ class MainWP_Child {
 			'draft',
 			'pending',
 			'trash',
-                        'future'
+            'future'
 		), 5, 'page' );
 
 		$securityIssuess = 0;
@@ -3534,11 +3534,11 @@ class MainWP_Child {
 
 		}
 
-                if (isset($_POST['primaryBackup']) && !empty($_POST['primaryBackup'])) {
-                    $primary_bk = $_POST['primaryBackup'];
-                    $information['primaryLasttimeBackup'] = MainWP_Helper::get_lasttime_backup($primary_bk);
-                }
-                
+        if (isset($_POST['primaryBackup']) && !empty($_POST['primaryBackup'])) {
+            $primary_bk = $_POST['primaryBackup'];
+            $information['primaryLasttimeBackup'] = MainWP_Helper::get_lasttime_backup($primary_bk);
+        }
+
 		$last_post = wp_get_recent_posts( array( 'numberposts' => absint( '1' ) ) );
 		if ( isset( $last_post[0] ) ) {
 			$last_post = $last_post[0];
@@ -4137,16 +4137,16 @@ class MainWP_Child {
 
 			$theme_name = wp_get_theme()->get( 'Name' );
 			$themes     = explode( '||', $theme );
-                        
-                        if (count($themes) == 1) {
-                            $themeToDelete = current($themes);
-                            if ( $themeToDelete == $theme_name ) {
-                                $information['error'] = 'IsActivatedTheme';
-                                MainWP_Helper::write( $information );
-                                return;
-                            }
-                        }
-                        
+
+            if (count($themes) == 1) {
+                $themeToDelete = current($themes);
+                if ( $themeToDelete == $theme_name ) {
+                    $information['error'] = 'IsActivatedTheme';
+                    MainWP_Helper::write( $information );
+                    return;
+                }
+            }
+
 			foreach ( $themes as $idx => $themeToDelete ) {
 				if ( $themeToDelete !== $theme_name ) {
 					$theTheme = get_theme( $themeToDelete );
@@ -5218,14 +5218,14 @@ class MainWP_Child {
         MainWP_Custom_Post_Type::Instance()->action();
     }
 
-        function backup_buddy() {
-            MainWP_Child_Back_Up_Buddy::Instance()->action();
-        }
+    function backup_buddy() {
+        MainWP_Child_Back_Up_Buddy::Instance()->action();
+    }
 
-        function vulner_checker() {
-            MainWP_Child_Vulnerability_Checker::Instance()->action();
-        }
-                
+    function vulner_checker() {
+        MainWP_Child_Vulnerability_Checker::Instance()->action();
+    }
+
 	static function fix_for_custom_themes() {
 		if ( file_exists( ABSPATH . '/wp-admin/includes/screen.php' ) ) {
 			include_once( ABSPATH . '/wp-admin/includes/screen.php' );
