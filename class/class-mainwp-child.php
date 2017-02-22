@@ -4137,7 +4137,16 @@ class MainWP_Child {
 
 			$theme_name = wp_get_theme()->get( 'Name' );
 			$themes     = explode( '||', $theme );
-
+                        
+                        if (count($themes) == 1) {
+                            $themeToDelete = current($themes);
+                            if ( $themeToDelete == $theme_name ) {
+                                $information['error'] = 'IsActivatedTheme';
+                                MainWP_Helper::write( $information );
+                                return;
+                            }
+                        }
+                        
 			foreach ( $themes as $idx => $themeToDelete ) {
 				if ( $themeToDelete !== $theme_name ) {
 					$theTheme = get_theme( $themeToDelete );
