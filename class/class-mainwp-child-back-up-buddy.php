@@ -13,7 +13,9 @@ class MainWP_Child_Back_Up_Buddy {
 	}
 
 	public function __construct() {
-		if ( is_plugin_active( 'backupbuddy/backupbuddy.php' )) {
+		// To fix bug run dashboard on local machine
+                //if ( is_plugin_active( 'backupbuddy/backupbuddy.php' )) {		
+		if ( class_exists('pb_backupbuddy')) {
 			$this->is_backupbuddy_installed = true;
 		}
 
@@ -154,8 +156,8 @@ class MainWP_Child_Back_Up_Buddy {
 	}
 
 	public function action() {
-		$information = array();
-		if ( ! $this->is_backupbuddy_installed || !class_exists('pb_backupbuddy')) {
+            	$information = array();
+		if ( ! $this->is_backupbuddy_installed ) {
 			MainWP_Helper::write( array( 'error' => __( 'Please install the BackupBuddy plugin on the child site.', $this->plugin_translate ) ) );
 		}
 

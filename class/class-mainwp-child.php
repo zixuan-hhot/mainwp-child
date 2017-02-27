@@ -1318,7 +1318,9 @@ class MainWP_Child {
 			define( 'DOING_CRON', true );
 			MainWP_Child::fix_for_custom_themes();
 			call_user_func( array( $this, $this->callableFunctionsNoAuth[ $_POST['function'] ] ) );
-		}
+		} else if (isset( $_POST['function'] ) && isset( $_POST['mainwpsignature'] )  && !isset($this->callableFunctions[ $_POST['function'] ]) && !isset( $this->callableFunctionsNoAuth[ $_POST['function'] ]) ) {
+                        MainWP_Helper::error( __( 'Required function has not been found. Please, make sure that you are using the latest version of the MainWP Child plugin on your site.', 'mainwp-child' ) );
+                }
 
 		if ( 1 === (int) get_option( 'mainwpKeywordLinks' ) ) {
 			new MainWP_Keyword_Links();
