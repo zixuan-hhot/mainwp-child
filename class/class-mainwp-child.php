@@ -1597,7 +1597,7 @@ class MainWP_Child {
 		@wp_version_check();
 
 		$core_updates = get_core_updates();
-		if ( count( $core_updates ) > 0 ) {
+		if ( is_array($core_updates) && count( $core_updates ) > 0 ) {
 			foreach ( $core_updates as $core_update ) {
 				if ( 'latest' === $core_update->response ) {
 					$information['upgrade'] = 'SUCCESS';
