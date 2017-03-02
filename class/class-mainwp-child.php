@@ -584,28 +584,40 @@ class MainWP_Child {
 	}
 
 	function render_pages($shownPage) {
+                $shownPage = '';
 		if ( isset($_GET['tab']) ) {
 			$shownPage = $_GET['tab'];
 		}
-
-		if (empty($shownPage))
-			$shownPage = 'settings';
 
 		$hide_settings = get_option( 'mainwp_branding_remove_setting' ) ? true : false;
 		$hide_restore = get_option( 'mainwp_branding_remove_restore' ) ? true : false;
 		$hide_server_info = get_option( 'mainwp_branding_remove_server_info' ) ? true : false;
                 $hide_connection_detail = get_option( 'mainwp_branding_remove_connection_detail' ) ? true : false;
 		$hide_style = 'style="display:none"';
-
+                
+                if ($shownPage == '') {
+                    if (!$hide_settings ) { 	
+                            $shownPage = 'settings';
+                    } else if (!$hide_restore) {
+                        $shownPage = 'restore-clone';                   
+                    } else if (!$hide_server_info) {
+                        $shownPage = 'server-info';                    
+                    } else if (!$hide_connection_detail) {
+                        $shownPage = 'connection-detail';
+                    }
+                }
+                        
 		self::render_header($shownPage, false);
 		?>
-		<?php if (!$hide_settings ) { ?>
+		<?php if (!$hide_settings ) { 				
+                        ?>
 			<div class="mainwp-child-setting-tab settings" <?php echo ('settings' !==  $shownPage) ? $hide_style : '' ; ?>>
 				<?php $this->settings(); ?>
 			</div>
 		<?php } ?>
 
-		<?php if ( !$hide_restore ) { ?>
+		<?php if ( !$hide_restore ) { 
+                        ?>
 			<div class="mainwp-child-setting-tab restore-clone" <?php echo ( 'restore-clone' !== $shownPage ) ? $hide_style : ''; ?>>
 				<?php
 				if ( '' === session_id() ) {
@@ -626,13 +638,15 @@ class MainWP_Child {
 			</div>
 		<?php } ?>
 
-		<?php if ( !$hide_server_info  ) { ?>
+		<?php if ( !$hide_server_info  ) {                         
+                        ?>
 			<div class="mainwp-child-setting-tab server-info" <?php echo ('server-info' !==  $shownPage) ? $hide_style : '' ; ?>>
 				<?php MainWP_Child_Server_Information::renderPage(); ?>
 			</div>
 		<?php } ?>
 
-                <?php if ( !$hide_connection_detail  ) { ?>
+                <?php if ( !$hide_connection_detail  ) {                         
+                        ?>
 			<div class="mainwp-child-setting-tab connection-detail" <?php echo ('connection-detail' !==  $shownPage) ? $hide_style : '' ; ?>>
                             <?php MainWP_Child_Server_Information::renderConnectionDetails(); ?>				
 			</div>
@@ -2108,7 +2122,9 @@ class MainWP_Child {
         $my_post = array();
 
 		if ( 'publish' === $action ) {
-			wp_publish_post( $postId );
+                        // to fix error post slug
+			//wp_publish_post( $postId );
+                        wp_update_post(array('ID' => $postId, 'post_status' => 'publish'  ));
 		} else if ( 'update' === $action ) {
 			$postData = $_POST['post_data'];
 			$my_post  = is_array( $postData ) ? $postData : array();
