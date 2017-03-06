@@ -297,10 +297,22 @@ class MainWP_Clone {
 			}
 			?>
 			<p><?php esc_html_e( 'Upload backup in .zip format (Maximum filesize for your server settings: ', 'mainwp-child' ); ?><?php echo esc_html( $uploadSize ); ?>)</p>
-			<em><?php esc_html_e( 'If you have a FULL backup created by basic MainWP Backup system you may restore it by uploading here. Backups created by 3rd party plugins will not work.', 'mainwp-child' ); ?>
-                <br/>
-
-
+                        <?php 
+                        $branding_msg = '';
+                        if ( MainWP_Child_Branding::is_branding() ) {
+                                $branding_title = MainWP_Child_Branding::get_branding();                                                           
+                                $branding_msg = 'If you have a FULL backup created by basic ' . esc_html( stripslashes( $branding_title ) ) . ' Backup system you may restore it by uploading here. Backups created by 3rd party plugins will not work.';
+                        }                        
+                        ?>
+			<em>
+                            <?php
+                            if ($branding_msg != '') {
+                                echo $branding_msg ;
+                            } else {
+                                esc_html_e( 'If you have a FULL backup created by basic MainWP Backup system you may restore it by uploading here. Backups created by 3rd party plugins will not work.', 'mainwp-child' );
+                            }
+                            ?>
+                        <br/>
 				<?php esc_html_e( 'A database only backup will not work.', 'mainwp-child' ); ?></em><br/><br/>
 			<form action="<?php echo esc_attr( admin_url( 'admin.php?page=MainWPRestore&upload=yes' ) ); ?>" 
 				  method="post"
