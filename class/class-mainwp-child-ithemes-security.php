@@ -174,7 +174,7 @@ class MainWP_Child_iThemes_Security {
 		$nbf_settings = array();
 		
 		$update_settings         = maybe_unserialize( base64_decode( $_POST['settings'] ) );
-						
+		
 		foreach($update_settings as $module => $settings) {
 			$do_not_save = false;
 			if (in_array($module, $_itsec_modules)) {	
@@ -241,7 +241,7 @@ class MainWP_Child_iThemes_Security {
 					}					
 					$settings = $nbf_settings;
 				} 			
-				if ( !$do_not_save ) {
+				if ( !$do_not_save ) {                                    
 					ITSEC_Modules::set_settings( $module, $settings );
 					$updated          = true;
 				}
@@ -1074,7 +1074,7 @@ class MainWP_Child_iThemes_Security {
 		);
 
 		if ( $all_sites ) {
-			$query = 'SHOW_TABLES';
+			$query = 'SHOW TABLES';
 		} else {
 			$query = $wpdb->prepare( 'SHOW TABLES LIKE %s', "{$wpdb->base_prefix}%" );
 		}
