@@ -92,6 +92,7 @@ class MainWP_Child {
 		'upgrade'               => 'upgradeWP',
 		'newpost'               => 'newPost',
 		'deactivate'            => 'deactivate',
+        'disconnect'            => 'disconnect',
 		'newuser'               => 'newUser',
 		'newadminpassword'      => 'newAdminPassword',
 		'installplugintheme'    => 'installPluginTheme',
@@ -4494,6 +4495,11 @@ class MainWP_Child {
 		MainWP_Helper::write( $information );
 	}
 
+    function disconnect() {
+        $this->activation();
+        MainWP_Helper::write( array('result' => 'success') );
+    }
+    
 	//Deactivating the plugin
 	function deactivate() {
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
@@ -4505,7 +4511,7 @@ class MainWP_Child {
 		$information['deactivated'] = true;
 		MainWP_Helper::write( $information );
 	}
-
+    
 	function activation() {
 		$to_delete = array(
 			'mainwp_child_pubkey',
