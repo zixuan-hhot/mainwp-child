@@ -1450,6 +1450,16 @@ class MainWP_Clone {
 			//            $cloneInstall->update_option('mainwp_child_nossl_key', $nossl_key);
 			//            $cloneInstall->update_option('mainwp_child_clone_sites', $sitesToClone);
 			//            $cloneInstall->update_option('mainwp_child_clone_permalink', true);
+            
+            // to fix update values
+            delete_option('mainwp_child_pubkey');
+            delete_option('mainwp_child_uniqueId');
+            delete_option('mainwp_child_server');
+            delete_option('mainwp_child_nonce');
+            delete_option('mainwp_child_nossl');
+            delete_option('mainwp_child_nossl_key');
+            delete_option('mainwp_child_clone_sites');
+            
 			MainWP_Helper::update_option( 'mainwp_child_pubkey', $pubkey, 'yes' );
 			MainWP_Helper::update_option( 'mainwp_child_uniqueId', $uniqueId );
 			MainWP_Helper::update_option( 'mainwp_child_server', $server );

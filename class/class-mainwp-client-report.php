@@ -14,7 +14,7 @@ class MainWP_Client_Report {
 	public static function init() {
 		add_filter( 'wp_stream_connectors', array( 'MainWP_Client_Report', 'init_stream_connectors' ), 10, 1 );
 		add_filter( 'mainwp_client_reports_connectors', array( 'MainWP_Client_Report', 'init_report_connectors' ), 10, 1 );
-                add_action( 'mainwp_child_log', array( 'MainWP_Client_Report', 'do_reports_log' ) );
+        add_action( 'mainwp_child_log', array( 'MainWP_Client_Report', 'do_reports_log' ) );
 	}
 
 	public static function init_stream_connectors( $classes ) {
@@ -280,7 +280,7 @@ class MainWP_Client_Report {
 			}
 		}
 		if ( isset( $sections['footer'] ) && is_array( $sections['footer'] ) && ! empty( $sections['footer'] ) ) {
-			foreach ( $sections['footer'] as $index => $sec ) {
+			foreach ( $sections['footer']['section_token'] as $index => $sec ) {
 				$tokens                            = $sections['footer']['section_content_tokens'][ $index ];
 				$sections_data['footer'][ $index ] = $this->get_section_loop_data( $records, $tokens, $sec, $skip_records );
 			}
@@ -403,21 +403,21 @@ class MainWP_Client_Report {
 										continue;
 									}
 								} else if ( 'updated' === $action && ('themes' === $context || 'plugins' === $context)) { 
-                                                                    $name = $this->get_stream_meta_data( $record, 'name' );                                                                    
-                                                                    if ( empty($name) ) { // to fix empty value
-                                                                        if (!in_array($record->ID, $skip_records))
-                                                                            $skip_records[] = $record->ID;
-                                                                        continue;
-                                                                    } else {
-                                                                        $old_version = $this->get_stream_meta_data( $record, 'old_version' );
-                                                                        $version = $this->get_stream_meta_data( $record, 'version' );                                                                        
-                                                                        if (version_compare($version, $old_version, '==')) { // to fix
-                                                                            if (!in_array($record->ID, $skip_records))
-                                                                                $skip_records[] = $record->ID;
-                                                                            continue;
-                                                                        }
-                                                                    }
-                                                                }
+                                    $name = $this->get_stream_meta_data( $record, 'name' );                                                                    
+                                    if ( empty($name) ) { // to fix empty value
+                                        if (!in_array($record->ID, $skip_records))
+                                            $skip_records[] = $record->ID;
+                                        continue;
+                                    } else {
+                                        $old_version = $this->get_stream_meta_data( $record, 'old_version' );
+                                        $version = $this->get_stream_meta_data( $record, 'version' );                                                                        
+                                        if (version_compare($version, $old_version, '<=')) { // to fix
+                                            if (!in_array($record->ID, $skip_records))
+                                                $skip_records[] = $record->ID;
+                                            continue;
+                                        }
+                                    }
+                                }
 
 							}
 
@@ -457,6 +457,7 @@ class MainWP_Client_Report {
 		);
 
 		$some_allowed_data = array(
+            'ID',
 			'name',
 			'title',
 			'oldversion',
@@ -487,9 +488,9 @@ class MainWP_Client_Report {
 		$loop_count = 0;
 
 		foreach ( $records as $record ) {
-                        if (in_array($record->ID, $skip_records)) {
-                            continue;
-                        }
+            if (in_array($record->ID, $skip_records)) {
+                continue;
+            }
                         
 			$theme_edited = $users_updated = $plugin_edited = false;
 
@@ -587,6 +588,9 @@ class MainWP_Client_Report {
 				}
 
 				switch ( $data ) {
+                    case 'ID':
+						$token_values[ $token ] = $record->ID;
+						break;
 					case 'date':
 						$token_values[ $token ] = MainWP_Helper::formatDate( MainWP_Helper::getTimestamp( strtotime( $record->created ) ) );
 						break;
@@ -622,7 +626,7 @@ class MainWP_Client_Report {
 							}
 							$token_values[ $token ] = $roles;
 						} else {
-                                                        $token_values[ $token ] = $this->get_stream_meta_data( $record, $data );
+                            $token_values[ $token ] = $this->get_stream_meta_data( $record, $data );
 						}
 						break;
 					case 'title':

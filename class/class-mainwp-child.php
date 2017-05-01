@@ -1709,8 +1709,8 @@ class MainWP_Child {
 	 */
 	function upgradePluginTheme() {
 		//Prevent disable/re-enable at upgrade
-                if (!defined( 'DOING_CRON') )
-                    define( 'DOING_CRON', true );
+        if (!defined( 'DOING_CRON') )
+            define( 'DOING_CRON', true );
 
 		MainWP_Helper::getWPFilesystem();
 
@@ -1785,19 +1785,25 @@ class MainWP_Child {
 
 			if ( count( $plugins ) > 0 ) {
 				//@see wp-admin/update.php
-				$upgrader = new Plugin_Upgrader( new Bulk_Plugin_Upgrader_Skin( compact( 'nonce', 'url' ) ) );
-				$result   = $upgrader->bulk_upgrade( $plugins );
-				if ( ! empty( $result ) ) {
-					foreach ( $result as $plugin => $info ) {
-						if ( empty( $info ) ) {
-							$information['upgrades'][ $plugin ] = false;
-						} else {
-							$information['upgrades'][ $plugin ] = true;
-						}
-					}
-				} else {
-					MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
-				}
+                $failed = true;
+                // to fix logging update
+                foreach($plugins as $plugin) {
+                    $upgrader = new Plugin_Upgrader( new Bulk_Plugin_Upgrader_Skin( compact( 'nonce', 'url' ) ) );
+                    $result   = $upgrader->bulk_upgrade( array($plugin) );
+                    if ( ! empty( $result ) ) {
+                        foreach ( $result as $plugin => $info ) {
+                            if ( empty( $info ) ) {
+                                $information['upgrades'][ $plugin ] = false;
+                            } else {
+                                $information['upgrades'][ $plugin ] = true;
+                            }
+                        }
+                        $failed = false;
+                    }
+                }
+                if ($failed) {                     
+                    MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );                    
+                }
 			}
 			if ( count( $premiumPlugins ) > 0 ) {
 				$mwp_premium_updates = apply_filters( 'mwp_premium_perform_update', array() );
@@ -1874,9 +1880,26 @@ class MainWP_Child {
 //				}
 
 //				@wp_update_themes();
-
-				$upgrader = new Theme_Upgrader( new Bulk_Theme_Upgrader_Skin( compact( 'nonce', 'url' ) ) );
-				$result   = $upgrader->bulk_upgrade( $themes );
+                $failed = true;
+                // to fix logging update
+                foreach($themes as $theme) {
+                    $upgrader = new Theme_Upgrader( new Bulk_Theme_Upgrader_Skin( compact( 'nonce', 'url' ) ) );
+                    $result   = $upgrader->bulk_upgrade( array($theme) );
+                    if ( ! empty( $result ) ) {
+                        foreach ( $result as $theme => $info ) {
+                            if ( empty( $info ) ) {
+                                $information['upgrades'][ $theme ] = false;
+                            } else {
+                                $information['upgrades'][ $theme ] = true;
+                            }
+                        }
+                        $failed = false;
+                    }                
+                }                
+                if ($failed) {
+                    MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
+                }
+                
 				if ( null !== $this->filterFunction ) {
 					add_filter( 'pre_site_transient_update_themes', $this->filterFunction, 99 );
 				}
@@ -1889,18 +1912,7 @@ class MainWP_Child {
 						'hookFixOptimizePressThemeUpdate',
 					), 99 );
 				}
-
-				if ( ! empty( $result ) ) {
-					foreach ( $result as $theme => $info ) {
-						if ( empty( $info ) ) {
-							$information['upgrades'][ $theme ] = false;
-						} else {
-							$information['upgrades'][ $theme ] = true;
-						}
-					}
-				} else {
-					MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
-				}
+				
 			}
 
 //			$last_update = get_site_transient( 'update_themes' );
