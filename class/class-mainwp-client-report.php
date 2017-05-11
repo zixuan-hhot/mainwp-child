@@ -251,8 +251,8 @@ class MainWP_Client_Report {
 		//return $records;
 		//$other_tokens_data = $this->get_other_tokens_data($records, $other_tokens);
 
-                // to fix invalid data
-                $skip_records = array();
+        // to fix invalid data
+        $skip_records = array();
 		if ( isset( $other_tokens['header'] ) && is_array( $other_tokens['header'] ) ) {
 			$other_tokens_data['header'] = $this->get_other_tokens_data( $records, $other_tokens['header'], $skip_records);
 		}
@@ -402,15 +402,15 @@ class MainWP_Client_Report {
 									if ( 'draft' === $new_status ) { // avoid auto save post
 										continue;
 									}
-								} else if ( 'updated' === $action && ('themes' === $context || 'plugins' === $context)) { 
-                                    $name = $this->get_stream_meta_data( $record, 'name' );                                                                    
+								} else if ( 'updated' === $action && ('themes' === $context || 'plugins' === $context)) {
+                                    $name = $this->get_stream_meta_data( $record, 'name' );
                                     if ( empty($name) ) { // to fix empty value
                                         if (!in_array($record->ID, $skip_records))
                                             $skip_records[] = $record->ID;
                                         continue;
                                     } else {
                                         $old_version = $this->get_stream_meta_data( $record, 'old_version' );
-                                        $version = $this->get_stream_meta_data( $record, 'version' );                                                                        
+                                        $version = $this->get_stream_meta_data( $record, 'version' );
                                         if (version_compare($version, $old_version, '<=')) { // to fix
                                             if (!in_array($record->ID, $skip_records))
                                                 $skip_records[] = $record->ID;
@@ -491,7 +491,7 @@ class MainWP_Client_Report {
             if (in_array($record->ID, $skip_records)) {
                 continue;
             }
-                        
+
 			$theme_edited = $users_updated = $plugin_edited = false;
 
 			if ( $plugin_edited ) {

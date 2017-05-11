@@ -297,12 +297,12 @@ class MainWP_Clone {
 			}
 			?>
 			<p><?php esc_html_e( 'Upload backup in .zip format (Maximum filesize for your server settings: ', 'mainwp-child' ); ?><?php echo esc_html( $uploadSize ); ?>)</p>
-                        <?php 
+                        <?php
                         $branding_msg = '';
                         if ( MainWP_Child_Branding::is_branding() ) {
-                                $branding_title = MainWP_Child_Branding::get_branding();                                                           
+                                $branding_title = MainWP_Child_Branding::get_branding();
                                 $branding_msg = 'If you have a FULL backup created by basic ' . esc_html( stripslashes( $branding_title ) ) . ' Backup system you may restore it by uploading here. Backups created by 3rd party plugins will not work.';
-                        }                        
+                        }
                         ?>
 			<em>
                             <?php
@@ -1450,7 +1450,7 @@ class MainWP_Clone {
 			//            $cloneInstall->update_option('mainwp_child_nossl_key', $nossl_key);
 			//            $cloneInstall->update_option('mainwp_child_clone_sites', $sitesToClone);
 			//            $cloneInstall->update_option('mainwp_child_clone_permalink', true);
-            
+
             // to fix update values
             delete_option('mainwp_child_pubkey');
             delete_option('mainwp_child_uniqueId');
@@ -1459,7 +1459,7 @@ class MainWP_Clone {
             delete_option('mainwp_child_nossl');
             delete_option('mainwp_child_nossl_key');
             delete_option('mainwp_child_clone_sites');
-            
+
 			MainWP_Helper::update_option( 'mainwp_child_pubkey', $pubkey, 'yes' );
 			MainWP_Helper::update_option( 'mainwp_child_uniqueId', $uniqueId );
 			MainWP_Helper::update_option( 'mainwp_child_server', $server );

@@ -109,7 +109,7 @@ class MainWP_Child_Wordfence {
 		'email_summary_interval',
 		'email_summary_excluded_directories',
 		'allowed404s',
-                'wafAlertWhitelist',
+        'wafAlertWhitelist',
         'wafAlertOnAttacks'
                 //'ajaxWatcherDisabled_front', // do not update those values when save settings
                 //'ajaxWatcherDisabled_admin' 
@@ -323,7 +323,7 @@ class MainWP_Child_Wordfence {
                                    break;   
                                case 'update_config':
                                    $information = $this->updateConfig();
-                                   break;    
+                                   break;
                                case 'save_country_blocking':
                                    $information = $this->saveCountryBlocking();
                                    break;
@@ -501,7 +501,7 @@ class MainWP_Child_Wordfence {
 		);
 	}
 
-        
+
         public function count_attacks_blocked($maxAgeDays) {
             global $wpdb;
             $interval = 'FLOOR(UNIX_TIMESTAMP(DATE_SUB(NOW(), interval ' . $maxAgeDays . ' day)) / 86400)';
@@ -510,10 +510,10 @@ SELECT SUM(blockCount) as blockCount
 FROM {$wpdb->prefix}wfBlockedIPLog
 WHERE unixday >= {$interval}
 SQL
-                );            
+                );
         }
-        
-        
+
+
 	function get_lastscan() {
 		global $wpdb;
 		$wfdb = new wfDB();
@@ -1208,7 +1208,7 @@ SQL
 		}
 	}
 
-        public static function saveCountryBlocking(){
+    public static function saveCountryBlocking(){
 		if(! wfConfig::get('isPaid')){
 			return array('error' => "Sorry but this feature is only available for paid customers.");
 		}
@@ -1224,7 +1224,7 @@ SQL
 		wfConfig::set('cbl_bypassViewURL', $settings['bypassViewURL']);
 		return array('ok' => 1);
 	}
-        
+
 	public function load_static_panel() {
 		$mode  = $_POST['mode'];
 		$wfLog = wordfence::getLog();

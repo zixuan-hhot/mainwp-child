@@ -57,19 +57,19 @@ class MainWP_Custom_Post_Type {
 		if ( empty( $data ) || ! is_array( $data ) || ! isset( $data['post'] ) ) {
 			return array( 'error' => __( 'Cannot decode data', $this->plugin_translate ) );
 		}
-                $edit_id = (isset($_POST['post_id']) && !empty($_POST['post_id'])) ? $_POST['post_id'] : 0;                
-		$return = $this->_insert_post($data, $edit_id, $parent_id = 0);                
-                if (isset($return['success']) && $return['success'] == 1) {                    
-                    if (isset($data['product_variation']) && is_array($data['product_variation'])) {
-                        foreach ($data['product_variation'] as $product_variation) {
-                            $return_variantion = $this->_insert_post($product_variation, 0, $return['post_id']); 
-                        }
-                    }
+        $edit_id = (isset($_POST['post_id']) && !empty($_POST['post_id'])) ? $_POST['post_id'] : 0;
+		$return = $this->_insert_post($data, $edit_id, $parent_id = 0);
+        if (isset($return['success']) && $return['success'] == 1) {
+            if (isset($data['product_variation']) && is_array($data['product_variation'])) {
+                foreach ($data['product_variation'] as $product_variation) {
+                    $return_variantion = $this->_insert_post($product_variation, 0, $return['post_id']);
                 }
-                return $return;                
+            }
+        }
+        return $return;
 	}
 
-        
+
 
 	/**
 	 * Search image inside post content and upload it to child
@@ -124,9 +124,9 @@ class MainWP_Custom_Post_Type {
 
 		return $post_content;
 	}
-        
+
         private function _insert_post( $data, $edit_id, $parent_id = 0 ) {
-            
+
 		// Insert post
 		$data_insert                = array();
 		$data_post                  = $data['post'];
@@ -200,9 +200,9 @@ class MainWP_Custom_Post_Type {
 			// Remove all previous taxonomy
 			wp_delete_object_term_relationships( $old_post_id, get_object_taxonomies( $data_insert['post_type'] ) );
 		}
-                if (!empty($parent_id)) {
-                    $data_insert['post_parent'] = $parent_id; // for product variation
-                }
+        if (!empty($parent_id)) {
+            $data_insert['post_parent'] = $parent_id; // for product variation
+        }
 		$post_id = wp_insert_post( $data_insert, true );
 		if ( is_wp_error( $post_id ) ) {
 			return array( 'error' => __( 'Error when insert new post:', $this->plugin_translate ) . ' ' . $post_id->get_error_message() );
@@ -260,14 +260,13 @@ class MainWP_Custom_Post_Type {
 						}
 					}
 
-                                        $meta_value = maybe_unserialize( $key['meta_value'] ); 
+                    $meta_value = maybe_unserialize( $key['meta_value'] );
 					if ( add_post_meta( $post_id, $key['meta_key'], $meta_value ) === false ) {
 						return array( 'error' => __( 'Error when adding post meta', $this->plugin_translate ) . ' `' . esc_html( $key['meta_key'] ) . '`' );
 					}
 				}
 			}
 		}
-
 
 		// MainWP Categories
 		if ( ! empty( $data['categories'] ) && is_array( $data['categories'] ) ) {
@@ -325,6 +324,4 @@ class MainWP_Custom_Post_Type {
 
 		return array( 'success' => 1, 'post_id' => $post_id );
 	}
-
-
-				}
+}

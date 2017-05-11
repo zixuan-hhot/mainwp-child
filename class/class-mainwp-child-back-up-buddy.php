@@ -14,7 +14,7 @@ class MainWP_Child_Back_Up_Buddy {
 
 	public function __construct() {
 		// To fix bug run dashboard on local machine
-                //if ( is_plugin_active( 'backupbuddy/backupbuddy.php' )) {		
+                //if ( is_plugin_active( 'backupbuddy/backupbuddy.php' )) {
 		if ( class_exists('pb_backupbuddy')) {
 			$this->is_backupbuddy_installed = true;
 		}
@@ -87,9 +87,9 @@ class MainWP_Child_Back_Up_Buddy {
         if (!$this->is_backupbuddy_installed) {
             return;
         }
-        
+
         if ( ! class_exists( 'backupbuddy_core' ) ) {
-                require_once( pb_backupbuddy::plugin_path() . '/classes/core.php' );
+            require_once( pb_backupbuddy::plugin_path() . '/classes/core.php' );
         }
 
         $backups = array();
@@ -160,7 +160,7 @@ class MainWP_Child_Back_Up_Buddy {
 	}
 
 	public function action() {
-            	$information = array();
+        $information = array();
 		if ( ! $this->is_backupbuddy_installed ) {
 			MainWP_Helper::write( array( 'error' => __( 'Please install the BackupBuddy plugin on the child site.', $this->plugin_translate ) ) );
 		}
@@ -410,7 +410,7 @@ class MainWP_Child_Back_Up_Buddy {
 			'email_notify_send_finish',
 			'email_notify_send_finish_subject',
 			'email_notify_send_finish_body',
-                        'no_new_backups_error_days',
+            'no_new_backups_error_days',
 			'email_notify_error',
 			'email_notify_error_subject',
 			'email_notify_error_body',

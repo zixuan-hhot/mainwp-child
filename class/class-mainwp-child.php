@@ -84,7 +84,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 }
 
 class MainWP_Child {
-	public static $version = '3.3';
+	public static $version = '3.4';
 	private $update_version = '1.3';
 
 	private $callableFunctions = array(
@@ -584,7 +584,7 @@ class MainWP_Child {
 	}
 
 	function render_pages($shownPage) {
-                $shownPage = '';
+        $shownPage = '';
 		if ( isset($_GET['tab']) ) {
 			$shownPage = $_GET['tab'];
 		}
@@ -594,30 +594,28 @@ class MainWP_Child {
 		$hide_server_info = get_option( 'mainwp_branding_remove_server_info' ) ? true : false;
                 $hide_connection_detail = get_option( 'mainwp_branding_remove_connection_detail' ) ? true : false;
 		$hide_style = 'style="display:none"';
-                
-                if ($shownPage == '') {
-                    if (!$hide_settings ) { 	
-                            $shownPage = 'settings';
-                    } else if (!$hide_restore) {
-                        $shownPage = 'restore-clone';                   
-                    } else if (!$hide_server_info) {
-                        $shownPage = 'server-info';                    
-                    } else if (!$hide_connection_detail) {
-                        $shownPage = 'connection-detail';
-                    }
-                }
-                        
+
+	    if ($shownPage == '') {
+	        if (!$hide_settings ) {
+	                $shownPage = 'settings';
+	        } else if (!$hide_restore) {
+	            $shownPage = 'restore-clone';
+	        } else if (!$hide_server_info) {
+	            $shownPage = 'server-info';
+	        } else if (!$hide_connection_detail) {
+	            $shownPage = 'connection-detail';
+	        }
+	    }
+
 		self::render_header($shownPage, false);
 		?>
-		<?php if (!$hide_settings ) { 				
-                        ?>
+		<?php if (!$hide_settings ) { ?>
 			<div class="mainwp-child-setting-tab settings" <?php echo ('settings' !==  $shownPage) ? $hide_style : '' ; ?>>
 				<?php $this->settings(); ?>
 			</div>
 		<?php } ?>
 
-		<?php if ( !$hide_restore ) { 
-                        ?>
+		<?php if ( !$hide_restore ) { ?>
 			<div class="mainwp-child-setting-tab restore-clone" <?php echo ( 'restore-clone' !== $shownPage ) ? $hide_style : ''; ?>>
 				<?php
 				if ( '' === session_id() ) {
@@ -638,15 +636,13 @@ class MainWP_Child {
 			</div>
 		<?php } ?>
 
-		<?php if ( !$hide_server_info  ) {                         
-                        ?>
+		<?php if ( !$hide_server_info  ) { ?>
 			<div class="mainwp-child-setting-tab server-info" <?php echo ('server-info' !==  $shownPage) ? $hide_style : '' ; ?>>
 				<?php MainWP_Child_Server_Information::renderPage(); ?>
 			</div>
 		<?php } ?>
 
-                <?php if ( !$hide_connection_detail  ) {                         
-                        ?>
+                <?php if ( !$hide_connection_detail  ) { ?>
 			<div class="mainwp-child-setting-tab connection-detail" <?php echo ('connection-detail' !==  $shownPage) ? $hide_style : '' ; ?>>
                             <?php MainWP_Child_Server_Information::renderConnectionDetails(); ?>				
 			</div>
@@ -1333,8 +1329,8 @@ class MainWP_Child {
 			MainWP_Child::fix_for_custom_themes();
 			call_user_func( array( $this, $this->callableFunctionsNoAuth[ $_POST['function'] ] ) );
 		} else if (isset( $_POST['function'] ) && isset( $_POST['mainwpsignature'] )  && !isset($this->callableFunctions[ $_POST['function'] ]) && !isset( $this->callableFunctionsNoAuth[ $_POST['function'] ]) ) {
-                        MainWP_Helper::error( __( 'Required version has not been detected. Please, make sure that you are using the latest version of the MainWP Child plugin on your site.', 'mainwp-child' ) );
-                }
+            MainWP_Helper::error( __( 'Required version has not been detected. Please, make sure that you are using the latest version of the MainWP Child plugin on your site.', 'mainwp-child' ) );
+        }
 
 		if ( 1 === (int) get_option( 'mainwpKeywordLinks' ) ) {
 			new MainWP_Keyword_Links();
@@ -1801,8 +1797,8 @@ class MainWP_Child {
                         $failed = false;
                     }
                 }
-                if ($failed) {                     
-                    MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );                    
+                if ($failed) {
+                    MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
                 }
 			}
 			if ( count( $premiumPlugins ) > 0 ) {
@@ -1894,12 +1890,12 @@ class MainWP_Child {
                             }
                         }
                         $failed = false;
-                    }                
-                }                
+                    }
+                }
                 if ($failed) {
                     MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
                 }
-                
+
 				if ( null !== $this->filterFunction ) {
 					add_filter( 'pre_site_transient_update_themes', $this->filterFunction, 99 );
 				}
@@ -1912,7 +1908,7 @@ class MainWP_Child {
 						'hookFixOptimizePressThemeUpdate',
 					), 99 );
 				}
-				
+
 			}
 
 //			$last_update = get_site_transient( 'update_themes' );
@@ -2134,9 +2130,9 @@ class MainWP_Child {
         $my_post = array();
 
 		if ( 'publish' === $action ) {
-                        // to fix error post slug
+            // to fix error post slug
 			//wp_publish_post( $postId );
-                        wp_update_post(array('ID' => $postId, 'post_status' => 'publish'  ));
+            wp_update_post(array('ID' => $postId, 'post_status' => 'publish'  ));
 		} else if ( 'update' === $action ) {
 			$postData = $_POST['post_data'];
 			$my_post  = is_array( $postData ) ? $postData : array();

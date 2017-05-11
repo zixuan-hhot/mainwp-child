@@ -538,10 +538,10 @@ class MainWP_Child_Server_Information {
 
 	public static function render() {
 		$branding_title = 'MainWP Child';
-                $isBranding = false;
+        $isBranding = false;
 		if ( MainWP_Child_Branding::is_branding() ) {
 			$branding_title = MainWP_Child_Branding::get_branding();
-                        $isBranding = true;
+            $isBranding = true;
 		}
 
 		?>
@@ -813,16 +813,16 @@ class MainWP_Child_Server_Information {
 			<?php
 			$all_plugins = get_plugins();
 			foreach ( $all_plugins as $slug => $plugin) {
-                                if ( $slug == 'mainwp-child/mainwp-child.php' || $slug == 'mainwp-child-reports/mainwp-child-reports.php' ) {                                    
-                                    if ( $isBranding ) {                                        
-                                        if ( $slug == 'mainwp-child/mainwp-child.php' ) {
-                                            $plugin['Name'] = esc_html( stripslashes( $branding_title ) );
-                                        } else if ($slug == 'mainwp-child-reports/mainwp-child-reports.php') {
-                                            $plugin['Name'] = esc_html( stripslashes( $branding_title ) ) . ' reports';
-                                        }                                        
-                                    }
-                                }
-                                
+                if ( $slug == 'mainwp-child/mainwp-child.php' || $slug == 'mainwp-child-reports/mainwp-child-reports.php' ) {
+                    if ( $isBranding ) {
+                        if ( $slug == 'mainwp-child/mainwp-child.php' ) {
+                            $plugin['Name'] = esc_html( stripslashes( $branding_title ) );
+                        } else if ($slug == 'mainwp-child-reports/mainwp-child-reports.php') {
+                            $plugin['Name'] = esc_html( stripslashes( $branding_title ) ) . ' reports';
+                        }
+                    }
+                }
+
 				?>
 				<tr>
 					<td>&nbsp;</td>
@@ -1466,12 +1466,12 @@ class MainWP_Child_Server_Information {
 		$lines = array_filter( $lines );
 
 		if ( empty( $lines ) ) {
-                        if ( MainWP_Child_Branding::is_branding() ) {                            
-                                $branding_title = MainWP_Child_Branding::get_branding();
-                                $msg = esc_html( stripslashes( $branding_title ) ) . ' is unable to find your error logs, please contact your host for server error logs.';
-                        } else {
-                            $msg = esc_html__( 'MainWP is unable to find your error logs, please contact your host for server error logs.', 'mainwp-child' );
-                        }
+            if ( MainWP_Child_Branding::is_branding() ) {
+	            $branding_title = MainWP_Child_Branding::get_branding();
+	            $msg = esc_html( stripslashes( $branding_title ) ) . ' is unable to find your error logs, please contact your host for server error logs.';
+            } else {
+                $msg = esc_html__( 'MainWP is unable to find your error logs, please contact your host for server error logs.', 'mainwp-child' );
+            }
 			echo '<tr><td colspan="2">' . $msg  . '</td></tr>';
 
 			return;
