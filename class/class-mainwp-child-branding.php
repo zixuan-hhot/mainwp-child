@@ -107,17 +107,17 @@ class MainWP_Child_Branding {
 			'authoruri'   => $settings['child_plugin_author_uri'],
 			'pluginuri'   => $settings['child_plugin_uri'],
 		);
-		MainWP_Helper::update_option( 'mainwp_branding_preserve_branding', $settings['child_preserve_branding'] );
+		MainWP_Helper::update_option( 'mainwp_branding_preserve_branding', $settings['child_preserve_branding'], 'yes' );
 		MainWP_Helper::update_option( 'mainwp_branding_plugin_header', $header, 'yes' );
 		MainWP_Helper::update_option( 'mainwp_branding_support_email', $settings['child_support_email'] );
 		MainWP_Helper::update_option( 'mainwp_branding_support_message', $settings['child_support_message'] );
 		MainWP_Helper::update_option( 'mainwp_branding_remove_restore', $settings['child_remove_restore'] );
-		MainWP_Helper::update_option( 'mainwp_branding_remove_setting', $settings['child_remove_setting'] );
+		MainWP_Helper::update_option( 'mainwp_branding_remove_setting', $settings['child_remove_setting'], 'yes' );
 		MainWP_Helper::update_option( 'mainwp_branding_remove_server_info', $settings['child_remove_server_info'] );
                 MainWP_Helper::update_option( 'mainwp_branding_remove_connection_detail', (isset($settings['child_remove_connection_detail']) ? $settings['child_remove_connection_detail'] : 0) );                
-		MainWP_Helper::update_option( 'mainwp_branding_remove_wp_tools', $settings['child_remove_wp_tools'] );
-		MainWP_Helper::update_option( 'mainwp_branding_remove_wp_setting', $settings['child_remove_wp_setting'] );
-		MainWP_Helper::update_option( 'mainwp_branding_remove_permalink', $settings['child_remove_permalink'] );
+		MainWP_Helper::update_option( 'mainwp_branding_remove_wp_tools', $settings['child_remove_wp_tools'], 'yes' );
+		MainWP_Helper::update_option( 'mainwp_branding_remove_wp_setting', $settings['child_remove_wp_setting'], 'yes' );
+		MainWP_Helper::update_option( 'mainwp_branding_remove_permalink', $settings['child_remove_permalink'], 'yes' );
 		MainWP_Helper::update_option( 'mainwp_branding_button_contact_label', $settings['child_button_contact_label'], 'yes' );
 		MainWP_Helper::update_option( 'mainwp_branding_send_email_message', $settings['child_send_email_message'] );
 		MainWP_Helper::update_option( 'mainwp_branding_message_return_sender', $settings['child_message_return_sender'] );
@@ -210,7 +210,7 @@ class MainWP_Child_Branding {
 		MainWP_Helper::update_option( 'mainwp_branding_extra_settings', $extra_setting, 'yes' );
 
 		if ( $settings['child_plugin_hide'] ) {
-			MainWP_Helper::update_option( 'mainwp_branding_child_hide', 'T' );
+			MainWP_Helper::update_option( 'mainwp_branding_child_hide', 'T', 'yes' );
 		} else {
 			MainWP_Helper::update_option( 'mainwp_branding_child_hide', '' );
 		}
@@ -284,25 +284,27 @@ class MainWP_Child_Branding {
 		}
 
 		add_filter( 'map_meta_cap', array( $this, 'branding_map_meta_cap' ), 10, 5 );
-
-		if ( 'T' === get_option( 'mainwp_branding_show_support' ) ) {
-			$title = $this->settings['contact_support_label'];
-			if ( isset( $extra_setting['show_button_in'] ) && ( 2 === (int) $extra_setting['show_button_in'] || 3 === (int) $extra_setting['show_button_in'] ) ) {
-				$title = $this->settings['contact_support_label'];
-				add_menu_page( $title, $title, 'read', 'ContactSupport2', array(
-					$this,
-					'contact_support',
-				), '', '2.0001' );
-			}
-
-			if ( isset( $extra_setting['show_button_in'] ) && ( 1 === $extra_setting['show_button_in'] || 3 === $extra_setting['show_button_in'] ) ) {
-				add_submenu_page( null, $title, $this->settings['contact_support_label'], 'read', 'ContactSupport', array(
-					$this,
-					'contact_support',
-				) );
-				add_action( 'admin_bar_menu', array( $this, 'add_support_button_in_top_admin_bar' ), 100 );
-			}
-		}
+        
+        // to fix
+        add_action( 'admin_menu', array( &$this, 'admin_menu' ) );        
+//		if ( 'T' === get_option( 'mainwp_branding_show_support' ) ) {
+//			$title = $this->settings['contact_support_label'];
+//			if ( isset( $extra_setting['show_button_in'] ) && ( 2 === (int) $extra_setting['show_button_in'] || 3 === (int) $extra_setting['show_button_in'] ) ) {
+//				$title = $this->settings['contact_support_label'];
+//				add_menu_page( $title, $title, 'read', 'ContactSupport2', array(
+//					$this,
+//					'contact_support',
+//				), '', '2.0001' );
+//			}
+//
+//			if ( isset( $extra_setting['show_button_in'] ) && ( 1 === $extra_setting['show_button_in'] || 3 === $extra_setting['show_button_in'] ) ) {
+//				add_submenu_page( null, $title, $this->settings['contact_support_label'], 'read', 'ContactSupport', array(
+//					$this,
+//					'contact_support',
+//				) );
+//				add_action( 'admin_bar_menu', array( $this, 'add_support_button_in_top_admin_bar' ), 100 );
+//			}
+//		}
 		if ( get_option( 'mainwp_branding_disable_wp_branding' ) !== 'Y' ) {
 			add_filter( 'wp_footer', array( &$this, 'branding_global_footer' ), 15 );
 			add_action( 'wp_dashboard_setup', array( &$this, 'custom_dashboard_widgets' ), 999 );
@@ -329,7 +331,34 @@ class MainWP_Child_Branding {
 			add_action( 'admin_menu', array( &$this, 'remove_default_page_metaboxes' ) );
 		}
 	}
+    
+    // to fix conflict with other plugin
+    function admin_menu() {
+        $extra_setting = $this->settings['extra_settings'];
+		if ( ! is_array( $extra_setting ) ) {
+			$extra_setting = array();
+		}
+        if ( 'T' === get_option( 'mainwp_branding_show_support' ) ) {
+			$title = $this->settings['contact_support_label'];
+			if ( isset( $extra_setting['show_button_in'] ) && ( 2 === (int) $extra_setting['show_button_in'] || 3 === (int) $extra_setting['show_button_in'] ) ) {
+				$title = $this->settings['contact_support_label'];
+				add_menu_page( $title, $title, 'read', 'ContactSupport2', array(
+					$this,
+					'contact_support',
+				), '', '2.0001' );
+			}
 
+			if ( isset( $extra_setting['show_button_in'] ) && ( 1 === $extra_setting['show_button_in'] || 3 === $extra_setting['show_button_in'] ) ) {
+				add_submenu_page( null, $title, $this->settings['contact_support_label'], 'read', 'ContactSupport', array(
+					$this,
+					'contact_support',
+				) );
+				add_action( 'admin_bar_menu', array( $this, 'add_support_button_in_top_admin_bar' ), 100 );
+			}
+		}
+        
+    }
+    
 	function remove_default_post_metaboxes() {
 		$extra_setting = $this->settings['extra_settings'];
 		if ( ! is_array( $extra_setting ) ) {
