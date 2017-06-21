@@ -4357,7 +4357,7 @@ class MainWP_Child {
 				$out['slug']        = $pluginslug;
 				$out['description'] = $plugin['Description'];
 				$out['version']     = $plugin['Version'];
-				$out['active']      = ( is_array( $active_plugins ) && in_array( $pluginslug, $active_plugins ) ) ? 1 : 0;
+				$out['active']      = is_plugin_active($pluginslug) ? 1 : 0; // ( is_array( $active_plugins ) && in_array( $pluginslug, $active_plugins ) ) ? 1 : 0; // to fix for multisites
 				if ( ! $filter ) {
 					if ( '' == $keyword || stristr( $out['name'], $keyword ) ) {
 						$rslt[] = $out;
