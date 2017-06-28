@@ -644,7 +644,7 @@ class MainWP_Child_Branding {
 	}
 
 	function contact_support() {
-		if ( current_user_can( 'subscriber' ) ) {
+		if ( !current_user_can('administrator') ) {
 			return false;
 		}
 		?>
@@ -739,7 +739,7 @@ class MainWP_Child_Branding {
 	 * @param WP_Admin_Bar $wp_admin_bar
 	 */
 	public function add_support_button_in_top_admin_bar( $wp_admin_bar ) {
-		if ( current_user_can( 'subscriber' ) ) {
+		if ( !current_user_can( 'administrator' ) ) {
 			return false;
 		}
 
