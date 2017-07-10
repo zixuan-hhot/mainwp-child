@@ -293,7 +293,7 @@ class MainWP_Child_Back_WP_Up {
 		
 		$hide = isset( $_POST['show_hide'] ) && ( '1' === $_POST['show_hide'] ) ? 'hide' : '';
 
-		MainWP_Helper::update_option( 'mainwp_backwpup_hide_plugin', $hide );
+		MainWP_Helper::update_option( 'mainwp_backwpup_hide_plugin', $hide, 'yes' );
 
 		return array( 'success' => 1 );
 	}
@@ -1134,8 +1134,69 @@ class MainWP_Child_Back_WP_Up {
 			'message' => array_keys( $message_array ),
 		);
 	}
+    
+    // From BackWPup_JobType_File::edit_form_post_save with some tweaks
+    public function edit_form_post_save( $post_data, $id ) {
+        // Parse and save files to exclude
+        $exclude_input = $post_data['fileexclude'];
+        $to_exclude_list = $exclude_input ? str_replace( array( "\r\n", "\r" ), ',', $exclude_input ) : array();
+        $to_exclude_list and $to_exclude_list = sanitize_text_field( stripslashes( $to_exclude_list ) );
+        $to_exclude = $to_exclude_list ? explode( ',', $to_exclude_list ) : array();
+        $to_exclude_parsed = array();
+        foreach ( $to_exclude as $key => $value ) {
+            $normalized = wp_normalize_path( trim( $value ) );
+            $normalized and $to_exclude_parsed[$key] = $normalized;
+        }
+        sort( $to_exclude_parsed );
+        BackWPup_Option::update( $id, 'fileexclude', implode( ',', $to_exclude_parsed ) );
+        unset( $exclude_input, $to_exclude_list, $to_exclude, $to_exclude_parsed, $normalized );
+
+        // Parse and save folders to include
+        $include_input = $post_data['dirinclude'];
+        $include_list = $include_input ? str_replace( array( "\r\n", "\r" ), ',', $include_input ) : array();
+        $to_include = $include_list ? explode( ',', $include_list ) : array();
+        $to_include_parsed = array();
+        foreach ( $to_include as $key => $value ) {
+            $normalized = trailingslashit( wp_normalize_path( trim( $value ) ) );
+            $normalized and $normalized = filter_var( $normalized, FILTER_SANITIZE_URL );
+            $realpath = $normalized && $normalized !== '/' ? realpath( $normalized ) : false;
+            $realpath and $to_include_parsed[$key] = $realpath;
+        }
+        sort( $to_include_parsed );
+        BackWPup_Option::update( $id, 'dirinclude', implode( ',', $to_include_parsed ) );
+        unset( $include_input, $include_list, $to_include, $to_include_parsed, $normalized, $realpath  );
+
+        // Parse and save boolean fields
+        $boolean_fields_def = array(
+            'backupexcludethumbs' => FILTER_VALIDATE_BOOLEAN,
+            'backupspecialfiles'  => FILTER_VALIDATE_BOOLEAN,
+            'backuproot'          => FILTER_VALIDATE_BOOLEAN,
+            'backupabsfolderup'   => FILTER_VALIDATE_BOOLEAN,
+            'backupcontent'       => FILTER_VALIDATE_BOOLEAN,
+            'backupplugins'       => FILTER_VALIDATE_BOOLEAN,
+            'backupthemes'        => FILTER_VALIDATE_BOOLEAN,
+            'backupuploads'       => FILTER_VALIDATE_BOOLEAN,
+        );
+
+        foreach( $boolean_fields_def as $key => $value ) {                
+            BackWPup_Option::update( $id, $key, ! empty( $post_data[$key] ) );
+        }
+        // Parse and save directories to exclude
+        $exclude_dirs_def = array(
+            'backuprootexcludedirs'    => array( 'filter' => FILTER_SANITIZE_URL, 'flags' => FILTER_FORCE_ARRAY ),
+            'backuppluginsexcludedirs' => array( 'filter' => FILTER_SANITIZE_URL, 'flags' => FILTER_FORCE_ARRAY ),
+            'backupcontentexcludedirs'    => array( 'filter' => FILTER_SANITIZE_URL, 'flags' => FILTER_FORCE_ARRAY ),
+            'backupthemesexcludedirs'  => array( 'filter' => FILTER_SANITIZE_URL, 'flags' => FILTER_FORCE_ARRAY ),
+            'backupuploadsexcludedirs' => array( 'filter' => FILTER_SANITIZE_URL, 'flags' => FILTER_FORCE_ARRAY ),
+        );            
+        foreach( $exclude_dirs_def as $key => $filter ) {
+            $value = ! empty( $post_data[$key] ) && is_array( $post_data[$key] ) ? $post_data[$key] : array(); 
+            BackWPup_Option::update( $id, $key, $value );
+        }            
+    }
 
 	protected function insert_or_update_jobs() {
+            
 		$settings = $_POST['settings'];
 
 		if ( ! is_array( $settings ) || ! isset( $settings['value'] ) ) {
@@ -1176,7 +1237,18 @@ class MainWP_Child_Back_WP_Up {
 			$_POST[ $key ] = $val;
 		}
 
-		BackWPup_Page_Editjob::save_post_form( $settings['tab'], $job_id );
+        if ($settings['tab'] == 'jobtype-FILE') {            
+            // to fix
+            $this->edit_form_post_save($settings['value'], $job_id);
+            //saved message
+            $messages = BackWPup_Admin::get_messages();
+            if ( empty( $messages['error'] ) ) {
+                $url = BackWPup_Job::get_jobrun_url( 'runnowlink', $job_id );
+                BackWPup_Admin::message( sprintf( __( 'Changes for job <i>%s</i> saved.', 'backwpup' ), BackWPup_Option::get( $job_id, 'name' ) ) . ' <a href="' . network_admin_url( 'admin.php' ) . '?page=backwpupjobs">' . __( 'Jobs overview', 'backwpup' ) . '</a> | <a href="' . $url['url'] . '">' . __( 'Run now', 'backwpup' ) . '</a>' );
+            }
+        } else {            
+            BackWPup_Page_Editjob::save_post_form( $settings['tab'], $job_id );
+        }
 
 		$return = $this->check_backwpup_messages();
 
