@@ -38,7 +38,7 @@ class MainWP_Child_Branding {
 		if ( ! self::is_branding() ) {
 			return $plugin_meta;
 		}
-        // hide View details links
+		// hide View details links
 		$meta_total = count( $plugin_meta );
 		for ( $i = 0; $i < $meta_total; $i++ ) {
 			$str_meta = $plugin_meta[ $i ];
@@ -114,7 +114,7 @@ class MainWP_Child_Branding {
 		MainWP_Helper::update_option( 'mainwp_branding_remove_restore', $settings['child_remove_restore'] );
 		MainWP_Helper::update_option( 'mainwp_branding_remove_setting', $settings['child_remove_setting'], 'yes' );
 		MainWP_Helper::update_option( 'mainwp_branding_remove_server_info', $settings['child_remove_server_info'] );
-                MainWP_Helper::update_option( 'mainwp_branding_remove_connection_detail', (isset($settings['child_remove_connection_detail']) ? $settings['child_remove_connection_detail'] : 0) );                
+		MainWP_Helper::update_option( 'mainwp_branding_remove_connection_detail', (isset($settings['child_remove_connection_detail']) ? $settings['child_remove_connection_detail'] : 0) );
 		MainWP_Helper::update_option( 'mainwp_branding_remove_wp_tools', $settings['child_remove_wp_tools'], 'yes' );
 		MainWP_Helper::update_option( 'mainwp_branding_remove_wp_setting', $settings['child_remove_wp_setting'], 'yes' );
 		MainWP_Helper::update_option( 'mainwp_branding_remove_permalink', $settings['child_remove_permalink'], 'yes' );
@@ -275,18 +275,18 @@ class MainWP_Child_Branding {
 		// enable branding in case child plugin is deactive
 		add_filter( 'all_plugins', array( $this, 'branding_child_plugin' ) );
 
-        if ( self::is_branding() ) {
-            add_filter( 'site_transient_update_plugins', array( &$this, 'remove_update_nag' ) );
-        }
+		if ( self::is_branding() ) {
+			add_filter( 'site_transient_update_plugins', array( &$this, 'remove_update_nag' ) );
+		}
 
 		if ( get_option( 'mainwp_branding_ext_enabled' ) !== 'Y' ) {
 			return;
 		}
 
 		add_filter( 'map_meta_cap', array( $this, 'branding_map_meta_cap' ), 10, 5 );
-        
-        // to fix
-        add_action( 'admin_menu', array( &$this, 'admin_menu' ) );        
+
+		// to fix
+		add_action( 'admin_menu', array( &$this, 'admin_menu' ) );
 //		if ( 'T' === get_option( 'mainwp_branding_show_support' ) ) {
 //			$title = $this->settings['contact_support_label'];
 //			if ( isset( $extra_setting['show_button_in'] ) && ( 2 === (int) $extra_setting['show_button_in'] || 3 === (int) $extra_setting['show_button_in'] ) ) {
@@ -331,7 +331,7 @@ class MainWP_Child_Branding {
 			add_action( 'admin_menu', array( &$this, 'remove_default_page_metaboxes' ) );
 		}
 	}
-    
+
     // to fix conflict with other plugin
     function admin_menu() {
         if ( !current_user_can( 'administrator' ) ) {
@@ -341,7 +341,7 @@ class MainWP_Child_Branding {
 		if ( ! is_array( $extra_setting ) ) {
 			$extra_setting = array();
 		}
-        if ( 'T' === get_option( 'mainwp_branding_show_support' ) ) {
+		if ( 'T' === get_option( 'mainwp_branding_show_support' ) ) {
 			$title = $this->settings['contact_support_label'];
 			if ( isset( $extra_setting['show_button_in'] ) && ( 2 === (int) $extra_setting['show_button_in'] || 3 === (int) $extra_setting['show_button_in'] ) ) {
 				$title = $this->settings['contact_support_label'];
@@ -359,9 +359,9 @@ class MainWP_Child_Branding {
 				add_action( 'admin_bar_menu', array( $this, 'add_support_button_in_top_admin_bar' ), 100 );
 			}
 		}
-        
-    }
-    
+
+	}
+
 	function remove_default_post_metaboxes() {
 		$extra_setting = $this->settings['extra_settings'];
 		if ( ! is_array( $extra_setting ) ) {
@@ -832,7 +832,7 @@ class MainWP_Child_Branding {
 		}
 	}
 
-    function remove_update_nag( $value ) {
+	function remove_update_nag( $value ) {
 		if ( isset( $_POST['mainwpsignature'] ) ) {
 			return $value;
 		}

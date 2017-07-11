@@ -84,7 +84,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 }
 
 class MainWP_Child {
-	public static $version = '3.4';
+	public static $version = '3.4.2';
 	private $update_version = '1.3';
 
 	private $callableFunctions = array(
@@ -1784,7 +1784,7 @@ class MainWP_Child {
                 $failed = true;
                 $upgrader = new Plugin_Upgrader( new Bulk_Plugin_Upgrader_Skin( compact( 'nonce', 'url' ) ) );
                 $result   = $upgrader->bulk_upgrade( $plugins );
-                      
+
                 if ( ! empty( $result ) ) {
                     foreach ( $result as $plugin => $info ) {
                         if ( empty( $info ) ) {
@@ -1797,7 +1797,7 @@ class MainWP_Child {
                                 $args = array();
                                 $args['type']    = 'plugin';
                                 $args['name']    = $plugin_info->Name;
-                                $args['version'] = $plugin_info->update->new_version;   
+                                $args['version'] = $plugin_info->update->new_version;
                                 $args['old_version'] = $plugin_info->Version;
                                 $args['action'] = 'update';
                                 do_action( 'mainwp_child_upgradePluginTheme', $args );
@@ -1806,7 +1806,7 @@ class MainWP_Child {
                     }
                     $failed = false;
                 }
-               
+
                 if ($failed) {
                     MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
                 }
@@ -1886,7 +1886,7 @@ class MainWP_Child {
 //				}
 
 //				@wp_update_themes();
-                $failed = true;                
+                $failed = true;
                 $upgrader = new Theme_Upgrader( new Bulk_Theme_Upgrader_Skin( compact( 'nonce', 'url' ) ) );
                 $result   = $upgrader->bulk_upgrade( $themes );
                 if ( ! empty( $result ) ) {
@@ -1902,7 +1902,7 @@ class MainWP_Child {
                                 $args['type']    = 'theme';
                                 $args['slug']    = $theme;
                                 $args['name']    = $theme_info['Name'];
-                                $args['version'] = $theme_info['update']['new_version'];   
+                                $args['version'] = $theme_info['update']['new_version'];
                                 $args['old_version'] = $theme_info['Version'];
                                 $args['action'] = 'update';
                                 do_action( 'mainwp_child_upgradePluginTheme', $args );
@@ -1912,7 +1912,7 @@ class MainWP_Child {
                     }
                     $failed = false;
                 }
-                
+
                 if ($failed) {
                     MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
                 }
@@ -4572,6 +4572,7 @@ class MainWP_Child {
 		foreach ( $to_delete as $delete ) {
 			if ( get_option( $delete ) ) {
 				delete_option( $delete );
+				wp_cache_delete( $delete, 'options' );
 			}
 		}
 		do_action( 'mainwp_child_deactivation' );
