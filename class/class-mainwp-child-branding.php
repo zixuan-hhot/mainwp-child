@@ -334,6 +334,9 @@ class MainWP_Child_Branding {
     
     // to fix conflict with other plugin
     function admin_menu() {
+        if ( !current_user_can( 'administrator' ) ) {
+			return false;
+		}
         $extra_setting = $this->settings['extra_settings'];
 		if ( ! is_array( $extra_setting ) ) {
 			$extra_setting = array();
