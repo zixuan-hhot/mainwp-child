@@ -149,7 +149,8 @@ class MainWP_Child {
 		'custom_post_type'	=> 'custom_post_type',
         'backup_buddy'          => 'backup_buddy',
         'get_site_icon'         => 'get_site_icon',
-        'vulner_checker'        => 'vulner_checker'
+        'vulner_checker'        => 'vulner_checker',
+        'time_capsule'          => 'time_capsule'
 	);
 
 	private $FTP_ERROR = 'Failed! Please, add FTP details for automatic updates.';
@@ -1311,7 +1312,8 @@ class MainWP_Child {
                 
         new MainWP_Child_Back_Up_Buddy();
         MainWP_Child_Wordfence::Instance()->wordfence_init();
-
+        MainWP_Child_WP_Time_Capsule::Instance()->init();
+        
         global $_wp_submenu_nopriv;
         if ($_wp_submenu_nopriv === null)
             $_wp_submenu_nopriv = array(); // fix warning
@@ -2140,7 +2142,9 @@ class MainWP_Child {
 		$information['added']    = true;
 		$information['added_id'] = $res['added_id'];
 		$information['link']     = $res['link'];
-
+        
+        do_action('mainwp_child_after_newpost', $res);        
+        
 		MainWP_Helper::write( $information );
 	}
 
@@ -3548,6 +3552,12 @@ class MainWP_Child {
 				}
 			}
 
+            if ( isset( $othersData['syncWPTimeCapsule'] ) && !empty( $othersData['syncWPTimeCapsule'] ) ) {                   
+                if ( MainWP_Child_WP_Time_Capsule::Instance()->is_plugin_installed ) {
+					$information['syncWPTimeCapsule'] =  MainWP_Child_WP_Time_Capsule::Instance()->get_sync_data();
+                }
+			}
+            
 			if ( isset( $othersData['syncWPRocketData'] ) && ( 'yes' === $othersData['syncWPRocketData'] ) ) {
 				$data = array();
 				if ( MainWP_Child_WP_Rocket::isActivated() ) {
@@ -3782,8 +3792,23 @@ class MainWP_Child {
 			$args['numberposts'] = $pCount;
 		}
 
+        $wp_seo_enabled = false;
+        if ( isset( $_POST['WPSEOEnabled'] ) && $_POST['WPSEOEnabled']) {
+           if (is_plugin_active('wordpress-seo/wp-seo.php') && class_exists('WPSEO_Link_Column_Count')) {               
+                $wp_seo_enabled = true;
+           }
+        }
+
 		$posts = get_posts( $args );
 		if ( is_array( $posts ) ) {
+            if ($wp_seo_enabled) {
+                $post_ids = array();
+                foreach ( $posts as $post ) {
+                    $post_ids[] = $post->ID;                    
+                }
+                $link_count = new WPSEO_Link_Column_Count();
+                $link_count->set( $post_ids );                
+            }
 			foreach ( $posts as $post ) {
 				$outPost                  = array();
 				$outPost['id']            = $post->ID;
@@ -3832,6 +3857,17 @@ class MainWP_Child {
 						$outPost['[post.website.name]'] = get_bloginfo( 'name' );
 					}
 				}
+                
+                if ($wp_seo_enabled) {
+                    $post_id = $post->ID;                   
+                    $outPost['seo_data'] = array(
+                        'count_seo_links' => $link_count->get( $post_id, 'internal_link_count' ),
+                        'count_seo_linked' => $link_count->get( $post_id, 'incoming_link_count' ),
+                        'seo_score' => MainWP_Wordpress_SEO::Instance()->parse_column_score($post_id),
+                        'readability_score' => MainWP_Wordpress_SEO::Instance()->parse_column_score_readability($post_id),
+                    );
+                }
+
 				$allPosts[] = $outPost;
 			}
 		}
@@ -4049,6 +4085,10 @@ class MainWP_Child {
 					$this->posts_where_suffix .= " AND $wpdb->posts.post_modified < '" . $_POST['dtsstop'] . "'";
 				}
 			}
+            
+            if ( isset( $_POST['exclude_page_type'] ) && $_POST['exclude_page_type'] ) {                               
+                $this->posts_where_suffix .= " AND $wpdb->posts.post_type NOT IN ('page')";                                
+            }
 		}
 
 		$maxPages = MAINWP_CHILD_NR_OF_PAGES;
@@ -5273,7 +5313,11 @@ class MainWP_Child {
     function vulner_checker() {
         MainWP_Child_Vulnerability_Checker::Instance()->action();
     }
-
+    
+    function time_capsule() {
+        MainWP_Child_WP_Time_Capsule::Instance()->action();
+    }
+    
 	static function fix_for_custom_themes() {
 		if ( file_exists( ABSPATH . '/wp-admin/includes/screen.php' ) ) {
 			include_once( ABSPATH . '/wp-admin/includes/screen.php' );

@@ -1073,7 +1073,7 @@ class MainWP_Helper {
 	}
 
     static function update_lasttime_backup( $by, $time ) {
-        $backup_by = array('backupbuddy', 'backupwordpress', 'backwpup', 'updraftplus');
+        $backup_by = array('backupbuddy', 'backupwordpress', 'backwpup', 'updraftplus', 'wptimecapsule');
 
         if (!in_array($by, $backup_by))
             return false;
@@ -1088,12 +1088,10 @@ class MainWP_Helper {
 
     static function get_lasttime_backup( $by ) {
         if ($by == 'backupwp') // to compatible
-            $by = 'backupwordpress';
-        $backup_by = array('backupbuddy', 'backupwordpress', 'backwpup', 'updraftplus');
-
+            $by = 'backupwordpress';        
         switch($by) {
             case 'backupbuddy':
-                if ( !is_plugin_active( 'backupbuddy/backupbuddy.php' )) {
+                if ( !is_plugin_active( 'backupbuddy/backupbuddy.php' ) && !is_plugin_active( 'Backupbuddy/backupbuddy.php' )) {
                     return -1;
                 }
                 break;
@@ -1112,11 +1110,15 @@ class MainWP_Helper {
                     return -1;
                 }
                 break;
+            case 'wptimecapsule':
+                if ( !is_plugin_active( 'wp-time-capsule/wp-time-capsule.php'  )) {
+                    return -1;
+                }
+                break;
             default:
                 return 0;
                 break;
         }
-
         return get_option('mainwp_lasttime_backup_' . $by, 0);
 	}
 

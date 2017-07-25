@@ -71,6 +71,9 @@ class MainWP_Client_Report {
             case 'wordfence':
                 MainWP_Child_Wordfence::Instance()->do_reports_log( $ext );
                 break;
+            case 'wptimecapsule':
+                MainWP_Child_WP_Time_Capsule::Instance()->do_reports_log( $ext );
+                break;
         }
     }
 
@@ -509,7 +512,7 @@ class MainWP_Client_Report {
 					$users_updated = true;
 				}
 			} else if ( 'mainwp_backups' === $context ) {
-				if ( $record->context !== 'mainwp_backups' && $record->context !== 'backwpup_backups' && $record->context !== 'updraftplus_backups' && $record->context !== 'backupwordpress_backups'  && $record->context !== 'backupbuddy_backups' ) {
+				if ( $record->context !== 'mainwp_backups' && $record->context !== 'backwpup_backups' && $record->context !== 'updraftplus_backups' && $record->context !== 'backupwordpress_backups'  && $record->context !== 'backupbuddy_backups' && $record->context !== 'wptimecapsule_backups') {
 					continue;
 				}
 			} else if ( 'mainwp_sucuri' === $context ) {
@@ -538,8 +541,8 @@ class MainWP_Client_Report {
 				} else if ( 'menus' === $context && 'menus' !== $record->connector ) {
 					continue;
 				}
-				//                else if ($context === "themes" && $record->connector !== "themes")
-				//                    continue;
+//                else if ($context === "themes" && $record->connector !== "themes")
+//                    continue;
 
 				if ( 'comments' !== $context && 'media' !== $context &&
 				     'widgets' !== $context && 'menus' !== $context &&
@@ -713,7 +716,7 @@ class MainWP_Client_Report {
 	function set_showhide() {
 		MainWP_Helper::update_option( 'mainwp_creport_ext_branding_enabled', 'Y', 'yes' );
 		$hide = isset( $_POST['showhide'] ) && ( 'hide' === $_POST['showhide'] ) ? 'hide' : '';
-		MainWP_Helper::update_option( 'mainwp_creport_branding_stream_hide', $hide );
+		MainWP_Helper::update_option( 'mainwp_creport_branding_stream_hide', $hide, 'yes' );
 		$information['result'] = 'SUCCESS';
 
 		return $information;
