@@ -176,7 +176,7 @@ class MainWP_Child {
 	public function __construct( $plugin_file ) {
 		$this->update();
 
-		$this->filterFunction = create_function( '$a', 'if ($a == null) { return false; } return $a;' );
+		$this->filterFunction = create_function( '$a', 'if ($a == null) { return false; } if (is_object($a) && property_exists($a, "last_checked") && !property_exists($a, "checked")) return false; return $a;' );
 		$this->plugin_dir     = dirname( $plugin_file );
 		$this->plugin_slug    = plugin_basename( $plugin_file );
 		list ( $t1, $t2 ) = explode( '/', $this->plugin_slug );
