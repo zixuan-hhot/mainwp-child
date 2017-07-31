@@ -175,7 +175,7 @@ class MainWP_Child {
 
 	public function __construct( $plugin_file ) {
 		$this->update();
-
+        $this->load_all_options();
 		$this->filterFunction = create_function( '$a', 'if ($a == null) { return false; } if (is_object($a) && property_exists($a, "last_checked") && !property_exists($a, "checked")) return false; return $a;' );
 		$this->plugin_dir     = dirname( $plugin_file );
 		$this->plugin_slug    = plugin_basename( $plugin_file );
@@ -230,6 +230,85 @@ class MainWP_Child {
 
 	}
 
+    
+    
+	function load_all_options() {
+		global $wpdb;
+
+		if ( !defined( 'WP_INSTALLING' ) || !is_multisite() )
+			$alloptions = wp_cache_get( 'alloptions', 'options' );
+		else
+			$alloptions = false;
+
+		if ( !defined( 'WP_INSTALLING' ) || !is_multisite() )
+			$notoptions = wp_cache_get( 'notoptions', 'options' );
+		else
+			$notoptions = false;
+
+		if ( !isset($alloptions['mainwp_db_version']) ) {
+			$suppress = $wpdb->suppress_errors();
+			$options = array(
+                'mainwp_child_auth', 
+                'mainwp_branding_plugin_header', 
+                'mainwp_child_reports_db',                 
+                'mainwp_child_fix_htaccess',
+                'mainwp_child_pluginDir',
+                'mainwp_updraftplus_hide_plugin',
+                'mainwp_backwpup_ext_enabled',
+                'mainwpKeywordLinks',
+                'mainwp_child_server',
+                'mainwp_kwl_options',
+                'mainwp_kwl_keyword_links',
+                'mainwp_keyword_links_htaccess_set',
+                'mainwp_pagespeed_hide_plugin',
+                'mainwp_kwl_enable_statistic',
+                'mainwp_child_clone_permalink',
+                'mainwp_child_restore_permalink',
+                'mainwp_ext_snippets_enabled',
+                'mainwp_child_pubkey',
+                'mainwp_child_nossl',
+                'mainwp_security',
+                'mainwp_backupwordpress_ext_enabled',
+                'mainwp_wprocket_ext_enabled',
+                'mainwp_wordfence_ext_enabled',
+                'mainwp_branding_button_contact_label',
+                'mainwp_branding_extra_settings',
+                'mainwp_branding_child_hide',
+                'mainwp_branding_ext_enabled',
+                'mainwp_creport_ext_branding_enabled',
+                'mainwp_pagespeed_ext_enabled',
+                'mainwp_linkschecker_ext_enabled',
+                'mainwp_ithemes_ext_enabled',
+            );
+			$query = "SELECT option_name, option_value FROM $wpdb->options WHERE option_name in (";
+			foreach ($options as $option) {
+				$query .= "'" . $option . "', ";
+			}
+			$query = substr($query, 0, strlen($query) - 2);
+			$query .= ")";
+
+			$alloptions_db = $wpdb->get_results( $query );
+			$wpdb->suppress_errors($suppress);
+			if ( !is_array( $alloptions ) ) $alloptions = array();
+			if ( is_array( $alloptions_db ) ) {
+				foreach ( (array) $alloptions_db as $o ) {
+					$alloptions[ $o->option_name ] = $o->option_value;
+					unset($options[array_search($o->option_name, $options)]);
+				}
+				foreach ($options as $option ) {
+					$notoptions[ $option ] = true;
+				}
+				if ( ! defined( 'WP_INSTALLING' ) || ! is_multisite() ) {
+					wp_cache_set( 'alloptions', $alloptions, 'options' );
+					wp_cache_set( 'notoptions', $notoptions, 'options' );
+				}
+			}
+		}
+
+		return $alloptions;
+	}
+
+    
 	function update() {
 		$update_version = get_option( 'mainwp_child_update_version' );
 
