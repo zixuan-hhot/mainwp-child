@@ -507,28 +507,57 @@ class MainWP_Child_Updraft_Plus_Backups {
                             if(is_array($opts) && isset($opts['settings'])) {
                                 $settings_key = key($opts['settings']);
                                 if ( isset( $settings[ $key ]['path'] ) ) {
+                                    $opts['settings'][$settings_key]['host'] = $settings[ $key ]['host'];
+                                    $opts['settings'][$settings_key]['user'] = $settings[ $key ]['user'];
+                                    $opts['settings'][$settings_key]['pass'] = $settings[ $key ]['pass'];                                    
                                     $opts['settings'][$settings_key]['path'] = $this->replace_tokens( $settings[ $key ]['path'] );
+                                    $opts['settings'][$settings_key]['passive'] = isset($settings[ $key ]['passive']) ? $settings[ $key ]['passive'] : 0;
                                 }
                             } else {
                                 if ( isset( $settings[ $key ]['path'] ) ) {
+                                    $opts['host'] = $settings[ $key ]['host'];
+                                    $opts['user'] = $settings[ $key ]['user'];
+                                    $opts['pass'] = $settings[ $key ]['pass'];                                    
                                     $opts['path'] = $this->replace_tokens( $settings[ $key ]['path'] );
+                                    $opts['passive'] = isset($settings[ $key ]['passive']) ? $settings[ $key ]['passive'] : 0;                                    
                                 }
                             }
 	                        
 	                        UpdraftPlus_Options::update_updraft_option( $key, $opts );
 		                } else if ( 'updraft_sftp_settings' === $key ) {	                        
                             $opts = UpdraftPlus_Options::get_updraft_option( 'updraft_sftp_settings' );	                        
+                            $new_version = false;
+                            if (!isset($opts) || !isset($opts['host']) || !isset($opts['port'])) {
+                                $opts = UpdraftPlus_Options::get_updraft_option( 'updraft_sftp' ); // to fix	   
+                                $new_version = true;
+                            }
+                            
                             if(is_array($opts) && isset($opts['settings'])) {
                                 $settings_key = key($opts['settings']);
                                 if ( isset( $settings[ $key ]['path'] ) ) {
+                                    $opts['settings'][$settings_key]['host'] = $settings[ $key ]['host'];
+                                    $opts['settings'][$settings_key]['port'] = $settings[ $key ]['port'];
+                                    $opts['settings'][$settings_key]['user'] = $settings[ $key ]['user'];
+                                    $opts['settings'][$settings_key]['pass'] = $settings[ $key ]['pass'];
+                                    $opts['settings'][$settings_key]['key'] = $settings[ $key ]['key'];                                    
                                     $opts['settings'][$settings_key]['path'] = $this->replace_tokens( $settings[ $key ]['path'] );
+                                    $opts['settings'][$settings_key]['scp'] = isset($settings[ $key ]['scp']) ? $settings[ $key ]['scp'] : 0;
                                 }
                             } else {
                                 if ( isset( $settings[ $key ]['path'] ) ) {
+                                    $opts['host'] = $settings[ $key ]['host'];
+                                    $opts['port'] = $settings[ $key ]['port'];
+                                    $opts['user'] = $settings[ $key ]['user'];
+                                    $opts['pass'] = $settings[ $key ]['pass'];
+                                    $opts['key'] = $settings[ $key ]['key'];                                    
                                     $opts['path'] = $this->replace_tokens( $settings[ $key ]['path'] );
+                                    $opts['scp'] = isset($settings[ $key ]['scp']) ? $settings[ $key ]['scp'] : 0;
                                 }
                             }	                       
-	                        UpdraftPlus_Options::update_updraft_option( $key, $opts );
+                            if ($new_version)
+                                UpdraftPlus_Options::update_updraft_option( 'updraft_sftp', $opts ); // to fix
+                            else 
+                                UpdraftPlus_Options::update_updraft_option( 'updraft_sftp_settings', $opts ); // to fix
 		                } else {
 							UpdraftPlus_Options::update_updraft_option( $key, $settings[ $key ] );
 						}

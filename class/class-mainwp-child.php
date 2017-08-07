@@ -150,7 +150,7 @@ class MainWP_Child {
         'backup_buddy'          => 'backup_buddy',
         'get_site_icon'         => 'get_site_icon',
         'vulner_checker'        => 'vulner_checker',
-        'time_capsule'          => 'time_capsule'
+        'time_capsule'          => 'time_capsule'        
 	);
 
 	private $FTP_ERROR = 'Failed! Please, add FTP details for automatic updates.';
@@ -2213,9 +2213,14 @@ class MainWP_Child {
 		}
 
 		$res     = MainWP_Helper::createPost( $new_post, $post_custom, $post_category, $post_featured_image, $upload_dir, $post_tags );
+        
+        if (is_array($res) && isset($res['error'])) {
+            MainWP_Helper::error( $res['error'] );            
+        }
+        
 		$created = $res['success'];
 		if ( true !== $created ) {
-			MainWP_Helper::error( $created );
+			MainWP_Helper::error( 'Undefined error' );
 		}
 
 		$information['added']    = true;
