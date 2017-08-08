@@ -149,8 +149,7 @@ class MainWP_Child {
 		'custom_post_type'	=> 'custom_post_type',
         'backup_buddy'          => 'backup_buddy',
         'get_site_icon'         => 'get_site_icon',
-        'vulner_checker'        => 'vulner_checker',
-        'time_capsule'          => 'time_capsule'        
+        'vulner_checker'        => 'vulner_checker'               
 	);
 
 	private $FTP_ERROR = 'Failed! Please, add FTP details for automatic updates.';
@@ -1391,7 +1390,6 @@ class MainWP_Child {
                 
         new MainWP_Child_Back_Up_Buddy();
         MainWP_Child_Wordfence::Instance()->wordfence_init();
-        MainWP_Child_WP_Time_Capsule::Instance()->init();
         
         global $_wp_submenu_nopriv;
         if ($_wp_submenu_nopriv === null)
@@ -3636,12 +3634,6 @@ class MainWP_Child {
 				}
 			}
 
-            if ( isset( $othersData['syncWPTimeCapsule'] ) && !empty( $othersData['syncWPTimeCapsule'] ) ) {                   
-                if ( MainWP_Child_WP_Time_Capsule::Instance()->is_plugin_installed ) {
-					$information['syncWPTimeCapsule'] =  MainWP_Child_WP_Time_Capsule::Instance()->get_sync_data();
-                }
-			}
-            
 			if ( isset( $othersData['syncWPRocketData'] ) && ( 'yes' === $othersData['syncWPRocketData'] ) ) {
 				$data = array();
 				if ( MainWP_Child_WP_Rocket::isActivated() ) {
@@ -5397,11 +5389,7 @@ class MainWP_Child {
     function vulner_checker() {
         MainWP_Child_Vulnerability_Checker::Instance()->action();
     }
-    
-    function time_capsule() {
-        MainWP_Child_WP_Time_Capsule::Instance()->action();
-    }
-    
+        
 	static function fix_for_custom_themes() {
 		if ( file_exists( ABSPATH . '/wp-admin/includes/screen.php' ) ) {
 			include_once( ABSPATH . '/wp-admin/includes/screen.php' );

@@ -71,9 +71,9 @@ class MainWP_Client_Report {
             case 'wordfence':
                 MainWP_Child_Wordfence::Instance()->do_reports_log( $ext );
                 break;
-            case 'wptimecapsule':
-                MainWP_Child_WP_Time_Capsule::Instance()->do_reports_log( $ext );
-                break;
+//            case 'wptimecapsule':
+//                MainWP_Child_WP_Time_Capsule::Instance()->do_reports_log( $ext );
+//                break;
         }
     }
 
