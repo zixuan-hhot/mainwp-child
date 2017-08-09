@@ -25,6 +25,12 @@ class MainWP_Child_Wordfence {
 		'loginSec_blockAdminReg',
 		'loginSec_countFailMins',
 		'loginSec_disableAuthorScan',
+        'notification_updatesNeeded',   
+        "notification_securityAlerts",
+        "notification_promotions",
+        "notification_blogHighlights",
+        "notification_productUpdates",
+        "notification_scanStatus",
 		'loginSec_lockInvalidUsers',
 		'loginSec_lockoutMins',
 		'loginSec_maskLoginErrors',
@@ -44,8 +50,9 @@ class MainWP_Child_Wordfence {
 		'scansEnabled_diskSpace',
 		'scansEnabled_dns',
 		'scansEnabled_fileContents',
+        'scansEnabled_fileContentsGSB',
 		'scan_include_extra', 		
-		'scansEnabled_heartbleed',
+		//'scansEnabled_heartbleed',
         'scansEnabled_checkHowGetIPs',
 		'scansEnabled_highSense',
         'lowResourceScansEnabled',
@@ -100,9 +107,10 @@ class MainWP_Child_Wordfence {
 		'disableCodeExecutionUploads',
 		//'isPaid',
 		"advancedCommentScanning",
+        "scansEnabled_checkGSB",
 		"checkSpamIP",
 		"spamvertizeCheck",
-		'scansEnabled_public',
+		//'scansEnabled_public',
 		'email_summary_enabled',
 		'email_summary_dashboard_widget_enabled',
 		'ssl_verify',
@@ -110,9 +118,10 @@ class MainWP_Child_Wordfence {
 		'email_summary_excluded_directories',
 		'allowed404s',
         'wafAlertWhitelist',
-        'wafAlertOnAttacks'
-                //'ajaxWatcherDisabled_front', // do not update those values when save settings
-                //'ajaxWatcherDisabled_admin' 
+        'wafAlertOnAttacks',
+        //'ajaxWatcherDisabled_front', // do not update those values when save settings
+        //'ajaxWatcherDisabled_admin' 
+       'howGetIPs_trusted_proxies',
 	);
 
         public static $diagnosticParams = array(
