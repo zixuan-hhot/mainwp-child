@@ -2343,7 +2343,7 @@ class MainWP_Child {
 	            'is_sticky'      => is_sticky( $id ) ? 1 : 0,
 	            'post_title'     => $post->post_title,
 	            'post_content'   => $post->post_content,
-	            'post_status'    => $post->post_status, //was 'publish'
+	            'post_status'    => $post->post_status, 
 	            'post_date'      => $post->post_date,
 	            'post_date_gmt'  => $post->post_date_gmt,
 	            'post_tags'      => $post_tags,
@@ -3634,6 +3634,12 @@ class MainWP_Child {
 				}
 			}
 
+            if ( isset( $othersData['syncBackupBuddy'] ) && !empty( $othersData['syncBackupBuddy'] ) ) {                   
+                if ( MainWP_Child_Back_Up_Buddy::Instance()->is_backupbuddy_installed ) {
+					$information['syncBackupBuddy'] =  MainWP_Child_Back_Up_Buddy::Instance()->get_sync_data();
+                }
+			}            
+            
 			if ( isset( $othersData['syncWPRocketData'] ) && ( 'yes' === $othersData['syncWPRocketData'] ) ) {
 				$data = array();
 				if ( MainWP_Child_WP_Rocket::isActivated() ) {

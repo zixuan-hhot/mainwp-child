@@ -223,6 +223,9 @@ class MainWP_Child_Back_Up_Buddy {
 				case 'zip_viewer':
 					$information = $this->zip_viewer();
 					break;
+                case 'exclude_tree':
+					$information = $this->exclude_tree();
+					break;                      
 				case 'restore_file_view':
 					$information = $this->restore_file_view();
 					break;
@@ -344,8 +347,10 @@ class MainWP_Child_Back_Up_Buddy {
 			'disable_localization',
 			'limit_single_cron_per_pass',
 			'use_internal_cron',
+            'cron_request_timeout_override',
 			'remote_send_timeout_retries',
 			'hide_live',
+            'hide_dashboard_widget',
 			'set_greedy_execution_time',
 			'archive_limit_size_big',
 			'max_execution_time',
@@ -364,6 +369,8 @@ class MainWP_Child_Back_Up_Buddy {
 			'backup_cron_rescheduling',
 			'skip_spawn_cron_call',
 			'backup_cron_passed_force_time',
+            'php_runtime_test_minimum_interval',
+            'php_memory_test_minimum_interval',
 			'database_method_strategy',
 			'skip_database_dump', // profiles#0
 			'breakout_tables',
@@ -683,11 +690,22 @@ class MainWP_Child_Back_Up_Buddy {
 		return $information;
 	}
 
-	function backup_list() {
+    
+    public function get_sync_data() {	
+        $information = array();
+        $information['plugins_root'] =  backupbuddy_core::get_plugins_root();
+        $information['themes_root'] =  backupbuddy_core::get_themes_root();
+        $information['media_root'] =  backupbuddy_core::get_media_root();
+        $information['additional_tables'] = $this->pb_additional_tables();        
+        $information['abspath'] =  ABSPATH;
+		return $information;
+	}
+    
+	function backup_list() {        
 		require_once( pb_backupbuddy::plugin_path() . '/destinations/bootstrap.php' );
 		$information = array();
 		$information['backup_list'] = $this->get_backup_list();
-		$information['recent_backup_list'] = $this->get_recent_backup_list();
+		$information['recent_backup_list'] = $this->get_recent_backup_list();        
 		//$information['destinations_list'] = pb_backupbuddy_destinations::get_destinations_list();
 		$backup_directory = backupbuddy_core::getBackupDirectory();
 		$backup_directory = str_replace( '\\', '/', $backup_directory );
@@ -869,6 +887,113 @@ class MainWP_Child_Back_Up_Buddy {
 		return array('result' => 'SUCCESS', 'files' => $files, 'message' => implode('<br/>', $alerts));
 
 	}
+
+    function exclude_tree() {            
+            $root = substr( ABSPATH, 0, strlen( ABSPATH ) - 1 ) . '/' . ltrim( urldecode( $_POST['dir'] ), '/\\' );           
+            if( file_exists( $root ) ) {
+                $files = scandir( $root );
+
+                natcasesort( $files );
+
+                // Sort with directories first.
+                $sorted_files = array(); // Temporary holder for sorting files.
+                $sorted_directories = array(); // Temporary holder for sorting directories.
+                foreach( $files as $file ) {
+                    if ( ( $file == '.' ) || ( $file == '..' ) ) {
+                        continue;
+                    }
+                    if( is_file( str_replace( '//', '/', $root . $file ) ) ) {
+                        array_push( $sorted_files, $file );
+                    } else {
+                        array_unshift( $sorted_directories, $file );
+                    }
+                }
+                $files = array_merge( array_reverse( $sorted_directories ), $sorted_files );
+                unset( $sorted_files );
+                unset( $sorted_directories );
+                unset( $file );
+
+                ob_start();
+                
+                if( count( $files ) > 0 ) { // Files found.
+                    echo '<ul class="jqueryFileTree" style="display: none;">';
+                    foreach( $files as $file ) {
+                        if( file_exists( str_replace( '//', '/', $root . $file ) ) ) {
+                            if ( is_dir( str_replace( '//', '/', $root . $file ) ) ) { // Directory.
+                                echo '<li class="directory collapsed">';
+                                $return = '';
+                                $return .= '<div class="pb_backupbuddy_treeselect_control">';
+                                $return .= '<img src="' . pb_backupbuddy::plugin_url() . '/images/redminus.png" style="vertical-align: -3px;" title="Add to exclusions..." class="pb_backupbuddy_filetree_exclude">';
+                                $return .= '</div>';
+                                echo '<a href="#" rel="' . htmlentities( str_replace( ABSPATH, '', $root ) . $file) . '/" title="Toggle expand...">' . htmlentities($file) . $return . '</a>';
+                                echo '</li>';
+                            } else { // File.
+                                echo '<li class="file collapsed">';
+                                $return = '';
+                                $return .= '<div class="pb_backupbuddy_treeselect_control">';
+                                $return .= '<img src="' . pb_backupbuddy::plugin_url() . '/images/redminus.png" style="vertical-align: -3px;" title="Add to exclusions..." class="pb_backupbuddy_filetree_exclude">';
+                                $return .= '</div>';
+                                echo '<a href="#" rel="' . htmlentities( str_replace( ABSPATH, '', $root ) . $file) . '">' . htmlentities($file) . $return . '</a>';
+                                echo '</li>';
+                            }
+                        }
+                    }
+                    echo '</ul>';
+                } else {
+                    echo '<ul class="jqueryFileTree" style="display: none;">';
+                    echo '<li><a href="#" rel="' . htmlentities( pb_backupbuddy::_POST( 'dir' ) . 'NONE' ) . '"><i>Empty Directory ...</i></a></li>';
+                    echo '</ul>';
+                }
+                
+                $html = ob_get_clean();        
+                return array('result' => $html) ;
+            } else {
+                return array('error' => 'Error #1127555. Unable to read child site root.') ;
+            }
+
+    }
+    
+    
+    function pb_additional_tables( $display_size = false ) {	
+        
+        $return = '';
+        $size_string = '';
+
+        global $wpdb;
+        if ( true === $display_size ) {
+            $results = $wpdb->get_results( "SHOW TABLE STATUS", ARRAY_A );
+        } else {
+            $results = $wpdb->get_results( "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()", ARRAY_A );
+        }
+        foreach( $results as $result ) {
+
+            if ( true === $display_size ) {
+                // Fix up row count and average row length for InnoDB engine which returns inaccurate (and changing) values for these.
+                if ( 'InnoDB' === $result[ 'Engine' ] ) {
+                    if ( false !== ( $rowCount = $wpdb->get_var( "SELECT COUNT(1) as rowCount FROM `{$rs[ 'Name' ]}`", ARRAY_A ) ) ) {
+                        if ( 0 < ( $result[ 'Rows' ] = $rowCount ) ) {
+                            $result[ 'Avg_row_length' ] = ( $result[ 'Data_length' ] / $result[ 'Rows' ] );
+                        }
+                    }
+                    unset( $rowCount );
+                }
+
+                // Table size.
+                $size_string = ' (' . pb_backupbuddy::$format->file_size( ( $result['Data_length'] + $result['Index_length'] ) ) . ') ';
+
+            } // end if display size enabled.
+
+            $return .= '<li class="file ext_sql collapsed">';
+            $return .= '<a rel="/" alt="' . $result['table_name'] . '">' . $result['table_name'] . $size_string;
+            $return .= '<div class="pb_backupbuddy_treeselect_control">';
+            $return .= '<img src="' . pb_backupbuddy::plugin_url() . '/images/redminus.png" style="vertical-align: -3px;" title="Add to exclusions..." class="pb_backupbuddy_table_addexclude"> <img src="' . pb_backupbuddy::plugin_url() . '/images/greenplus.png" style="vertical-align: -3px;" title="Add to inclusions..." class="pb_backupbuddy_table_addinclude">';
+            $return .= '</div>';
+            $return .= '</a>';
+            $return .= '</li>';
+        }
+
+        return '<div class="jQueryOuterTree" style="position: absolute; height: 160px;"><ul class="jqueryFileTree">' . $return . '</ul></div>';        
+    }
 
 	function restore_file_view() {
 
