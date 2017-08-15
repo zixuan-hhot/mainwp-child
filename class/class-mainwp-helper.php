@@ -291,6 +291,7 @@ class MainWP_Helper {
         $edit_post_id = 0;
         if ( isset( $post_custom['_mainwp_edit_post_id'] ) && $post_custom['_mainwp_edit_post_id'] ) {
             $edit_post_id = current($post_custom['_mainwp_edit_post_id']);
+            require_once ABSPATH . 'wp-admin/includes/post.php';
             if ( $user_id = wp_check_post_lock( $edit_post_id ) ) {
                 $user = get_userdata( $user_id );
                 $error = sprintf( __( 'This content is currently locked. %s is currently editing.' ), $user->display_name );
