@@ -525,13 +525,7 @@ class MainWP_Child_Updraft_Plus_Backups {
 	                        
 	                        UpdraftPlus_Options::update_updraft_option( $key, $opts );
 		                } else if ( 'updraft_sftp_settings' === $key ) {	                        
-                            $opts = UpdraftPlus_Options::get_updraft_option( 'updraft_sftp_settings' );	                        
-                            $new_version = false;
-                            if (!isset($opts) || !isset($opts['host']) || !isset($opts['port'])) {
-                                $opts = UpdraftPlus_Options::get_updraft_option( 'updraft_sftp' ); // to fix	   
-                                $new_version = true;
-                            }
-                            
+                            $opts = UpdraftPlus_Options::get_updraft_option( 'updraft_sftp' );	                        
                             if(is_array($opts) && isset($opts['settings'])) {
                                 $settings_key = key($opts['settings']);
                                 if ( isset( $settings[ $key ]['path'] ) ) {
@@ -553,11 +547,8 @@ class MainWP_Child_Updraft_Plus_Backups {
                                     $opts['path'] = $this->replace_tokens( $settings[ $key ]['path'] );
                                     $opts['scp'] = isset($settings[ $key ]['scp']) ? $settings[ $key ]['scp'] : 0;
                                 }
-                            }	                       
-                            if ($new_version)
-                                UpdraftPlus_Options::update_updraft_option( 'updraft_sftp', $opts ); // to fix
-                            else 
-                                UpdraftPlus_Options::update_updraft_option( 'updraft_sftp_settings', $opts ); // to fix
+                            }	                                                   
+                            UpdraftPlus_Options::update_updraft_option( 'updraft_sftp', $opts );                          
 		                } else {
 							UpdraftPlus_Options::update_updraft_option( $key, $settings[ $key ] );
 						}
