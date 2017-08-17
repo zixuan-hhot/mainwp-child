@@ -20,7 +20,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 	$skeleton_keyuse_nonce_hmac = $_GET['skeleton_keyuse_nonce_hmac'];
 	$skeleton_keycurrent_time   = intval( time() );
 
-	if ( $skeleton_keyuse_nonce_key >= $skeleton_keycurrent_time && $skeleton_keyuse_nonce_key <= ( $skeleton_keycurrent_time + 30 ) ) {
+	if ( $skeleton_keycurrent_time >= $skeleton_keyuse_nonce_key && $skeleton_keycurrent_time <= ( $skeleton_keyuse_nonce_key + 30 ) ) {
 
 		if ( strcmp( $skeleton_keyuse_nonce_hmac, hash_hmac( 'sha256', $skeleton_keyuse_nonce_key, NONCE_KEY ) ) === 0 ) {
 

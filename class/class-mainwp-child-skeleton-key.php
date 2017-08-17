@@ -39,7 +39,8 @@ class MainWP_Child_Skeleton_Key {
 				$information = array( 'error' => 'Unknown action' );
 		}
 
-		MainWP_Child_Skeleton_Key::$information = $information;
+        MainWP_Helper::write( $information );
+		//MainWP_Child_Skeleton_Key::$information = $information;
 		exit();
 	}
 
@@ -64,19 +65,26 @@ class MainWP_Child_Skeleton_Key {
 		$manager    = WP_Session_Tokens::get_instance( $current_user->ID );
 		$token      = $manager->create( $expiration );
 
-		$auth_cookie   = wp_generate_auth_cookie( $current_user->ID, $expiration, 'auth', $token );
-		$logged_cookie = wp_generate_auth_cookie( $current_user->ID, $expiration, 'logged_in', $token );
-
-		$_COOKIE[ AUTH_COOKIE ]      = $auth_cookie;
-		$_COOKIE[ LOGGED_IN_COOKIE ] = $logged_cookie;
-
+        
+        $secure = is_ssl();
+        if ( $secure ) {
+            $auth_cookie_name = SECURE_AUTH_COOKIE;
+            $scheme = 'secure_auth';
+        } else {
+            $auth_cookie_name = AUTH_COOKIE;
+            $scheme = 'auth';
+        }
+		$auth_cookie   = wp_generate_auth_cookie( $current_user->ID, $expiration, $scheme, $token );
+		$logged_in_cookie = wp_generate_auth_cookie( $current_user->ID, $expiration, 'logged_in', $token );
+		$_COOKIE[ $auth_cookie_name ]      = $auth_cookie;
+		$_COOKIE[ LOGGED_IN_COOKIE ] = $logged_in_cookie;
 		$post_args                = array();
 		$post_args['body']        = array();
 		$post_args['redirection'] = 5;
 		$post_args['decompress']  = false; // For gzinflate() data error bug
 		$post_args['cookies']     = array(
-			new WP_Http_Cookie( array( 'name' => AUTH_COOKIE, 'value' => $auth_cookie ) ),
-			new WP_Http_Cookie( array( 'name' => LOGGED_IN_COOKIE, 'value' => $logged_cookie ) ),
+			new WP_Http_Cookie( array( 'name' => $auth_cookie_name, 'value' => $auth_cookie ) ),
+			new WP_Http_Cookie( array( 'name' => LOGGED_IN_COOKIE, 'value' => $logged_in_cookie ) ),
 		);
 
 		if ( isset( $args['get'] ) ) {
@@ -111,6 +119,8 @@ class MainWP_Child_Skeleton_Key {
 			$post_args['body'] = $temp_post;
 		}
 
+        $post_args['timeout'] = 25;
+         
 		$full_url = add_query_arg( $get_args, get_site_url() . $url );
 
 		$response = wp_remote_post( $full_url, $post_args );
