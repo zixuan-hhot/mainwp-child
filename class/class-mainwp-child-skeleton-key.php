@@ -203,7 +203,7 @@ class MainWP_Child_Skeleton_Key {
             $whitelist_options['general'][] = 'default_role';
         } 
 
-        $whitelist_options = apply_filters( 'whitelist_options', $whitelist_options );
+        //$whitelist_options = apply_filters( 'whitelist_options', $whitelist_options );
         $whitelist_general = $whitelist_options[ 'general' ];
     
          // Handle translation install.
