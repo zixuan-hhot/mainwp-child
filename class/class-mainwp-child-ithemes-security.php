@@ -247,6 +247,10 @@ class MainWP_Child_iThemes_Security {
 				}
 			}			
 		}
+        
+        if(isset($update_settings['itsec_active_modules'])) {
+            update_site_option( 'itsec_active_modules', $update_settings['itsec_active_modules'] );
+        }
 		
 		require_once( ITSEC_Core::get_core_dir() . '/lib/class-itsec-lib-config-file.php' );
 
