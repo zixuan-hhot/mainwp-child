@@ -2357,7 +2357,10 @@ class MainWP_Child {
 	            $img                 = wp_get_attachment_image_src( $post_featured_image, 'full' );
 	            $post_featured_image = $img[0];
             }
-
+            
+            require_once ABSPATH . 'wp-admin/includes/post.php';
+            wp_set_post_lock($id);
+                        
             $post_data = array(
 	            'new_post'            => base64_encode( serialize( $new_post ) ),
 	            'post_custom'         => base64_encode( serialize( $post_custom ) ),
@@ -2420,7 +2423,10 @@ class MainWP_Child {
                             }
                     }
             }
-
+            
+            require_once ABSPATH . 'wp-admin/includes/post.php';
+            wp_set_post_lock($id);
+            
             $post_data = array(
                     'new_post' => base64_encode( serialize( $new_post ) ),
                     'post_custom' => base64_encode( serialize( $post_custom ) ),

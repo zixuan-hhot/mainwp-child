@@ -653,6 +653,11 @@ class MainWP_Helper {
 			$all_comments = $post_custom['_mainwp_robot_post_comments'];
 			MainWP_Child_Robot::Instance()->wpr_insertcomments( $new_post_id, $all_comments );
 		}
+        
+        // unlock if edit post
+        if ($edit_post_id) {
+            update_post_meta( $edit_post_id, '_edit_lock', '' );
+        }
 
 		$ret['success']  = true;
 		$ret['link']     = $permalink;
