@@ -32,14 +32,14 @@ class MainWP_Child_Skeleton_Key {
 			case 'skeleton_key_visit_site_as_browser':
 				$information = $this->visit_site_as_browser();
 				break;
-            case 'save_settings':
-                $information = $this->save_settings();
-                break;
+			case 'save_settings':
+				$information = $this->save_settings();
+				break;
 			default:
 				$information = array( 'error' => 'Unknown action' );
 		}
 
-        MainWP_Helper::write( $information );
+		MainWP_Helper::write( $information );
 		//MainWP_Child_Skeleton_Key::$information = $information;
 		exit();
 	}
@@ -65,15 +65,15 @@ class MainWP_Child_Skeleton_Key {
 		$manager    = WP_Session_Tokens::get_instance( $current_user->ID );
 		$token      = $manager->create( $expiration );
 
-        
-        $secure = is_ssl();
-        if ( $secure ) {
-            $auth_cookie_name = SECURE_AUTH_COOKIE;
-            $scheme = 'secure_auth';
-        } else {
-            $auth_cookie_name = AUTH_COOKIE;
-            $scheme = 'auth';
-        }
+
+		$secure = is_ssl();
+		if ( $secure ) {
+			$auth_cookie_name = SECURE_AUTH_COOKIE;
+			$scheme = 'secure_auth';
+		} else {
+			$auth_cookie_name = AUTH_COOKIE;
+			$scheme = 'auth';
+		}
 		$auth_cookie   = wp_generate_auth_cookie( $current_user->ID, $expiration, $scheme, $token );
 		$logged_in_cookie = wp_generate_auth_cookie( $current_user->ID, $expiration, 'logged_in', $token );
 		$_COOKIE[ $auth_cookie_name ]      = $auth_cookie;
@@ -119,8 +119,8 @@ class MainWP_Child_Skeleton_Key {
 			$post_args['body'] = $temp_post;
 		}
 
-        $post_args['timeout'] = 25;
-         
+		$post_args['timeout'] = 25;
+
 		$full_url = add_query_arg( $get_args, get_site_url() . $url );
 
 		$response = wp_remote_post( $full_url, $post_args );
@@ -181,57 +181,57 @@ class MainWP_Child_Skeleton_Key {
 
 		return $array;
 	}
-            
-    public function save_settings() {
-        $settings = isset($_POST['settings']) ? $_POST['settings'] : array(); 
-        
-        if (!is_array($settings) || empty($settings))
-            return array('error' => 'Invalid data');
-        
-        $whitelist_options = array(
-            'general' => array( 'blogname', 'blogdescription', 'gmt_offset', 'date_format', 'time_format', 'start_of_week', 'timezone_string', 'WPLANG' ),
-        );
-                    
-        if ( !is_multisite() ) {
-            if ( !defined( 'WP_SITEURL' ) )
-                $whitelist_options['general'][] = 'siteurl';
-            if ( !defined( 'WP_HOME' ) )
-                $whitelist_options['general'][] = 'home';
 
-            $whitelist_options['general'][] = 'admin_email';
-            $whitelist_options['general'][] = 'users_can_register';
-            $whitelist_options['general'][] = 'default_role';
-        } 
+	public function save_settings() {
+		$settings = isset($_POST['settings']) ? $_POST['settings'] : array();
 
-        //$whitelist_options = apply_filters( 'whitelist_options', $whitelist_options );
-        $whitelist_general = $whitelist_options[ 'general' ];
-    
-         // Handle translation install.
-        if ( ! empty( $settings['WPLANG'] ) ) {
-            require_once( ABSPATH . 'wp-admin/includes/translation-install.php' );
-            if ( wp_can_install_language_pack() ) {
-                $language = wp_download_language_pack( $settings['WPLANG'] );
-                if ( $language ) {
-                    $settings['WPLANG'] = $language;
-                }
-            }
-        }
-            
-        $updated = false;
-        foreach($settings as $option => $value) {
-            if (in_array($option, $whitelist_general)) {                
-                if ( ! is_array( $value ) )
-                    $value = trim( $value );
-                $value = wp_unslash( $value );
-                update_option($option, $value);
-                $updated = true;
-            }
-        }
-        
-        if (!$updated)
-            return false;        
-        
-        return array('result' => 'ok');        
-    }  
-    
+		if (!is_array($settings) || empty($settings))
+			return array('error' => 'Invalid data');
+
+		$whitelist_options = array(
+			'general' => array( 'blogname', 'blogdescription', 'gmt_offset', 'date_format', 'time_format', 'start_of_week', 'timezone_string', 'WPLANG' ),
+		);
+
+		if ( !is_multisite() ) {
+			if ( !defined( 'WP_SITEURL' ) )
+				$whitelist_options['general'][] = 'siteurl';
+			if ( !defined( 'WP_HOME' ) )
+				$whitelist_options['general'][] = 'home';
+
+			$whitelist_options['general'][] = 'admin_email';
+			$whitelist_options['general'][] = 'users_can_register';
+			$whitelist_options['general'][] = 'default_role';
+		}
+
+		//$whitelist_options = apply_filters( 'whitelist_options', $whitelist_options );
+		$whitelist_general = $whitelist_options[ 'general' ];
+
+		// Handle translation install.
+		if ( ! empty( $settings['WPLANG'] ) ) {
+			require_once( ABSPATH . 'wp-admin/includes/translation-install.php' );
+			if ( wp_can_install_language_pack() ) {
+				$language = wp_download_language_pack( $settings['WPLANG'] );
+				if ( $language ) {
+					$settings['WPLANG'] = $language;
+				}
+			}
+		}
+
+		$updated = false;
+		foreach($settings as $option => $value) {
+			if (in_array($option, $whitelist_general)) {
+				if ( ! is_array( $value ) )
+					$value = trim( $value );
+				$value = wp_unslash( $value );
+				update_option($option, $value);
+				$updated = true;
+			}
+		}
+
+		if (!$updated)
+			return false;
+
+		return array('result' => 'ok');
+	}
+
 }

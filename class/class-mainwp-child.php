@@ -84,7 +84,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 }
 
 class MainWP_Child {
-	public static $version = '3.4.2';
+	public static $version = '3.4.3';
 	private $update_version = '1.3';
 
 	private $callableFunctions = array(
@@ -149,7 +149,7 @@ class MainWP_Child {
 		'custom_post_type'	=> 'custom_post_type',
         'backup_buddy'          => 'backup_buddy',
         'get_site_icon'         => 'get_site_icon',
-        'vulner_checker'        => 'vulner_checker'               
+        'vulner_checker'        => 'vulner_checker'
 	);
 
 	private $FTP_ERROR = 'Failed! Please, add FTP details for automatic updates.';
@@ -229,8 +229,8 @@ class MainWP_Child {
 
 	}
 
-    
-    
+
+
 	function load_all_options() {
 		global $wpdb;
 
@@ -247,9 +247,9 @@ class MainWP_Child {
 		if ( !isset($alloptions['mainwp_db_version']) ) {
 			$suppress = $wpdb->suppress_errors();
 			$options = array(
-                'mainwp_child_auth', 
-                'mainwp_branding_plugin_header', 
-                'mainwp_child_reports_db',                 
+                'mainwp_child_auth',
+                'mainwp_branding_plugin_header',
+                'mainwp_child_reports_db',
                 'mainwp_child_fix_htaccess',
                 'mainwp_child_pluginDir',
                 'mainwp_updraftplus_hide_plugin',
@@ -307,7 +307,7 @@ class MainWP_Child {
 		return $alloptions;
 	}
 
-    
+
 	function update() {
 		$update_version = get_option( 'mainwp_child_update_version' );
 
@@ -1390,7 +1390,7 @@ class MainWP_Child {
                 
         new MainWP_Child_Back_Up_Buddy();
         MainWP_Child_Wordfence::Instance()->wordfence_init();
-        
+
         global $_wp_submenu_nopriv;
         if ($_wp_submenu_nopriv === null)
             $_wp_submenu_nopriv = array(); // fix warning
@@ -2211,11 +2211,11 @@ class MainWP_Child {
 		}
 
 		$res     = MainWP_Helper::createPost( $new_post, $post_custom, $post_category, $post_featured_image, $upload_dir, $post_tags );
-        
+
         if (is_array($res) && isset($res['error'])) {
-            MainWP_Helper::error( $res['error'] );            
+            MainWP_Helper::error( $res['error'] );
         }
-        
+
 		$created = $res['success'];
 		if ( true !== $created ) {
 			MainWP_Helper::error( 'Undefined error' );
@@ -2224,9 +2224,9 @@ class MainWP_Child {
 		$information['added']    = true;
 		$information['added_id'] = $res['added_id'];
 		$information['link']     = $res['link'];
-        
-        do_action('mainwp_child_after_newpost', $res);        
-        
+
+        do_action('mainwp_child_after_newpost', $res);
+
 		MainWP_Helper::write( $information );
 	}
 
@@ -2343,7 +2343,7 @@ class MainWP_Child {
 	            'is_sticky'      => is_sticky( $id ) ? 1 : 0,
 	            'post_title'     => $post->post_title,
 	            'post_content'   => $post->post_content,
-	            'post_status'    => $post->post_status, 
+	            'post_status'    => $post->post_status,
 	            'post_date'      => $post->post_date,
 	            'post_date_gmt'  => $post->post_date_gmt,
 	            'post_tags'      => $post_tags,
@@ -2357,10 +2357,10 @@ class MainWP_Child {
 	            $img                 = wp_get_attachment_image_src( $post_featured_image, 'full' );
 	            $post_featured_image = $img[0];
             }
-            
+
             require_once ABSPATH . 'wp-admin/includes/post.php';
             wp_set_post_lock($id);
-                        
+
             $post_data = array(
 	            'new_post'            => base64_encode( serialize( $new_post ) ),
 	            'post_custom'         => base64_encode( serialize( $post_custom ) ),
@@ -2423,10 +2423,10 @@ class MainWP_Child {
                             }
                     }
             }
-            
+
             require_once ABSPATH . 'wp-admin/includes/post.php';
             wp_set_post_lock($id);
-            
+
             $post_data = array(
                     'new_post' => base64_encode( serialize( $new_post ) ),
                     'post_custom' => base64_encode( serialize( $post_custom ) ),
@@ -3360,6 +3360,7 @@ class MainWP_Child {
 		$information['version']   = self::$version;
 		$information['wpversion'] = $wp_version;
 		$information['siteurl']   = get_option( 'siteurl' );
+		$information['wpe']   = function_exists( 'is_wpe' ) ? 1 : 0;
 
 	    $information['site_info']   = array(
 	        'wpversion' => $wp_version,
@@ -3640,12 +3641,12 @@ class MainWP_Child {
 				}
 			}
 
-            if ( isset( $othersData['syncBackupBuddy'] ) && !empty( $othersData['syncBackupBuddy'] ) ) {                   
+            if ( isset( $othersData['syncBackupBuddy'] ) && !empty( $othersData['syncBackupBuddy'] ) ) {
                 if ( MainWP_Child_Back_Up_Buddy::Instance()->is_backupbuddy_installed ) {
 					$information['syncBackupBuddy'] =  MainWP_Child_Back_Up_Buddy::Instance()->get_sync_data();
                 }
-			}            
-            
+			}
+
 			if ( isset( $othersData['syncWPRocketData'] ) && ( 'yes' === $othersData['syncWPRocketData'] ) ) {
 				$data = array();
 				if ( MainWP_Child_WP_Rocket::isActivated() ) {
@@ -3882,7 +3883,7 @@ class MainWP_Child {
 
         $wp_seo_enabled = false;
         if ( isset( $_POST['WPSEOEnabled'] ) && $_POST['WPSEOEnabled']) {
-           if (is_plugin_active('wordpress-seo/wp-seo.php') && class_exists('WPSEO_Link_Column_Count')) {               
+           if (is_plugin_active('wordpress-seo/wp-seo.php') && class_exists('WPSEO_Link_Column_Count')) {
                 $wp_seo_enabled = true;
            }
         }
@@ -3892,10 +3893,10 @@ class MainWP_Child {
             if ($wp_seo_enabled) {
                 $post_ids = array();
                 foreach ( $posts as $post ) {
-                    $post_ids[] = $post->ID;                    
+                    $post_ids[] = $post->ID;
                 }
                 $link_count = new WPSEO_Link_Column_Count();
-                $link_count->set( $post_ids );                
+                $link_count->set( $post_ids );
             }
 			foreach ( $posts as $post ) {
 				$outPost                  = array();
@@ -3945,9 +3946,9 @@ class MainWP_Child {
 						$outPost['[post.website.name]'] = get_bloginfo( 'name' );
 					}
 				}
-                
+
                 if ($wp_seo_enabled) {
-                    $post_id = $post->ID;                   
+                    $post_id = $post->ID;
                     $outPost['seo_data'] = array(
                         'count_seo_links' => $link_count->get( $post_id, 'internal_link_count' ),
                         'count_seo_linked' => $link_count->get( $post_id, 'incoming_link_count' ),
@@ -4173,9 +4174,9 @@ class MainWP_Child {
 					$this->posts_where_suffix .= " AND $wpdb->posts.post_modified < '" . $_POST['dtsstop'] . "'";
 				}
 			}
-            
-            if ( isset( $_POST['exclude_page_type'] ) && $_POST['exclude_page_type'] ) {                               
-                $this->posts_where_suffix .= " AND $wpdb->posts.post_type NOT IN ('page')";                                
+
+            if ( isset( $_POST['exclude_page_type'] ) && $_POST['exclude_page_type'] ) {
+                $this->posts_where_suffix .= " AND $wpdb->posts.post_type NOT IN ('page')";
             }
 		}
 
@@ -4648,6 +4649,7 @@ class MainWP_Child {
 		global $wp_version;
 		$information['version']   = self::$version;
 		$information['wpversion'] = $wp_version;
+		$information['wpe']   = function_exists( 'is_wpe' ) ? 1 : 0;
 		MainWP_Helper::write( $information );
 	}
 
@@ -5401,7 +5403,7 @@ class MainWP_Child {
     function vulner_checker() {
         MainWP_Child_Vulnerability_Checker::Instance()->action();
     }
-        
+
 	static function fix_for_custom_themes() {
 		if ( file_exists( ABSPATH . '/wp-admin/includes/screen.php' ) ) {
 			include_once( ABSPATH . '/wp-admin/includes/screen.php' );
