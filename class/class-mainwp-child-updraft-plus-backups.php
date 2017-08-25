@@ -462,8 +462,8 @@ class MainWP_Child_Updraft_Plus_Backups {
 							$opts = UpdraftPlus_Options::get_updraft_option( 'updraft_s3' );
 							if(is_array($opts) && isset($opts['settings'])) {
 								$settings_key = key($opts['settings']);
-//                                $opts['settings'][$settings_key]['accesskey'] = $settings[ $key ]['accesskey'];
-//                                $opts['settings'][$settings_key]['secretkey']   = $settings[ $key ]['secretkey'];
+                                $opts['settings'][$settings_key]['accesskey'] = $settings[ $key ]['accesskey'];
+                                $opts['settings'][$settings_key]['secretkey']   = $settings[ $key ]['secretkey'];
 								$opts['settings'][$settings_key]['path']   = $this->replace_tokens($settings[ $key ]['path']);
 								if (!empty($opts['settings'][$settings_key]['path']) && '/' == substr($opts['settings'][$settings_key]['path'], 0, 1)) {
 									$opts['settings'][$settings_key]['path'] = substr($opts['settings'][$settings_key]['path'], 1);
@@ -473,8 +473,8 @@ class MainWP_Child_Updraft_Plus_Backups {
 									$opts['settings'][$settings_key]['server_side_encryption']   = $settings[ $key ]['server_side_encryption'];
 								}
 							} else {
-//                                $opts['accesskey'] = $settings[ $key ]['accesskey'];
-//                                $opts['secretkey']   = $settings[ $key ]['secretkey'];
+                                $opts['accesskey'] = $settings[ $key ]['accesskey'];
+                                $opts['secretkey']   = $settings[ $key ]['secretkey'];
 								$opts['path']   = $this->replace_tokens($settings[ $key ]['path']);
 								if (!empty($opts['path']) && '/' == substr($opts['path'], 0, 1)) {
 									$opts['path'] = substr($opts['path'], 1);
@@ -490,14 +490,14 @@ class MainWP_Child_Updraft_Plus_Backups {
 							$opts = UpdraftPlus_Options::get_updraft_option( 'updraft_s3generic' );
 							if(is_array($opts) && isset($opts['settings'])) {
 								$settings_key = key($opts['settings']);
-//                                $opts['settings'][$settings_key]['endpoint'] = $settings[ $key ]['endpoint'];
-//                                $opts['settings'][$settings_key]['accesskey']   = $settings[ $key ]['accesskey'];
-//                                $opts['settings'][$settings_key]['secretkey']   = $settings[ $key ]['secretkey'];
+                                $opts['settings'][$settings_key]['endpoint'] = $settings[ $key ]['endpoint'];
+                                $opts['settings'][$settings_key]['accesskey']   = $settings[ $key ]['accesskey'];
+                                $opts['settings'][$settings_key]['secretkey']   = $settings[ $key ]['secretkey'];
 								$opts['settings'][$settings_key]['path']   = $this->replace_tokens($settings[ $key ]['path']);
 							} else {
-//                                $opts['endpoint'] = $settings[ $key ]['endpoint'];
-//                                $opts['accesskey']   = $settings[ $key ]['accesskey'];
-//                                $opts['secretkey']   = $settings[ $key ]['secretkey'];
+                                $opts['endpoint'] = $settings[ $key ]['endpoint'];
+                                $opts['accesskey']   = $settings[ $key ]['accesskey'];
+                                $opts['secretkey']   = $settings[ $key ]['secretkey'];
 								$opts['path']   = $this->replace_tokens($settings[ $key ]['path']);
 							}
 
