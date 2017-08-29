@@ -168,7 +168,7 @@ class MainWP_Child_Updraft_Plus_Backups {
 			'updraft_retain',
 			'updraft_retain_db',
 			'updraft_encryptionphrase',
-			'updraft_service',
+			//'updraft_service', // will check override to save
 			'updraft_dir',
 			'updraft_email',
 			'updraft_delete_local',
@@ -564,6 +564,13 @@ class MainWP_Child_Updraft_Plus_Backups {
 						$updated = true;
 					}
 				}
+                
+                
+                if (!isset($settings['do_not_save_remote_settings']) || empty($settings['do_not_save_remote_settings'])) {
+                    UpdraftPlus_Options::update_updraft_option( 'updraft_service', $settings['updraft_service'] );                    
+                }
+                
+                
 				global $updraftplus;
 				if ( isset( $settings['updraft_interval'] ) ) {
 					// fix for premium version
