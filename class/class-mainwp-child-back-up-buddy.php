@@ -1821,6 +1821,29 @@ class MainWP_Child_Back_Up_Buddy {
 	function remote_save() {
 		$data = isset($_POST['data']) ? $_POST['data'] : false;
 		$destination_id = isset($_POST['destination_id']) ? $_POST['destination_id'] : 0;
+                
+        if (is_array($data) && isset($data['do_not_override'])) {
+            
+            if (true == $data['do_not_override']) {
+                if (($data['type'] == 's32' || $data['type'] == 's33')) {
+                    $not_override = array(
+                        'accesskey',
+                        'secretkey',
+                        'bucket',
+                        'region'
+                    );
+                    foreach($not_override as $opt) {
+                        if (isset($data[$opt])) {
+                            unset($data[$opt]);                        
+                        }                    
+                    }
+                }
+            }
+            
+            unset($data['do_not_override']);
+        }
+        
+        
 		if (is_array($data)) {
 			if (isset(pb_backupbuddy::$options['remote_destinations'][$destination_id])) { // update
 				pb_backupbuddy::$options['remote_destinations'][$destination_id] = array_merge( pb_backupbuddy::$options['remote_destinations'][$destination_id], $data );
