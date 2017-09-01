@@ -692,6 +692,16 @@ class MainWP_Child_Back_Up_Buddy {
 
 
 	public function get_sync_data() {
+        if ( ! class_exists( 'backupbuddy_core' ) ) {
+            if (class_exists( 'pb_backupbuddy' ) && file_exists(pb_backupbuddy::plugin_path() . '/classes/core.php'))
+                require_once( pb_backupbuddy::plugin_path() . '/classes/core.php' );
+            else
+                return false;
+		}
+        
+        if (!function_exists('backupbuddy_core::get_plugins_root'))
+          return false;
+        
 		$information = array();
 		$information['plugins_root'] =  backupbuddy_core::get_plugins_root();
 		$information['themes_root'] =  backupbuddy_core::get_themes_root();
