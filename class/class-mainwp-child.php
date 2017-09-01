@@ -4779,7 +4779,7 @@ class MainWP_Child {
 					$size = @fread( $popenHandle, 1024 );
 					@pclose( $popenHandle );
 					$size = substr( $size, 0, strpos( $size, "\t" ) );
-					if ( MainWP_Helper::ctype_digit( $size ) ) {
+					if ( $size && MainWP_Helper::ctype_digit( $size ) ) {
 						return $size / 1024;
 					}
 				}
@@ -4791,7 +4791,7 @@ class MainWP_Child {
 				$size      = @shell_exec( 'du -s ' . $directory . ' --exclude "' . str_replace( ABSPATH, '', $uploadDir ) . '"' );
 				if ( null !== $size ) {
 					$size = substr( $size, 0, strpos( $size, "\t" ) );
-					if ( MainWP_Helper::ctype_digit( $size ) ) {
+					if ( $size && MainWP_Helper::ctype_digit( $size ) ) {
 						return $size / 1024;
 					}
 				}
@@ -4809,6 +4809,16 @@ class MainWP_Child {
 						return $size / 1024;
 					}
 				}
+			}
+            // to fix for window host, performance not good? 
+            if ( class_exists( 'RecursiveIteratorIterator' ) ) {				
+                $size = 0;
+                foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory)) as $file){
+                    $size+=$file->getSize();
+                }                
+                if ( $size && MainWP_Helper::ctype_digit( $size ) ) {
+                    return $size / 1024 / 1024;
+                }
 			}
 
 //			function dirsize( $dir ) {
