@@ -646,10 +646,17 @@ class MainWP_Child_iThemes_Security {
 
 		$username_exists = username_exists( 'admin' );
 		$user_id_exists  = ITSEC_Lib::user_id_exists( 1 );
-		$msg             = '';
-		if ( strlen( $new_username ) >= 1 && ! $username_exists ) {
-			$msg = __( 'Admin user already changes.', 'mainwp-child' );
-		}
+		$msg             = '';		
+        if ( strlen( $new_username ) >= 1) {
+            global $current_user;
+            if ( ! $username_exists ) {
+                $msg = __( 'Admin user already changes.', 'mainwp-child' );
+            } else if ($current_user->user_login == 'admin') {
+                $return['result'] = 'CHILD_ADMIN';
+                return $return;
+            }
+        }
+        
 		
 		if ( true === $change_id && ! $user_id_exists ) {			
 			if ( ! empty( $msg ) ) {
@@ -658,13 +665,13 @@ class MainWP_Child_iThemes_Security {
 			$msg .= __( 'Admin user ID already changes.', 'mainwp-child' );
 		}
 
-		if ( $change_id ) {
-			$user = get_user_by( 'login', $new_username );
-			if ( $user && 1 === (int) $user->ID ) {
-				$return['result'] = 'CHILD_ADMIN';
-				return $return;
-			}
-		}
+//		if ( $change_id ) {
+//			$user = get_user_by( 'login', $new_username );
+//			if ( $user && 1 === (int) $user->ID ) {
+//				$return['result'] = 'CHILD_ADMIN';
+//				return $return;
+//			}
+//		}
 
 		$admin_success = true;
 		$return           = array();
@@ -689,7 +696,8 @@ class MainWP_Child_iThemes_Security {
 		global $wpdb;
 		$itsec_files = ITSEC_Core::get_itsec_files();
 		
-		if ( $itsec_files->get_file_lock( 'admin_user' ) ) { //make sure it isn't already running
+        // do not need to check this 
+		//if ( $itsec_files->get_file_lock( 'admin_user' ) ) { //make sure it isn't already running
 
 			//sanitize the username
 			$new_user = sanitize_text_field( $username );
@@ -770,7 +778,7 @@ class MainWP_Child_iThemes_Security {
 				return true;
 
 			}
-		}
+		//}
 
 		return false;
 
@@ -1098,11 +1106,16 @@ class MainWP_Child_iThemes_Security {
 		return $excludes ;
 	}
 		
-	private function security_site() {
+    private function security_site() {
 		global $mainwp_itsec_modules_path;
 		require_once(  $mainwp_itsec_modules_path . 'security-check/scanner.php' );		
-		ITSEC_Security_Check_Scanner::run();
-		$response = ITSEC_Response::get_response();
+        require_once(  $mainwp_itsec_modules_path . 'security-check/feedback-renderer.php' );	        
+//		ITSEC_Security_Check_Scanner::run();
+//		$response = ITSEC_Response::get_response();
+        $results = ITSEC_Security_Check_Scanner::get_results();
+        ob_start();
+        ITSEC_Security_Check_Feedback_Renderer::render( $results );
+		$response = ob_get_clean();            
 		return array('result' => 'success' , 'response' => $response);
 	}
 }
