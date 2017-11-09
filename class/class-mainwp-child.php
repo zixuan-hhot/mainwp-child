@@ -3615,7 +3615,10 @@ class MainWP_Child {
 			$categories[] = $cat->name;
 		}
 		$information['categories'] = $categories;
-		$information['totalsize']  = $this->getTotalFileSize();
+		$get_file_size = apply_filters('mainwp-child-get-total-size', true);
+        if ($get_file_size) {
+            $information['totalsize']  = $this->getTotalFileSize(); 
+        }
 		$information['dbsize']     = MainWP_Child_DB::get_size();
 
 		$auths                  = get_option( 'mainwp_child_auth' );
