@@ -1104,8 +1104,12 @@ class MainWP_Child_Updraft_Plus_Backups {
 
 	private function deleteset() {
 		global $updraftplus;
-
-		$backups   = $updraftplus->get_backup_history();
+        
+        if (method_exists($updraftplus, 'get_backup_history')) {
+            $backups   = $updraftplus->get_backup_history();
+        } else if (class_exists('UpdraftPlus_Backup_History')) {
+            $backups = UpdraftPlus_Backup_History::get_history();
+        }
 		$timestamp = $_POST['backup_timestamp'];
 		if ( ! isset( $backups[ $timestamp ] ) ) {
 			$bh = $this->build_historystatus();
@@ -1322,8 +1326,13 @@ class MainWP_Child_Updraft_Plus_Backups {
 		$updraftplus->jobdata_set( 'job_type', 'download' );
 		$updraftplus->jobdata_set( 'job_time_ms', $updraftplus->job_time_ms );
 
-		// Retrieve the information from our backup history
-		$backup_history = $updraftplus->get_backup_history();
+		// Retrieve the information from our backup history		
+        if (method_exists($updraftplus, 'get_backup_history')) {
+            $backup_history   = $updraftplus->get_backup_history();
+        } else if (class_exists('UpdraftPlus_Backup_History')) {
+            $backup_history = UpdraftPlus_Backup_History::get_history();
+        }
+        
 		// Base name
 		$file = $backup_history[ $timestamp ][ $type ];
 
@@ -1479,7 +1488,13 @@ class MainWP_Child_Updraft_Plus_Backups {
 
 	public function restore_alldownloaded() {
 		global $updraftplus;
-		$backups     = $updraftplus->get_backup_history();
+		
+        if (method_exists($updraftplus, 'get_backup_history')) {
+            $backups   = $updraftplus->get_backup_history();
+        } else if (class_exists('UpdraftPlus_Backup_History')) {
+            $backups = UpdraftPlus_Backup_History::get_history();
+        }
+        
 		$updraft_dir = $updraftplus->backups_dir_location();
 
 		$timestamp = (int) $_POST['timestamp'];
@@ -2181,7 +2196,12 @@ class MainWP_Child_Updraft_Plus_Backups {
 			# This attempts to raise the maximum packet size. This can't be done within the session, only globally. Therefore, it has to be done before the session starts; in our case, during the pre-analysis.
 			$updraftplus->get_max_packet_size();
 
-			$backup = $updraftplus->get_backup_history( $timestamp );
+            if (method_exists($updraftplus, 'get_backup_history')) {
+                $backup   = $updraftplus->get_backup_history($timestamp);
+            } else if (class_exists('UpdraftPlus_Backup_History')) {
+                $backup = UpdraftPlus_Backup_History::get_history($timestamp);
+            }
+
 			if ( ! isset( $backup['nonce'] ) || ! isset( $backup['db'] ) ) {
 				return array( $mess, $warn, $err, $info );
 			}
