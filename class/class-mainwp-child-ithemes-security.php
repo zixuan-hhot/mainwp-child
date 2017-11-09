@@ -259,7 +259,7 @@ class MainWP_Child_iThemes_Security {
 			'is_multisite'          => is_multisite() ? 1 : 0,
 			'users_can_register'    => get_site_option( 'users_can_register' ) ? 1 : 0,			
 			'server_nginx'          => ( ITSEC_Lib::get_server() === 'nginx' ) ? 1 : 0,			
-			'has_ssl'				=> ITSEC_Lib::get_ssl() ? 1 : 0,
+			'has_ssl'				=> ITSEC_Lib::get_ssl_support_probability(),
 			'jquery_version'		=> ITSEC_Modules::get_setting( 'wordpress-tweaks', 'jquery_version' ),			
 			'server_rules'			=> ITSEC_Lib_Config_File::get_server_config(),
 			'config_rules'			=> ITSEC_Lib_Config_File::get_wp_config(),
