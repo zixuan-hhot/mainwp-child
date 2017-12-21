@@ -2503,7 +2503,7 @@ class MainWP_Child {
 		if ( ! isset( $information['status'] ) && !isset($information['error']) ) {
 			$information['status'] = 'SUCCESS';
                         if ('update_user' === $action && isset($_POST['optimize']) && !empty($_POST['optimize'])) {
-                            $information['users'] = $this->get_all_users_int();
+                            $information['users'] = $this->get_all_users_int(500); // to fix
                         }
                             
 		}
@@ -3632,7 +3632,7 @@ class MainWP_Child {
 		$information['themes']  = $themes;
 
 		if ( isset( $_POST['optimize'] ) && ( '1' === $_POST['optimize'] ) ) {
-			$information['users'] = $this->get_all_users_int();
+			$information['users'] = $this->get_all_users_int(500); // to fix
 		}
 
 		if ( isset( $_POST['othersData'] ) ) {
@@ -4589,10 +4589,14 @@ class MainWP_Child {
 		MainWP_Helper::write( $allusers );
 	}
 
-	function get_all_users_int() {
+	function get_all_users_int($number = false) {
 		$allusers = array();
-
-		$new_users = get_users();
+        
+        $params = array();
+        if ($number)
+            $params['number'] = $number;
+        
+		$new_users = get_users($params);
 		if ( is_array( $new_users ) ) {
 			foreach ( $new_users as $new_user ) {
 				$usr                 = array();
