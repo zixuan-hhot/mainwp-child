@@ -209,7 +209,7 @@ class MainWP_Helper {
 		return array( 'path' => $full_file_name );
 	}
 
-	static function createPost( $new_post, $post_custom, $post_category, $post_featured_image, $upload_dir, $post_tags ) {
+	static function createPost( $new_post, $post_custom, $post_category, $post_featured_image, $upload_dir, $post_tags, $others = array() ) {
 		global $current_user;
 		$wprocket_fields    = array( 'lazyload', 'lazyload_iframes', 'minify_html', 'minify_css', 'minify_js', 'cdn' );
 		$wprocket_activated = false;
@@ -591,6 +591,16 @@ class MainWP_Helper {
 				if ( null !== $upload ) {
 					update_post_meta( $new_post_id, '_thumbnail_id', $upload['id'] ); //Add the thumbnail to the post!
 					$featured_image_exist = true;
+                    if (isset($others['featured_image_data'])) {
+                        $_image_data = $others['featured_image_data'];
+                        update_post_meta( $upload['id'], '_wp_attachment_image_alt', $_image_data['alt'] );
+                        wp_update_post( array( 'ID' => $upload['id'], 
+                                            'post_excerpt' => $_image_data['caption'],
+                                            'post_content' => $_image_data['description'],
+                                            'post_title' => $_image_data['title']
+                                        ) 
+                                    );
+                    }
 				}
 			} catch ( Exception $e ) {
 

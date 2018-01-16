@@ -1451,10 +1451,13 @@ class MainWP_Child {
 			$nossl       = get_option( 'mainwp_child_nossl' );
 			$serverNoSsl = ( isset( $pNossl ) && 1 === (int) $pNossl );
 
-			if ( ( 1 === (int) $nossl ) || $serverNoSsl ) {
-				$auth = ( md5( $func . $nonce . get_option( 'mainwp_child_nossl_key' ) ) === base64_decode( $signature ) );
+			if ( ( 1 === (int) $nossl ) || $serverNoSsl ) {				
+                $auth = hash_equals( md5( $func . $nonce . get_option( 'mainwp_child_nossl_key' ) ), base64_decode( $signature ) );
 			} else {
 				$auth = openssl_verify( $func . $nonce, base64_decode( $signature ), base64_decode( get_option( 'mainwp_child_pubkey' ) ) );
+                if ($auth !== 1) {
+                    $auth = false;
+                }
 			}
 		}
 
@@ -2216,8 +2219,13 @@ class MainWP_Child {
 		if ( isset( $_POST['_ezin_post_category'] ) ) {
 			$new_post['_ezin_post_category'] = maybe_unserialize( base64_decode( $_POST['_ezin_post_category'] ) );
 		}
-
-		$res     = MainWP_Helper::createPost( $new_post, $post_custom, $post_category, $post_featured_image, $upload_dir, $post_tags );
+        
+        $others = array(); 
+        if ( isset( $_POST['featured_image_data'] ) && !empty($_POST['featured_image_data'])) {
+            $others['featured_image_data'] = unserialize(base64_decode( $_POST['featured_image_data'] ));
+        }    
+        
+		$res     = MainWP_Helper::createPost( $new_post, $post_custom, $post_category, $post_featured_image, $upload_dir, $post_tags, $others );
 
         if (is_array($res) && isset($res['error'])) {
             MainWP_Helper::error( $res['error'] );
@@ -5376,7 +5384,7 @@ class MainWP_Child {
 		header( 'Content-Description: File Transfer' );
 		if ( MainWP_Helper::endsWith( $file, '.tar.gz' ) ) {
 			header( 'Content-Type: application/x-gzip' );
-			header( "Content-Encoding: gzip'" );
+			header( "Content-Encoding: gzip" );
 		} else {
 			header( 'Content-Type: application/octet-stream' );
 		}

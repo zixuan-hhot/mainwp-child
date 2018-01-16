@@ -863,14 +863,17 @@ SQL
 			}
 
 			$sch = isset( $opts['scheduleScan'] ) ? $opts['scheduleScan'] : '';
-
-			if ( get_option( 'mainwp_child_wordfence_cron_time' ) !== $sch ) {
-				update_option( 'mainwp_child_wordfence_cron_time', $sch );
-				$sched = wp_next_scheduled( 'mainwp_child_wordfence_cron_scan' );
-				if ( false !== $sched ) {
-					wp_unschedule_event( $sched, 'mainwp_child_wordfence_cron_scan' );
-				}
-			}
+            $sync_sch = ( isset( $opts['notsync_scheduleScan'] ) && $opts['notsync_scheduleScan'] ) ? false : true;
+            
+            if ($sync_sch) {                
+                if ( get_option( 'mainwp_child_wordfence_cron_time' ) !== $sch ) {
+                    update_option( 'mainwp_child_wordfence_cron_time', $sch );
+                    $sched = wp_next_scheduled( 'mainwp_child_wordfence_cron_scan' );
+                    if ( false !== $sched ) {
+                        wp_unschedule_event( $sched, 'mainwp_child_wordfence_cron_scan' );
+                    }
+                }
+            }
 
 			$result['cacheType']  = wfConfig::get( 'cacheType' );
 			$result['paidKeyMsg'] = false;
