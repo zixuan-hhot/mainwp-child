@@ -3930,7 +3930,7 @@ class MainWP_Child {
 				$outPost['post_type']     = $post->post_type;
 				$outPost['status']        = $post->post_status;
 				$outPost['title']         = $post->post_title;
-				$outPost['content']       = $post->post_content;
+				//$outPost['content']       = $post->post_content; // to fix overload memory
 				$outPost['comment_count'] = $post->comment_count;
                 // to support extract urls extension
 				if ( isset( $extra['where_post_date'] ) && !empty( $extra['where_post_date'] ) ) {
