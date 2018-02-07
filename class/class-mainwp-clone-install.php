@@ -677,7 +677,7 @@ class MainWP_Clone_Install {
                 // TODO: apply solution like phpmyadmin project have!
 				if ( ($data = &unserialize( $data )) !== false ) {
 					$data = str_replace( $from, $to, $data );
-                    $data = unserialize( $data );
+                    $data = serialize( $data );
 				}
 			} else {
 				if ( is_string( $data ) ) {
