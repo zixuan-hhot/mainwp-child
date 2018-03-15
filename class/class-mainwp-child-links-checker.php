@@ -275,7 +275,7 @@ class MainWP_Child_Links_Checker {
 			'status_code',
 			'log'			
 		);
-		$return     = '';
+		$return     = array();
 		
 		$blc_option = get_option( 'wsblc_options' );
 
@@ -366,7 +366,7 @@ class MainWP_Child_Links_Checker {
 				$return[] = $new_link;
 			}
 		} else {
-			return '';
+			return array();
 		}
 
 		return $return;
