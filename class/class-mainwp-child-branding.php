@@ -51,9 +51,6 @@ class MainWP_Child_Branding {
 		return $plugin_meta;
 	}
 
-	public static function admin_init() {
-	}
-
 	public function child_deactivation() {
 		$dell_all = array(
 			'mainwp_branding_disable_change',
@@ -105,7 +102,7 @@ class MainWP_Child_Branding {
 			'description' => $settings['child_plugin_desc'],
 			'author'      => $settings['child_plugin_author'],
 			'authoruri'   => $settings['child_plugin_author_uri'],
-			'pluginuri'   => $settings['child_plugin_uri'],
+			'pluginuri'   => isset($settings['child_plugin_uri']) ? $settings['child_plugin_uri'] : '',
 		);
 		MainWP_Helper::update_option( 'mainwp_branding_preserve_branding', $settings['child_preserve_branding'], 'yes' );
 		MainWP_Helper::update_option( 'mainwp_branding_plugin_header', $header, 'yes' );
@@ -322,12 +319,13 @@ class MainWP_Child_Branding {
 			add_action( 'login_head', array( &$this, 'custom_login_logo' ) );
 			add_action( 'wp_head', array( &$this, 'custom_favicon_frontend' ) );
 			if ( isset( $extra_setting['dashboard_footer'] ) && ! empty( $extra_setting['dashboard_footer'] ) ) {
-				remove_filter( 'update_footer', 'core_update_footer' );
-				add_filter( 'update_footer', array( &$this, 'update_admin_footer' ), 14 );
+				//remove_filter( 'update_footer', 'core_update_footer' );
+				add_filter( 'update_footer', array( &$this, 'core_update_footer' ), 14 );
+                add_filter( 'admin_footer_text', array( &$this, 'admin_footer_text' ), 14 );                
 			}
 
-			if ( isset( $extra_setting['hide_nag'] ) && ! empty( $extra_setting['hide_nag'] ) ) {
-				add_action( 'admin_init', create_function( '', 'remove_action( \'admin_notices\', \'update_nag\', 3 );' ) );
+			if ( isset( $extra_setting['hide_nag'] ) && ! empty( $extra_setting['hide_nag'] ) ) {				
+				add_action( 'admin_init', array($this, 'admin_init'));				
 			}
 
 			add_action( 'admin_menu', array( &$this, 'remove_default_post_metaboxes' ) );
@@ -335,6 +333,11 @@ class MainWP_Child_Branding {
 		}
 	}
 
+	
+	public function admin_init() {
+		remove_action( 'admin_notices', 'update_nag', 3 ); 
+	}
+	
     // to fix conflict with other plugin
     function admin_menu() {
         if ( !current_user_can( 'administrator' ) ) {
@@ -487,8 +490,11 @@ class MainWP_Child_Branding {
 		return $defaults;
 	}
 
-
-	function update_admin_footer() {
+	function core_update_footer() {
+		echo ''; // it clear version text 
+	}
+	
+	function admin_footer_text() {
 		$extra_setting = $this->settings['extra_settings'];
 		if ( isset( $extra_setting['dashboard_footer'] ) && ! empty( $extra_setting['dashboard_footer'] ) ) {
 			echo wp_kses_post( nl2br( stripslashes( $extra_setting['dashboard_footer'] ) ) );
