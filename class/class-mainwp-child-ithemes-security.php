@@ -134,6 +134,11 @@ class MainWP_Child_iThemes_Security {
 			add_filter( 'all_plugins', array( $this, 'all_plugins' ) );
 			add_action( 'admin_menu', array( $this, 'remove_menu' ) );
 			add_action( 'admin_init', array( $this, 'admin_init' ) );
+			add_action( 'admin_head', array( &$this, 'custom_admin_css' ) );
+			if ( isset($_GET['page']) && ($_GET['page'] == 'itsec' || $_GET['page'] == 'itsec-logs' || $_GET['page'] == 'itsec-security-check') ) {
+				wp_redirect( get_option( 'siteurl' ) . '/wp-admin/index.php' );
+				exit();
+			}		
 		}
 	}
 
@@ -156,6 +161,16 @@ class MainWP_Child_iThemes_Security {
 		remove_menu_page( 'itsec' );
 	}
 
+	function custom_admin_css() {
+		?>
+		<style type="text/css">
+			#wp-admin-bar-itsec_admin_bar_menu{
+				display: none !important;
+			}			
+		</style> 
+		<?php		
+	}
+	
 	function save_settings() {
 		
 		if ( ! class_exists( 'ITSEC_Lib' ) ) {

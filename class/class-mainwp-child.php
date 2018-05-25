@@ -150,7 +150,8 @@ class MainWP_Child {
         'backup_buddy'          => 'backup_buddy',
         'get_site_icon'         => 'get_site_icon',
         'vulner_checker'        => 'vulner_checker',  
-        'wp_staging'            => 'wp_staging'        
+        'wp_staging'            => 'wp_staging',        
+		'disconnect'            => 'disconnect',
 	);
 
 	private $FTP_ERROR = 'Failed! Please, add FTP details for automatic updates.';
@@ -1858,6 +1859,11 @@ class MainWP_Child {
 			global $wp_current_filter;
 			$wp_current_filter[] = 'load-plugins.php';
 			@wp_update_plugins();
+			
+			// trick to prevent some premium plugins re-create update info
+			remove_all_filters('pre_set_site_transient_update_plugins');
+			
+			
 			$information['plugin_updates'] = get_plugin_updates();
 
 			$plugins        = explode( ',', urldecode( $_POST['list'] ) );
@@ -4743,7 +4749,7 @@ class MainWP_Child {
 		}
 	}
 
-	function deactivation() {
+	function deactivation( $deact = true) {
 		$to_delete   = array(
 			'mainwp_child_pubkey',
 			'mainwp_child_nonce',
@@ -4761,7 +4767,9 @@ class MainWP_Child {
 				wp_cache_delete( $delete, 'options' );
 			}
 		}
-		do_action( 'mainwp_child_deactivation' );
+		
+		if ($deact)
+			do_action( 'mainwp_child_deactivation' );
 	}
 
 	function getWPFilesystem() {
@@ -5473,7 +5481,12 @@ class MainWP_Child {
     function wp_staging() {
         MainWP_Child_Staging::Instance()->action();
     }
-    
+	
+	function disconnect() {       
+		$this->deactivation(false);
+		MainWP_Helper::write( array( 'result' => 'success' ) );		
+    }
+	    
 	static function fix_for_custom_themes() {
 		if ( file_exists( ABSPATH . '/wp-admin/includes/screen.php' ) ) {
 			include_once( ABSPATH . '/wp-admin/includes/screen.php' );

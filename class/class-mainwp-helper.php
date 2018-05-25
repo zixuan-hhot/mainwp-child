@@ -211,7 +211,18 @@ class MainWP_Helper {
 
 	static function createPost( $new_post, $post_custom, $post_category, $post_featured_image, $upload_dir, $post_tags, $others = array() ) {
 		global $current_user;
-		$wprocket_fields    = array( 'lazyload', 'lazyload_iframes', 'minify_html', 'minify_css', 'minify_js', 'cdn' );
+		// Options fields.
+		$wprocket_fields = array(
+			'lazyload',
+			'lazyload_iframes',
+			'minify_html',
+			'minify_css',
+			'minify_js',
+			'cdn',
+			'async_css',
+			'defer_all_js',
+		);
+		
 		$wprocket_activated = false;
 		if ( MainWP_Child_WP_Rocket::isActivated() ) {
 			if ( function_exists( 'get_rocket_option' ) ) {
