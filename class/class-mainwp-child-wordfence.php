@@ -182,15 +182,16 @@ class MainWP_Child_Wordfence {
 		add_action( 'mainwp_child_deactivation', array( $this, 'deactivation' ) );
 
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+        
+        // ok
+        if ( is_plugin_active( 'wordfence/wordfence.php' ) && file_exists( plugin_dir_path( __FILE__ ) . '../../wordfence/wordfence.php' ) ) {
+            require_once( plugin_dir_path( __FILE__ ) . '../../wordfence/wordfence.php' );
+            $this->is_wordfence_installed = true;
+        }
 
-		if ( is_plugin_active( 'wordfence/wordfence.php' ) && file_exists( plugin_dir_path( __FILE__ ) . '../../wordfence/wordfence.php' ) ) {
-			require_once( plugin_dir_path( __FILE__ ) . '../../wordfence/wordfence.php' );
-			$this->is_wordfence_installed = true;
-		}
-
-		if ( $this->is_wordfence_installed ) {
-			add_action( 'wp_ajax_mainwp_wordfence_download_htaccess', array( $this, 'downloadHtaccess' ) );
-		}
+        if ( $this->is_wordfence_installed ) {
+            add_action( 'wp_ajax_mainwp_wordfence_download_htaccess', array( $this, 'downloadHtaccess' ) );
+        }
 
 	}
 
@@ -656,7 +657,7 @@ class MainWP_Child_Wordfence {
     function do_site_stats() {
         do_action( 'mainwp_child_reports_log', 'wordfence' );
 	}
-
+    // ok
     public function do_reports_log($ext = '') {
         if ( $ext !== 'wordfence' ) return;
         if ( ! $this->is_wordfence_installed ) return;

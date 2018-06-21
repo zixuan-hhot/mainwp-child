@@ -23,18 +23,17 @@ class MainWP_Child_iThemes_Security {
         
 		add_filter( 'mainwp-site-sync-others-data', array( $this, 'syncOthersData' ), 10, 2 );
 	}
-
+    // ok
 	function syncOthersData( $information, $data = array() ) {
 		if ( is_array( $data ) && isset( $data['ithemeExtActivated'] ) && ( 'yes' === $data['ithemeExtActivated'] ) ) {
-            $information['syncIThemeData'] = array(
-                'users_and_roles' => $this->get_available_admin_users_and_roles()
-            );
-			//MainWP_Helper::update_option( 'mainwp_ithemes_ext_activated', 'Y' );            
-            return $information;
-
-		} else {
-			//MainWP_Helper::update_option( 'mainwp_ithemes_ext_activated', '' );
-		}
+            try{
+                $information['syncIThemeData'] = array(
+                    'users_and_roles' => $this->get_available_admin_users_and_roles()
+                );  
+            } catch(Exception $e) {
+                error_log($e->getMessage());
+            }
+		} 
 		return $information;
 	}
 
@@ -58,9 +57,6 @@ class MainWP_Child_iThemes_Security {
 				case 'save_settings':
 					$information = $this->save_settings();
 					break;
-//				case 'whitelist':
-//					$information = $this->whitelist();
-//					break;
 				case 'whitelist_release':
 					$information = $this->whitelist_release();
 					break;
@@ -73,18 +69,12 @@ class MainWP_Child_iThemes_Security {
 				case 'database_prefix':
 					$information = $this->change_database_prefix();
 					break;
-//				case 'api_key':
-//					$information = $this->api_key();
-//					break;
 				case 'reset_api_key':
 					$information = $this->reset_api_key();
 					break;
 				case 'malware_scan':
 					$information = $this->malware_scan();
 					break;
-//				case 'malware_get_scan_results':
-//					$information = $this->malware_get_scan_results();
-//					break;
 				case 'clear_all_logs':
 					$information = $this->purge_logs();
 					break;
@@ -1169,8 +1159,6 @@ class MainWP_Child_iThemes_Security {
 		global $mainwp_itsec_modules_path;
 		require_once(  $mainwp_itsec_modules_path . 'security-check/scanner.php' );		
         require_once(  $mainwp_itsec_modules_path . 'security-check/feedback-renderer.php' );	        
-//		ITSEC_Security_Check_Scanner::run();
-//		$response = ITSEC_Response::get_response();
         $results = ITSEC_Security_Check_Scanner::get_results();
         ob_start();
         ITSEC_Security_Check_Feedback_Renderer::render( $results );
@@ -1179,6 +1167,7 @@ class MainWP_Child_iThemes_Security {
 	}
     
     // source from itheme plugin
+    // ok
     public function get_available_admin_users_and_roles() {
 		if ( is_callable( 'wp_roles' ) ) {
 			$roles = wp_roles();

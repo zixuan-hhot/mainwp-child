@@ -2,8 +2,8 @@
 
 class MainWP_Child_Updraft_Plus_Backups {
 	public static $instance = null;
-
-	static function Instance() {
+    public $is_plugin_installed = false;
+    static function Instance() {
 		if ( null === MainWP_Child_Updraft_Plus_Backups::$instance ) {
 			MainWP_Child_Updraft_Plus_Backups::$instance = new MainWP_Child_Updraft_Plus_Backups();
 		}
@@ -11,7 +11,15 @@ class MainWP_Child_Updraft_Plus_Backups {
 		return MainWP_Child_Updraft_Plus_Backups::$instance;
 	}
 
-	public function __construct() {
+	public function __construct() {                
+        require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+		if ( is_plugin_active( 'updraftplus/updraftplus.php' ) && defined('UPDRAFTPLUS_DIR')) {
+            $this->is_plugin_installed = true;			
+		}   
+        
+        if (!$this->is_plugin_installed)
+            return;       
+        
 		add_filter( 'mainwp-site-sync-others-data', array( $this, 'syncOthersData' ), 10, 2 );
 		add_filter('updraftplus_save_last_backup', array( __CLASS__, 'hookUpdraftplusSaveLastBackup' ));
 	}
@@ -26,108 +34,119 @@ class MainWP_Child_Updraft_Plus_Backups {
 		}
 		return $last_backup;
 	}
-
+    // ok
 	function syncOthersData( $information, $data = array() ) {
-		if ( isset( $data['syncUpdraftData'] ) && $data['syncUpdraftData'] ) {
-			if ( self::isActivatedUpdraftplus() ) {
-				$information['syncUpdraftData'] = $this->syncData();
-			}
-		}
-		if ( isset( $data['sync_Updraftvault_quota_text'] ) && $data['sync_Updraftvault_quota_text'] ) {
-			if ( self::isActivatedUpdraftplus() ) {
-				$information['sync_Updraftvault_quota_text'] = $this->connected_html();
-			}
-		}
+        try{
+            if ( isset( $data['syncUpdraftData'] ) && $data['syncUpdraftData'] ) {
+                if ( $this->is_plugin_installed ) {
+                    $information['syncUpdraftData'] = $this->get_sync_data();
+                }
+            }
+            if ( isset( $data['sync_Updraftvault_quota_text'] ) && $data['sync_Updraftvault_quota_text'] ) {
+                if ( $this->is_plugin_installed ) {
+                    $information['sync_Updraftvault_quota_text'] = $this->connected_html();
+                }
+            }
+        } catch(Exception $e) {
+                
+        }
+        
 		return $information;
 	}
 
 	public function action() {
 		$information = array();
-		if ( ! self::isActivatedUpdraftplus() ) {
+		if ( ! $this->is_plugin_installed ) {
 			$information['error'] = 'NO_UPDRAFTPLUS';
 			MainWP_Helper::write( $information );
 		}
 
+        $this->required_files();
+                
 		global $updraftplus;
 		if ( empty( $updraftplus ) && class_exists( 'UpdraftPlus' ) ) {
 			$updraftplus = new UpdraftPlus();
 		}
 		if ( empty( $updraftplus ) ) {
-			$information['error'] = 'Error empty object';
+			$information['error'] = 'Error empty updraftplus';
 			MainWP_Helper::write( $information );
 		}
-
+        
 		if ( isset( $_POST['mwp_action'] ) ) {
 
 			if ( get_option( 'mainwp_updraftplus_ext_enabled' ) !== 'Y' ) {
 				MainWP_Helper::update_option( 'mainwp_updraftplus_ext_enabled', 'Y', 'yes' );
 			}
-
-			switch ( $_POST['mwp_action'] ) {
-				case 'set_showhide':
-					$information = $this->set_showhide();
-					break;
-				case 'save_settings':
-					$information = $this->save_settings();
-					break;
-				case 'addons_connect':
-					$information = $this->addons_connect();
-					break;
-				case 'backup_now':
-					$information = $this->backup_now();
-					break;
-				case 'activejobs_list':
-					$information = $this->activejobs_list();
-					break;
-				case 'diskspaceused':
-					$information = $this->diskspaceused();
-					break;
-				case 'last_backup_html':
-					$information = $this->last_backup_html();
-					break;
-				case 'reload_data':
-					$information = $this->get_updraft_data();
-					break;
-				case 'next_scheduled_backups':
-					$information = $this->next_scheduled_backups();
-					break;
-				case 'forcescheduledresumption':
-					$information = $this->forceScheduledResumption();
-					break;
-				case 'fetch_updraft_log':
-					$information = $this->fetch_updraft_log();
-					break;
-				case 'activejobs_delete':
-					$information = $this->activejobs_delete();
-					break;
-				case 'historystatus':
-					$information = $this->historystatus();
-					break;
-				case 'deleteset':
-					$information = $this->deleteset();
-					break;
-				case 'updraft_download_backup':
-					$information = $this->updraft_download_backup();
-					break;
-				case 'restore_alldownloaded':
-					$information = $this->restore_alldownloaded();
-					break;
-				case 'restorebackup': // not used
-					$information = $this->restoreBackup();
-					break;
-				case 'extradbtestconnection':
-					$information = $this->extradb_testconnection();
-					break;
-				case 'delete_old_dirs':
-					$information = $this->delete_old_dirs_go();
-					break;
-				case 'vault_connect':
-					$information = $this->do_vault_connect();
-					break;
-				case 'vault_disconnect':
-					$information = $this->vault_disconnect();
-					break;
-			}
+            
+            try {
+                switch ( $_POST['mwp_action'] ) {
+                    case 'set_showhide':
+                        $information = $this->set_showhide();
+                        break;
+                    case 'save_settings':
+                        $information = $this->save_settings();
+                        break;
+                    case 'addons_connect':
+                        $information = $this->addons_connect();
+                        break;
+                    case 'backup_now':
+                        $information = $this->backup_now();
+                        break;
+                    case 'activejobs_list':
+                        $information = $this->activejobs_list();
+                        break;
+                    case 'diskspaceused':
+                        $information = $this->diskspaceused();
+                        break;
+                    case 'last_backup_html':
+                        $information = $this->last_backup_html();
+                        break;
+                    case 'reload_data':
+                        $information = $this->get_updraft_data();
+                        break;
+                    case 'next_scheduled_backups':
+                        $information = $this->next_scheduled_backups();
+                        break;
+                    case 'forcescheduledresumption':
+                        $information = $this->forceScheduledResumption();
+                        break;
+                    case 'fetch_updraft_log':
+                        $information = $this->fetch_updraft_log();
+                        break;
+                    case 'activejobs_delete':
+                        $information = $this->activejobs_delete();
+                        break;
+                    case 'historystatus':
+                        $information = $this->historystatus();
+                        break;
+                    case 'deleteset':
+                        $information = $this->deleteset();
+                        break;
+                    case 'updraft_download_backup':
+                        $information = $this->updraft_download_backup();
+                        break;
+                    case 'restore_alldownloaded':
+                        $information = $this->restore_alldownloaded();
+                        break;
+                    case 'restorebackup': // not used
+                        $information = $this->restoreBackup();
+                        break;
+                    case 'extradbtestconnection':
+                        $information = $this->extradb_testconnection();
+                        break;
+                    case 'delete_old_dirs':
+                        $information = $this->delete_old_dirs_go();
+                        break;
+                    case 'vault_connect':
+                        $information = $this->do_vault_connect();
+                        break;
+                    case 'vault_disconnect':
+                        $information = $this->vault_disconnect();
+                        break;
+                }
+            } catch(Exception $e) {
+                $information = array('error' => $e->getMessage());
+            }
 		}
 		MainWP_Helper::write( $information );
 	}
@@ -139,23 +158,6 @@ class MainWP_Child_Updraft_Plus_Backups {
 
 		return $information;
 	}
-
-	public static function isActivatedUpdraftplus() {
-		if ( ! defined( 'UPDRAFTPLUS_DIR' ) ) {
-			return false;
-		}
-
-		if ( ! class_exists( 'UpdraftPlus' ) ) {
-			require_once( UPDRAFTPLUS_DIR . '/class-updraftplus.php' );
-		}
-
-		if ( ! class_exists( 'UpdraftPlus_Options' ) ) {
-			require_once( UPDRAFTPLUS_DIR . '/options.php' );
-		}
-
-		return true;
-	}
-
 
 	private function get_settings_keys() {
 		return array(
@@ -245,6 +247,9 @@ class MainWP_Child_Updraft_Plus_Backups {
 
 
 	private function connected_html() {
+        MainWP_Helper::check_classes_exists('UpdraftPlus_Options');
+        MainWP_Helper::check_methods('UpdraftPlus_Options', 'get_updraft_option');
+     
 		$vault_settings = UpdraftPlus_Options::get_updraft_option( 'updraft_updraftvault' );
 		if ( !is_array( $vault_settings ) || empty( $vault_settings['token'] ) || empty( $vault_settings['email'] ) ) {
 			return '';
@@ -372,6 +377,18 @@ class MainWP_Child_Updraft_Plus_Backups {
 		}
 	}
 
+    function required_files() {
+        if (defined('UPDRAFTPLUS_DIR')) {
+            if ( ! class_exists( 'UpdraftPlus' ) && file_exists( UPDRAFTPLUS_DIR . '/class-updraftplus.php') ) {
+                require_once( UPDRAFTPLUS_DIR . '/class-updraftplus.php' );
+            }
+            
+            if ( ! class_exists( 'UpdraftPlus_Options' ) && file_exists( UPDRAFTPLUS_DIR . '/options.php' ) )  {
+                require_once( UPDRAFTPLUS_DIR . '/options.php' );
+            }
+        }
+    }
+        
 	function save_settings() {
 		$settings = maybe_unserialize( base64_decode( $_POST['settings'] ) );
 
@@ -385,6 +402,8 @@ class MainWP_Child_Updraft_Plus_Backups {
 						$settings_key = null;
 						if ( 'updraft_dropbox' === $key && is_array($settings[ $key ])) {
 							$opts = UpdraftPlus_Options::get_updraft_option( 'updraft_dropbox' );
+                            if (!is_array($opts))
+                                $opts = array();
 							if(is_array($opts) && isset($opts['settings'])) {
 								$settings_key = key($opts['settings']);
 								if (isset($settings['is_general']) && !empty($settings['is_general'])){
@@ -406,6 +425,8 @@ class MainWP_Child_Updraft_Plus_Backups {
 							UpdraftPlus_Options::update_updraft_option( $key, $opts );
 						} else if ( 'updraft_googledrive' === $key ) {
 							$opts             = UpdraftPlus_Options::get_updraft_option( 'updraft_googledrive' );
+                            if (!is_array($opts))
+                                $opts = array();
 							if(is_array($opts) && isset($opts['settings'])) {
 								$settings_key = key($opts['settings']);
 //                                $opts['settings'][$settings_key]['clientid'] = $settings[ $key ]['clientid'];
@@ -419,6 +440,8 @@ class MainWP_Child_Updraft_Plus_Backups {
 							UpdraftPlus_Options::update_updraft_option( $key, $opts );
 						} else if ( 'updraft_googlecloud' === $key ) {
 							$opts             = UpdraftPlus_Options::get_updraft_option( $key );
+                            if (!is_array($opts))
+                                $opts = array();
 							if(is_array($opts) && isset($opts['settings'])) {
 								$settings_key = key($opts['settings']);
 //                                $opts['settings'][$settings_key]['clientid'] = $settings[ $key ]['clientid'];
@@ -438,6 +461,8 @@ class MainWP_Child_Updraft_Plus_Backups {
 							UpdraftPlus_Options::update_updraft_option( $key, $opts );
 						} else if ( 'updraft_onedrive' === $key ) {
 							$opts             = UpdraftPlus_Options::get_updraft_option( 'updraft_onedrive' );
+                            if (!is_array($opts))
+                                $opts = array();
 							if(is_array($opts) && isset($opts['settings'])) {
 								$settings_key = key($opts['settings']);
 //                                $opts['settings'][$settings_key]['clientid'] = $settings[ $key ]['clientid'];
@@ -461,6 +486,8 @@ class MainWP_Child_Updraft_Plus_Backups {
 							UpdraftPlus_Options::update_updraft_option( $key, $value );
 						} else if ( 'updraft_s3' === $key ) {
 							$opts = UpdraftPlus_Options::get_updraft_option( 'updraft_s3' );
+                            if (!is_array($opts))
+                                $opts = array();
 							if(is_array($opts) && isset($opts['settings'])) {
 								$settings_key = key($opts['settings']);
                                 $opts['settings'][$settings_key]['accesskey'] = $settings[ $key ]['accesskey'];
@@ -489,6 +516,8 @@ class MainWP_Child_Updraft_Plus_Backups {
 							UpdraftPlus_Options::update_updraft_option( $key, $opts );
 						} else if ( 'updraft_s3generic' === $key ) {
 							$opts = UpdraftPlus_Options::get_updraft_option( 'updraft_s3generic' );
+                            if (!is_array($opts))
+                                $opts = array();
 							if(is_array($opts) && isset($opts['settings'])) {
 								$settings_key = key($opts['settings']);
                                 $opts['settings'][$settings_key]['endpoint'] = $settings[ $key ]['endpoint'];
@@ -505,6 +534,8 @@ class MainWP_Child_Updraft_Plus_Backups {
 							UpdraftPlus_Options::update_updraft_option( $key, $opts );
 						} else if ( 'updraft_dreamobjects' === $key ) {
 							$opts = UpdraftPlus_Options::get_updraft_option( 'updraft_dreamobjects' );
+                            if (!is_array($opts))
+                                $opts = array();
 							if(is_array($opts) && isset($opts['settings'])) {
 								$settings_key = key($opts['settings']);
 								$opts['settings'][$settings_key]['path']   = $this->replace_tokens($settings[ $key ]['path']);
@@ -514,6 +545,8 @@ class MainWP_Child_Updraft_Plus_Backups {
 							UpdraftPlus_Options::update_updraft_option( $key, $opts );
 						} else if ( 'updraft_ftp' === $key ) {
 							$opts = UpdraftPlus_Options::get_updraft_option( 'updraft_ftp' );
+                            if (!is_array($opts))
+                                $opts = array();
 							if(is_array($opts) && isset($opts['settings'])) {
 								$settings_key = key($opts['settings']);
 								if ( isset( $settings[ $key ]['path'] ) ) {
@@ -536,6 +569,8 @@ class MainWP_Child_Updraft_Plus_Backups {
 							UpdraftPlus_Options::update_updraft_option( $key, $opts );
 						} else if ( 'updraft_sftp_settings' === $key ) {
 							$opts = UpdraftPlus_Options::get_updraft_option( 'updraft_sftp' );
+                            if (!is_array($opts))
+                                $opts = array();
 							if(is_array($opts) && isset($opts['settings'])) {
 								$settings_key = key($opts['settings']);
 								if ( isset( $settings[ $key ]['path'] ) ) {
@@ -560,7 +595,9 @@ class MainWP_Child_Updraft_Plus_Backups {
 							}
 							UpdraftPlus_Options::update_updraft_option( 'updraft_sftp', $opts );
 						} else if ( 'updraft_backblaze' === $key ) {
-							$opts = UpdraftPlus_Options::get_updraft_option( 'updraft_backblaze' );
+							$opts = UpdraftPlus_Options::get_updraft_option( 'updraft_backblaze' );                            
+                            if (!is_array($opts))
+                                $opts = array();
 							if (is_array($opts) && isset($opts['settings'])) {
 								$settings_key = key($opts['settings']); 
                                 $opts['settings'][$settings_key]['account_id'] = $settings[ $key ]['account_id'];
@@ -987,7 +1024,7 @@ class MainWP_Child_Updraft_Plus_Backups {
 		if ( empty( $updraftplus ) ) {
 			return false;
 		}
-
+        
 		// UNIX timestamp
 		$next_scheduled_backup     = wp_next_scheduled( 'updraft_backup' );
 		$next_scheduled_backup_gmt = $next_scheduled_backup_database_gmt = 0;
@@ -1000,6 +1037,11 @@ class MainWP_Child_Updraft_Plus_Backups {
 			$next_scheduled_backup = 'Nothing currently scheduled';
 		}
 
+        
+        MainWP_Helper::check_classes_exists('UpdraftPlus_Options');
+        MainWP_Helper::check_methods('UpdraftPlus_Options', 'get_updraft_option');
+        MainWP_Helper::check_methods($updraftplus, array( 'backups_dir_location', 'really_is_writable' ));
+        
 		$next_scheduled_backup_database = wp_next_scheduled( 'updraft_backup_database' );
 		if ( UpdraftPlus_Options::get_updraft_option( 'updraft_interval_database', UpdraftPlus_Options::get_updraft_option( 'updraft_interval' ) ) === UpdraftPlus_Options::get_updraft_option( 'updraft_interval' ) ) {
 			$next_scheduled_backup_database = ( 'Nothing currently scheduled' === $next_scheduled_backup ) ? $next_scheduled_backup : __( 'At the same time as the files backup', 'updraftplus' );
@@ -1259,8 +1301,10 @@ class MainWP_Child_Updraft_Plus_Backups {
 	}
 
 	public function build_historystatus() {
-//		$backup_history = UpdraftPlus_Options::get_updraft_option( 'updraft_backup_history' );
-//		$backup_history = ( is_array( $backup_history ) ) ? $backup_history : array();		
+        
+        MainWP_Helper::check_classes_exists('UpdraftPlus_Backup_History');                
+        MainWP_Helper::check_methods('UpdraftPlus_Backup_History', 'get_history');
+                
 		$backup_history = UpdraftPlus_Backup_History::get_history();
 		
 		$output         = $this->existing_backup_table( $backup_history );
@@ -1287,8 +1331,6 @@ class MainWP_Child_Updraft_Plus_Backups {
 			$messages = $this->rebuildBackupHistory( $remotescan );
 		}
 
-//		$backup_history = UpdraftPlus_Options::get_updraft_option( 'updraft_backup_history' );
-//		$backup_history = ( is_array( $backup_history ) ) ? $backup_history : array();
 		$backup_history = UpdraftPlus_Backup_History::get_history();
 		$output         = $this->existing_backup_table( $backup_history );
 
@@ -2970,7 +3012,6 @@ class MainWP_Child_Updraft_Plus_Backups {
 		global $updraftplus;
 
 		if ( false === $backup_history ) {
-//			$backup_history = UpdraftPlus_Options::get_updraft_option( 'updraft_backup_history' );
 			$backup_history = UpdraftPlus_Backup_History::get_history();
 		}
 		
@@ -2978,6 +3019,8 @@ class MainWP_Child_Updraft_Plus_Backups {
 			return '<p><em>' . __( 'You have not yet made any backups.', 'updraftplus' ) . '</em></p>';
 		}
 
+        MainWP_Helper::check_methods($updraftplus, array( 'backups_dir_location', 'get_backupable_file_entities' ));
+                
 		$updraft_dir         = $updraftplus->backups_dir_location();
 		$backupable_entities = $updraftplus->get_backupable_file_entities( true, true );
 
@@ -2989,7 +3032,6 @@ class MainWP_Child_Updraft_Plus_Backups {
 		$ret         = '<table style="margin-top: 20px; margin-left: 20px;">';
 		$nonce_field = wp_nonce_field( 'updraftplus_download', '_wpnonce', true, false );
 
-		//".__('Actions', 'updraftplus')."
 		$ret .= '<thead>
             <tr style="margin-bottom: 4px;">
                 <th style="padding:0px 10px 6px; width: 172px;">' . __( 'Backup date', 'updraftplus' ) . '</th>
@@ -3001,9 +3043,6 @@ class MainWP_Child_Updraft_Plus_Backups {
             </tr>
         </thead>
         <tbody>';
-		//      $ret .= "<thead>
-		//      </thead>
-		//      <tbody>";
 
 		krsort( $backup_history );
 		foreach ( $backup_history as $key => $backup ) {
@@ -3050,14 +3089,13 @@ ENDHERE;
 					// Set a flag according to whether or not $backup['db'] ends in .crypt, then pick this up in the display of the decrypt field.
 					$db = is_array( $backup['db'] ) ? $backup['db'][0] : $backup['db'];
 					if ( class_exists( 'UpdraftPlus_Encryption')) {
-						if (UpdraftPlus_Encryption::is_file_encrypted($db)) $entities .= '/dbcrypted=1/';
-					} else if ( $updraftplus->is_db_encrypted( $db ) ) {
+                        if ( method_exists('UpdraftPlus_Encryption', 'is_file_encrypted'))
+                            if (UpdraftPlus_Encryption::is_file_encrypted($db)) $entities .= '/dbcrypted=1/';
+					} else if ( method_exists($updraftplus, 'is_db_encrypted') && $updraftplus->is_db_encrypted( $db ) ) {
 						$entities .= '/dbcrypted=1/';
 					}
 					
 					$ret .= $this->download_db_button( 'db', $key, $esc_pretty_date, $nonce_field, $backup, $accept );
-				} else {
-					//                  $ret .= sprintf(_x('(No %s)','Message shown when no such object is available','updraftplus'), __('database', 'updraftplus'));
 				}
 
 				# External databases
@@ -3871,20 +3909,6 @@ ENDHERE;
 
 	function remove_notices() {
 		$remove_hooks['all_admin_notices'] = array(
-			//            'UpdraftPlus_Admin' => array(
-			//                'show_admin_notice_upgradead' => 10,
-			//                'show_admin_warning_googledrive' => 10,
-			//                'show_admin_warning_dropbox' => 10,
-			//                'show_admin_warning_bitcasa' => 10,
-			//                'show_admin_warning_copycom' => 10,
-			//                'show_admin_warning_onedrive' => 10,
-			//                'show_admin_warning_updraftvault' => 10,
-			//                'show_admin_warning_diskspace' => 10,
-			//                'show_admin_warning_disabledcron' => 10,
-			//                'show_admin_nosettings_warning' => 10,
-			//                'show_admin_warning_execution_time' => 10,
-			//                'show_admin_warning_litespeed' => 10,
-			//            ),
 			'UpdraftPlus'                          => array(
 				'show_admin_warning_unreadablelog'  => 10,
 				'show_admin_warning_nolog'          => 10,
@@ -3896,9 +3920,6 @@ ENDHERE;
 			'UpdraftPlus_BackupModule_googledrive' => array(
 				'show_authed_admin_success' => 10,
 			),
-			//            'UpdraftPlus_Options' => array(
-			//                'show_admin_warning_multisite' => 10
-			//            )
 		);
 
 		foreach ( $remove_hooks as $hook_name => $hooks ) {
@@ -3938,11 +3959,8 @@ ENDHERE;
 		return $value;
 	}
 
-	public function syncData() {
-		if ( ! self::isActivatedUpdraftplus() ) {
-			return '';
-		}
-
+	public function get_sync_data() {	
+        $this->required_files();
 		return $this->get_updraft_data();
 	}
 
