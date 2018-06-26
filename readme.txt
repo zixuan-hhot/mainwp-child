@@ -77,7 +77,13 @@ To see full documentation and FAQs please visit [MainWP Documentation](https://m
 * Added: support for the new extension
 * Added: conditional checks to prevent possible conflicts with certain plugins 
 * Added: support for the new MainWP Branding Extension feature
-* Improved: PHP 7.2 compatibility
+* Improved: PHP 7.2 compatibility  
+
+= 3.4.7.1 - 5-25-18 =
+* Fixed: UpdraftPlus 1.14.10 compatibility issue that caused child sites to disconnect
+* Added: support for the new MainWP Branding Extension option
+* Updated: compatibility with the new Wordfence plugin version
+* Updated: compatibility with the new WP Rocket plugin version
 
 = 3.4.7 - 4-17-18 =
 * Fixed: multiple cloning issues
