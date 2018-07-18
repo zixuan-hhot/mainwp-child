@@ -1896,6 +1896,7 @@ class MainWP_Child {
                                 $plugin_info = $information['plugin_updates'][$plugin];
                                 $args = array();
                                 $args['type']    = 'plugin';
+                                $args['slug']    = $plugin;
                                 $args['name']    = $plugin_info->Name;
                                 $args['version'] = $plugin_info->update->new_version;
                                 $args['old_version'] = $plugin_info->Version;
