@@ -33,7 +33,6 @@ class MainWP_Child_Timecapsule {
             return;
 
         add_action( 'mainwp_child_site_stats', array( $this, 'do_site_stats' ) );
-        add_action( 'record_auto_backup_complete', array( $this, 'do_report_backups_logging' ) );
 
 		if ( get_option( 'mainwp_time_capsule_hide_plugin' ) === 'hide' ) {
 			add_filter( 'all_plugins', array( $this, 'all_plugins' ) );
@@ -253,13 +252,25 @@ class MainWP_Child_Timecapsule {
             MainWP_Helper::check_methods($options_helper, array( 'get_plan_interval_from_subs_info', 'get_is_user_logged_in'));
             MainWP_Helper::check_methods($wptc_settings, array( 'get_connected_cloud_info'));
 
+            $all_backups = $this->getBackups();
+            $backups_count = 0;
+            if (is_array($all_backups)) {
+                $formatted_backups = array();
+               foreach ($all_backups as $key => $value) {
+                    $value_array = (array) $value;
+                    $formatted_backups[$value_array['backupID']][] = $value_array;
+                }
+                $backups_count = count($formatted_backups);
+            }
+
             $return = array(
                     'main_account_email' => $main_account_email_var,
                     'signed_in_repos' =>   $wptc_settings->get_connected_cloud_info(),
                     'plan_name' => $options_helper->get_plan_interval_from_subs_info(),
                     'plan_interval' => $options_helper->get_plan_interval_from_subs_info(),
                     'lastbackup_time' => !empty($last_backup_time) ? $last_backup_time : 0,
-                    'is_user_logged_in' => $options_helper->get_is_user_logged_in()
+                    'is_user_logged_in' => $options_helper->get_is_user_logged_in(),
+                    'backups_count' => $backups_count
             );
             return $return;
         } catch ( Exception $e) {
@@ -267,6 +278,21 @@ class MainWP_Child_Timecapsule {
         }
         return false;
     }
+
+    protected function getBackups( $last_time = false ) {
+        if (empty($last_time)) {
+            $last_time = strtotime(date('Y-m-d', strtotime(date('Y-m-01'))));
+        }
+        global $wpdb;
+        $all_backups = $wpdb->get_results(
+            $wpdb->prepare("
+            SELECT *
+            FROM {$wpdb->base_prefix}wptc_processed_files
+            WHERE backupID > %s ", $last_time)
+        );
+
+		return $all_backups;
+	}
 
     public function get_tables() {
         $category = $_POST['category'];
@@ -653,13 +679,6 @@ function get_sibling_files_callback_wptc() {
         die();
     }
 
-    function do_report_backups_logging($backup_id) {
-        $backup_time = time(); // may be difference a bit with WTC logging
-        $message = 'WP Time Capsule backup finished';
-        $backup_type = 'WP Time Capsule';
-        do_action( 'mainwp_wptimecapsule_backup', $message, $backup_type, $backup_time );
-    }
-
     function do_site_stats() {
         if (has_action('mainwp_child_reports_log')) {
             do_action( 'mainwp_child_reports_log', 'wptimecapsule');
@@ -670,20 +689,45 @@ function get_sibling_files_callback_wptc() {
 
     // ok
     public function do_reports_log($ext = '') {
+
         if ( $ext !== 'wptimecapsule' ) return;
+
         if (!$this->is_plugin_installed)
             return;
-        try {
-             MainWP_Helper::check_classes_exists(array( 'WPTC_Base_Factory', 'Wptc_Exclude_Config'));
 
-            $config = WPTC_Base_Factory::get('Wptc_Exclude_Config');
+        try {
+             MainWP_Helper::check_classes_exists(array( 'WPTC_Factory'));
+
+            $config = WPTC_Factory::get('config');
 
             MainWP_Helper::check_methods($config, 'get_option');
 
             $backup_time = $config->get_option('last_backup_time');
+
             if (!empty($backup_time)) {
                 MainWP_Helper::update_lasttime_backup( 'wptimecapsule', $backup_time ); // to support backup before update feature
             }
+
+            $last_time = time() - 24 * 7 * 2 * 60 * 60; // 2 weeks ago
+            $all_last_backups = $this->getBackups( $last_time );
+
+            if (is_array($all_last_backups)) {
+                $formatted_backups = array();
+                foreach ($all_last_backups as $key => $value) {
+                    $value_array = (array) $value;
+                    $formatted_backups[$value_array['backupID']][] = $value_array;
+                }
+                $message = 'WP Time Capsule backup finished';
+                $backup_type = 'WP Time Capsule backup';
+                if (count($formatted_backups) > 0) {
+                    foreach($formatted_backups as $key => $value) {
+                        $backup_time = $key;
+                        do_action( 'mainwp_wptimecapsule_backup', $message, $backup_type, $backup_time );
+                    }
+                }
+            }
+
+
         } catch(Exception $e) {
 
         }
@@ -1178,32 +1222,6 @@ function get_sibling_files_callback_wptc() {
         $processed_files->save_manual_backup_name_wptc($backup_name);
         die();
 	}
-
-    function send_response_wptc($status = null, $type = null, $data = null, $is_log =0) {
-		if (!is_wptc_server_req() && !is_wptc_node_server_req()) {
-			return false;
-		}
-		$config = WPTC_Factory::get('config');
-
-		if (empty($is_log)) {
-			$post_arr['status'] = $status;
-			$post_arr['type'] = $type;
-			$post_arr['version'] = WPTC_VERSION;
-			$post_arr['source'] = 'WPTC';
-			$post_arr['scheduled_time'] = $config->get_option('schedule_time_str');
-			$post_arr['timezone'] = $config->get_option('wptc_timezone');
-			$post_arr['last_backup_time'] = $config->get_option('last_backup_time');
-			if (!empty($data)) {
-				$post_arr['progress'] = $data;
-			}
-		} else {
-			$post_arr = $data;
-		}
-
-
-        return array( 'result' => 'success', 'data' => "<WPTC_START>".json_encode($post_arr)."<WPTC_END>"  );
-    }
-
 
 	public function all_plugins( $plugins ) {
 		foreach ( $plugins as $key => $value ) {
