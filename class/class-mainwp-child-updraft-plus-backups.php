@@ -75,11 +75,6 @@ class MainWP_Child_Updraft_Plus_Backups {
 		}
 
 		if ( isset( $_POST['mwp_action'] ) ) {
-
-			if ( get_option( 'mainwp_updraftplus_ext_enabled' ) !== 'Y' ) {
-				MainWP_Helper::update_option( 'mainwp_updraftplus_ext_enabled', 'Y', 'yes' );
-			}
-
             try {
                 switch ( $_POST['mwp_action'] ) {
                     case 'set_showhide':
@@ -3908,9 +3903,8 @@ ENDHERE;
 	}
 
 	public function updraftplus_init() {
-		if ( get_option( 'mainwp_updraftplus_ext_enabled' ) !== 'Y' ) {
-			return;
-		}
+		if (!$this->is_plugin_installed)
+            return;
 
 		if ( get_option( 'mainwp_updraftplus_hide_plugin' ) === 'hide' ) {
 			add_filter( 'all_plugins', array( $this, 'all_plugins' ) );
