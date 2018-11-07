@@ -214,7 +214,7 @@ class MainWP_Child_Wordfence {
 			MainWP_Helper::write( $information );
 		}
 		if ( isset( $_POST['mwp_action'] ) ) {
-			
+
 			switch ( $_POST['mwp_action'] ) {
 				case 'start_scan':
 					$information = $this->start_scan();
@@ -236,9 +236,6 @@ class MainWP_Child_Wordfence {
 					break;
 				case 'update_log':
 					$information = $this->update_log();
-					break;
-				case 'get_summary':
-					$information = $this->get_summary();
 					break;
                 case 'load_issues': // not used in from version 2.0 of WF ext
 					$information = $this->load_issues();
@@ -769,6 +766,7 @@ class MainWP_Child_Wordfence {
 		return wordfence::ajax_activityLogUpdate_callback();
 	}
 
+    // not used
 	public function load_issues() {
 		$offset = isset($_POST['offset']) ? intval($_POST['offset']) : 0;
 		$limit = isset($_POST['limit']) ? intval($_POST['limit']) : WORDFENCE_SCAN_ISSUES_PER_PAGE;
@@ -809,6 +807,7 @@ class MainWP_Child_Wordfence {
             'todayAttBlocked' => MainWP_Child_Wordfence::Instance()->count_attacks_blocked(1),
             'weekAttBlocked' => MainWP_Child_Wordfence::Instance()->count_attacks_blocked(7),
             'monthAttBlocked' => MainWP_Child_Wordfence::Instance()->count_attacks_blocked(30),
+            'issueCount' => $i->getIssueCount(),
         );
         return $return;
 	}
