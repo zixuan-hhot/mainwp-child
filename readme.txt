@@ -7,17 +7,17 @@ Author URI: https://mainwp.com
 Plugin URI: https://mainwp.com
 Requires at least: 3.6
 Tested up to: 5.0
-Stable tag: 3.5
+Stable tag: 3.5.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html 
 
-Provides a secure connection between your MainWP Dashboard and your WordPress sites.   MainWP allows you to manage WP sites from one central location.
+Provides a secure connection between your MainWP Dashboard and your WordPress sites. MainWP allows you to manage WP sites from one central location.
 
 == Description ==
 
 This is the Child plugin for the [MainWP Dashboard](https://wordpress.org/plugins/mainwp/)
 
-The MainWP Child plugin is used to securely manage multiple WordPress websites from your MainWP Dashboard.  This plugin is to be installed on every WordPress site you want to control from your Dashboard.
+The MainWP Child plugin is used to securely manage multiple WordPress websites from your MainWP Dashboard. This plugin is to be installed on every WordPress site you want to control from your Dashboard.
 
 [MainWP](https://mainwp.com) is a self-hosted WordPress management system that allows you to manage an endless amount of WordPress blogs from one dashboard on your server.
 
@@ -70,6 +70,18 @@ To see full documentation and FAQs please visit [MainWP Documentation](https://m
 9. Global Dashboard Screen
 
 == Changelog ==
+
+= 3.5.1 - 11-14-18 =
+* Fixed: an issue with detecting the Wordfence status info
+* Fixed: an issue with loading UpdraftPlus existing backups
+* Fixed: the File Uploader extension issue with renaming special files
+* Fixed: an issue with syncing BackupBuddy data
+* Fixed: an issue with logging BackWPup backups
+* Fixed: an issue with detecting premium plugin updates
+* Added: new options for the MainWP Staging Extension
+* Added: multiple security enhancements
+* Updated: improved updating process
+
 
 = 3.5 - 9-27-18 =
 * Fixed: compatibility issues caused by the recent UpdraftPlus update
