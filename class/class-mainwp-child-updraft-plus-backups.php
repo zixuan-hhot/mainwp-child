@@ -603,7 +603,7 @@ class MainWP_Child_Updraft_Plus_Backups {
                                 $opts['settings'][$settings_key]['url'] = $settings[ $key ]['url'];
                                 UpdraftPlus_Options::update_updraft_option( 'updraft_webdav', $opts );
                             }
-                            
+
                         } else if ( 'updraft_backblaze' === $key ) {
 							$opts = UpdraftPlus_Options::get_updraft_option( 'updraft_backblaze' );
                             if (!is_array($opts))
@@ -3926,6 +3926,7 @@ ENDHERE;
 			add_filter( 'all_plugins', array( $this, 'all_plugins' ) );
 			add_action( 'admin_menu', array( $this, 'remove_menu' ) );
 			add_filter( 'site_transient_update_plugins', array( &$this, 'remove_update_nag' ) );
+            add_filter( 'mainwp_child_hide_update_notice', array( &$this, 'hide_update_notice' ) );
 			add_action( 'wp_before_admin_bar_render', array( $this, 'wp_before_admin_bar_render' ), 99 );
 			add_action( 'admin_init', array( $this, 'remove_notices' ) );
 		}
@@ -3972,10 +3973,19 @@ ENDHERE;
 		}
 	}
 
+    function hide_update_notice( $slugs ) {
+        $slugs[] = 'updraftplus/updraftplus.php';
+        return $slugs;
+    }
+
 	function remove_update_nag( $value ) {
 		if ( isset( $_POST['mainwpsignature'] ) ) {
 			return $value;
 		}
+        if (! MainWP_Helper::is_screen_with_update()) {
+            return $value;
+        }
+
 		if ( isset( $value->response['updraftplus/updraftplus.php'] ) ) {
 			unset( $value->response['updraftplus/updraftplus.php'] );
 		}
