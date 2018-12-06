@@ -7,7 +7,7 @@ Author URI: https://mainwp.com
 Plugin URI: https://mainwp.com
 Requires at least: 3.6
 Tested up to: 5.0
-Stable tag: 3.5.3
+Stable tag: 3.5.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,13 +70,6 @@ To see full documentation and FAQs please visit [MainWP Documentation](https://m
 9. Global Dashboard Screen
 
 == Changelog ==
-
-= 3.5.3 - 12-7-18 =
-* Fixed: an issue with special characters in passwords
-* Fixed: an issue with displaying WP Admin footer
-* Fixed: incorrect charset in notification emails
-* Fixed: an issue with displaying Yoast SEO data on some setups
-* Fixed: an issue with displaying extensions activation status in the Extensions widget
 
 = 3.5.2 - 11-27-18 =
 * Fixed: an issue with detecting updates when a custom branding is applied
