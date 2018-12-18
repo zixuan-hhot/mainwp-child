@@ -729,7 +729,20 @@ class MainWP_Client_Report {
 					case 'details':
 					case 'result':
 						if ( 'wordfence' === $context || 'maintenance' === $context ) {
-							$token_values[ $token ] = $this->get_stream_meta_data( $record, $data );
+                            $meta_value  = $this->get_stream_meta_data( $record, $data );
+                            // to fix
+                            if ('wordfence' === $context && $data == 'result') {
+                                // SUM_FINAL:Scan complete. You have xxx new issues to fix. See below.
+                                // SUM_FINAL:Scan complete. Congratulations, no new problems found
+                                if (stripos($meta_value, 'Congratulations')) {
+                                    $meta_value = 'No issues detected';
+                                } else if (stripos($meta_value, 'You have')) {
+                                    $meta_value = 'Issues Detected';
+                                } else {
+                                    $meta_value = '';
+                                }
+                            }
+							$token_values[ $token ] = $meta_value;
 						}
 						break;
 					case 'destination':   // backup cases

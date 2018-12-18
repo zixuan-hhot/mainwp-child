@@ -142,6 +142,7 @@ class MainWP_Child_Staging {
             'fileLimit',
             'batchSize',
             'cpuLoad',
+            'delayRequests',
             'disableAdminLogin',
             'querySRLimit',
             'maxFileSize',
