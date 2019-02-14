@@ -341,9 +341,6 @@ class MainWP_Security {
 	}
 
 	public static function remove_readme_ok() {
-        // to prevent remove readme.html file on WPE hosts
-        if ( MainWP_Helper::is_wp_engine() )
-            return true;
 		return ! file_exists( ABSPATH . 'readme.html' );
 	}
 
