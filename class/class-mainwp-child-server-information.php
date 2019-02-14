@@ -1467,6 +1467,7 @@ class MainWP_Child_Server_Information {
 		$lines = array_filter( $lines );
 
 		if ( empty( $lines ) ) {
+            $branding_title = MainWP_Child_Branding::Instance()->get_branding_title();
             if ($branding_title == '') {
                 $branding_title = 'MainWP';
             }
