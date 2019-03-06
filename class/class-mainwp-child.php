@@ -115,7 +115,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 }
 
 class MainWP_Child {
-	public static $version = '3.5.4.1';
+	public static $version = '3.5.5';
 	private $update_version = '1.5';
 
 	private $callableFunctions = array(
@@ -3903,7 +3903,7 @@ class MainWP_Child {
 					$theme = wp_get_theme($translation_update->slug);
 					$new_translation_update['name'] = $theme->name;
 				} else if ( ( 'core' === $translation_update->type ) && ( 'default' === $translation_update->slug ) ) {
-					$new_translation_update['name'] = 'Wordpress core';
+					$new_translation_update['name'] = 'WordPress core';
 				}
 				$information['translation_updates'][] = $new_translation_update;
 			}
