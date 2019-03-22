@@ -3820,7 +3820,7 @@ class MainWP_Child {
 				}
 
                 // to fix incorrect info
-                if ( !property_exists( $plugin_update, 'new_version' ) || empty( $plugin_update->new_version ) ) {
+                if ( !property_exists( $plugin_update, 'update' ) || !property_exists( $plugin_update->update, 'new_version' ) || empty($plugin_update->update->new_version)) {
                     continue;
                 }
 
