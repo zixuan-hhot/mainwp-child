@@ -17,6 +17,7 @@
 
 class MainWP_Child_WP_Rocket {
 	public static $instance = null;
+    public $is_plugin_installed = false;
 
 	public static function Instance() {
 		if ( null === MainWP_Child_WP_Rocket::$instance ) {
@@ -27,13 +28,19 @@ class MainWP_Child_WP_Rocket {
 	}
 
 	public function __construct() {
-
+        if ( is_plugin_active( 'wp-rocket/wp-rocket.php' ) ) {
+            $this->is_plugin_installed = true;
+        }
 	}
 
 	public function init() {
-		if ( get_option( 'mainwp_wprocket_ext_enabled' ) !== 'Y' ) {
-			return;
-		}
+//		if ( get_option( 'mainwp_wprocket_ext_enabled' ) !== 'Y' ) {
+//			return;
+//		}
+
+        if ( ! $this->is_plugin_installed ) {
+            return;
+        }
 
         add_filter( 'mainwp-site-sync-others-data', array( $this, 'syncOthersData' ), 10, 2 );
 
@@ -116,10 +123,13 @@ class MainWP_Child_WP_Rocket {
 		return $value;
 	}
 
-	public static function isActivated() {
-		if ( ! defined( 'WP_ROCKET_VERSION' ) || ! defined( 'WP_ROCKET_SLUG' ) ) {
-			return false;
-		}
+	public function isActivated() {
+        if ( ! $this->is_plugin_installed ) {
+            return false;
+        }
+//		if ( ! defined( 'WP_ROCKET_VERSION' ) || ! defined( 'WP_ROCKET_SLUG' ) ) {
+//			return false;
+//		}
 
 		return true;
 	}
@@ -153,42 +163,53 @@ class MainWP_Child_WP_Rocket {
 	}
 
 	public function action() {
-		$information = array();
-		if ( ! self::isActivated() ) {
-			$information['error'] = 'NO_WPROCKET';
-			MainWP_Helper::write( $information );
+
+        if ( ! $this->is_plugin_installed ) {
+			MainWP_Helper::write( array( 'error' => __( 'Please install WP Rocket plugin on child website', $this->plugin_translate ) ) );
+			return;
 		}
+
+		$information = array();
+
+
 		if ( isset( $_POST['mwp_action'] ) ) {
-			MainWP_Helper::update_option( 'mainwp_wprocket_ext_enabled', 'Y' );
-			switch ( $_POST['mwp_action'] ) {
-				case 'set_showhide':
-					$information = $this->set_showhide();
-					break;
-				case 'purge_cloudflare':
-					$information = $this->purge_cloudflare();
-					break;
-				case 'purge_all':
-					$information = $this->purge_cache_all();
-					break;
-				case 'preload_cache':
-					$information = $this->preload_cache();
-					break;
-				case 'save_settings':
-					$information = $this->save_settings();
-					break;
-				case "load_existing_settings":
-					$information = $this->load_existing_settings();
-					break;
-				case 'optimize_database':
-					$information = $this->optimize_database();
-					break;
-				case 'get_optimize_info':
-					$information = $this->get_optimize_info();
-					break;
-                case 'purge_opcache':
-					$information = $this->do_admin_post_rocket_purge_opcache();
-					break;
-			}
+//			MainWP_Helper::update_option( 'mainwp_wprocket_ext_enabled', 'Y' );
+            try {
+                switch ( $_POST['mwp_action'] ) {
+                    case 'set_showhide':
+                        $information = $this->set_showhide();
+                        break;
+                    case 'purge_cloudflare':
+                        $information = $this->purge_cloudflare();
+                        break;
+                    case 'purge_all':
+                        $information = $this->purge_cache_all();
+                        break;
+                    case 'preload_cache':
+                        $information = $this->preload_cache();
+                        break;
+                    case 'generate_critical_css':
+                        $information = $this->generate_critical_css();
+                        break;
+                    case 'save_settings':
+                        $information = $this->save_settings();
+                        break;
+                    case "load_existing_settings":
+                        $information = $this->load_existing_settings();
+                        break;
+                    case 'optimize_database':
+                        $information = $this->optimize_database();
+                        break;
+                    case 'get_optimize_info':
+                        $information = $this->get_optimize_info();
+                        break;
+                    case 'purge_opcache':
+                        $information = $this->do_admin_post_rocket_purge_opcache();
+                        break;
+                }
+            } catch(Exception $e) {
+                $information = array( 'error' => $e->getMessage() );
+            }
 		}
 		MainWP_Helper::write( $information );
 	}
@@ -254,13 +275,42 @@ class MainWP_Child_WP_Rocket {
 	}
 
 	function preload_cache() {
-		if ( function_exists( 'run_rocket_bot' ) ) {
-			run_rocket_bot( 'cache-preload', '' );
+        MainWP_Helper::check_functions( array( 'run_rocket_sitemap_preload', 'run_rocket_bot' ) );
+        MainWP_Helper::check_classes_exists('WP_Rocket\Preload\Full_Process');
 
-			return array( 'result' => 'SUCCESS' );
-		} else {
-			return array( 'error' => 'function_not_exist' );
-		}
+        $preload_process = new WP_Rocket\Preload\Full_Process();
+        MainWP_Helper::check_methods($preload_process, array( 'is_process_running'));
+
+        if ( $preload_process->is_process_running() ) {
+            return array( 'result' => 'RUNNING' );
+        }
+
+        delete_transient( 'rocket_preload_errors' );
+        run_rocket_bot( 'cache-preload', '' );
+        run_rocket_sitemap_preload();
+        return array( 'result' => 'SUCCESS' );
+	}
+
+    function generate_critical_css() {
+        MainWP_Helper::check_classes_exists( array( 'WP_Rocket\Subscriber\Optimization\Critical_CSS_Subscriber',
+                                                    'WP_Rocket\Optimization\CSS\Critical_CSS',
+                                                    'WP_Rocket\Optimization\CSS\Critical_CSS_Generation',
+                                                    'WP_Rocket\Admin\Options',
+                                                    'WP_Rocket\Admin\Options_Data'
+                                                ));
+
+        $critical_css = new WP_Rocket\Optimization\CSS\Critical_CSS( new WP_Rocket\Optimization\CSS\Critical_CSS_Generation() );
+        $options_api = new WP_Rocket\Admin\Options( 'wp_rocket_' );
+    	$options     = new WP_Rocket\Admin\Options_Data( $options_api->get( 'settings', array() ) );
+
+        $sitemap_preload = new WP_Rocket\Subscriber\Optimization\Critical_CSS_Subscriber( $critical_css, $options );
+
+        MainWP_Helper::check_properties($sitemap_preload, 'critical_css');
+        MainWP_Helper::check_methods($sitemap_preload->critical_css, 'process_handler');
+
+        $sitemap_preload->critical_css->process_handler();
+
+        return array( 'result' => 'SUCCESS' );
 	}
 
 	function save_settings() {
@@ -351,6 +401,7 @@ class MainWP_Child_WP_Rocket {
                 'purge_cron_unit'          => 'HOUR_IN_SECONDS',
                 'exclude_css'              => array(),
                 'exclude_js'               => array(),
+                //'exclude_inline_js'               => array(), // for v4
 				'async_css'					=> 0,
             	'defer_all_js'              => 0,
 				'defer_all_js_safe'			=> 1,

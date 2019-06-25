@@ -185,7 +185,8 @@ class MainWP_Child {
 		'disconnect'            => 'disconnect',
 		'time_capsule'          => 'time_capsule',
         'extra_excution'        => 'extra_execution', // deprecated
-        'extra_execution'        => 'extra_execution'
+        'extra_execution'        => 'extra_execution',
+        'wpvivid_backuprestore'=>'wpvivid_backuprestore'
 	);
 
 	private $FTP_ERROR = 'Failed! Please, add FTP details for automatic updates.';
@@ -304,7 +305,7 @@ class MainWP_Child {
                 'mainwp_child_nossl',
                 'mainwp_security',
                 'mainwp_backupwordpress_ext_enabled',
-                'mainwp_wprocket_ext_enabled',
+//                'mainwp_wprocket_ext_enabled',
                 //'mainwp_wordfence_ext_enabled',
                 'mainwp_branding_button_contact_label',
                 'mainwp_branding_extra_settings',
@@ -1566,7 +1567,7 @@ class MainWP_Child {
         MainWP_Client_Report::Instance()->creport_init();
         MainWP_Child_Pagespeed::Instance()->init();
         MainWP_Child_Links_Checker::Instance()->init();
-
+        MainWP_Child_WPvivid_BackupRestore::Instance()->init();
         global $_wp_submenu_nopriv;
         if ($_wp_submenu_nopriv === null)
             $_wp_submenu_nopriv = array(); // fix warning
@@ -1987,7 +1988,8 @@ class MainWP_Child {
 				}
 			}
 		} else {
-			MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
+			//MainWP_Helper::error( __( 'Invalid request!', 'mainwp-child' ) );
+            $information['upgrades'] = array(); // to fix error message when translations updated
 		}
 
 		$information['sync'] = $this->getSiteStats( array(), false );
@@ -3692,6 +3694,7 @@ class MainWP_Child {
 
 	    $information['site_info']   = array(
 	        'wpversion' => $wp_version,
+            'debug_mode' => (defined('WP_DEBUG') && true === WP_DEBUG) ? true : false,
 	        'phpversion' => phpversion(),
 	        'child_version' => self::$version,
 	        'memory_limit' => MainWP_Child_Server_Information::getPHPMemoryLimit(),
@@ -3920,14 +3923,30 @@ class MainWP_Child {
 		}
 
 		$information['recent_comments'] = $this->get_recent_comments( array( 'approve', 'hold' ), 5 );
-		$information['recent_posts']    = $this->get_recent_posts( array( 'publish', 'draft', 'pending', 'trash', 'future' ), 5 );
+
+        $recent_number = 5;
+
+        if (isset($_POST) && isset( $_POST['recent_number'] )) {
+            $recent_number = $_POST['recent_number'];
+            if ($recent_number != get_option('mainwp_child_recent_number', 5)) {
+                update_option( 'mainwp_child_recent_number', $recent_number );
+            }
+        } else {
+            $recent_number = get_option('mainwp_child_recent_number', 5);
+        }
+
+        if ($recent_number <= 0 || $recent_number > 30) {
+            $recent_number = 5;
+        }
+
+		$information['recent_posts']    = $this->get_recent_posts( array( 'publish', 'draft', 'pending', 'trash', 'future' ), $recent_number );
 		$information['recent_pages']    = $this->get_recent_posts( array(
 			'publish',
 			'draft',
 			'pending',
 			'trash',
             'future'
-		), 5, 'page' );
+		), $recent_number, 'page' );
 
 		$securityIssuess = 0;
 		if ( ! MainWP_Security::prevent_listing_ok() ) {
@@ -5707,6 +5726,11 @@ class MainWP_Child {
 	function updraftplus() {
 		MainWP_Child_Updraft_Plus_Backups::Instance()->action();
 	}
+
+    function wpvivid_backuprestore()
+    {
+        MainWP_Child_WPvivid_BackupRestore::Instance()->action();
+    }
 
 	function backup_wp() {
 		if ( ! version_compare( phpversion(), '5.3', '>=' ) ) {
