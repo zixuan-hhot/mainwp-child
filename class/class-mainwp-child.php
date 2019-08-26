@@ -115,7 +115,7 @@ if ( isset( $_GET['skeleton_keyuse_nonce_key'] ) && isset( $_GET['skeleton_keyus
 }
 
 class MainWP_Child {
-	public static $version = '3.5.7';
+	public static $version = '4.0';
 	private $update_version = '1.5';
 
 	private $callableFunctions = array(
@@ -1087,40 +1087,44 @@ class MainWP_Child {
 			return;
 		}
 
-		if ( 'hidden' === ( get_option( 'mainwp_child_pluginDir' ) ) && ( $hard || 'yes' !== ( get_option( 'mainwp_child_htaccess_set' ) ) ) ) {
-			include_once( ABSPATH . '/wp-admin/includes/misc.php' );
+//		if ( 'hidden' === ( get_option( 'mainwp_child_pluginDir' ) ) && ( $hard || 'yes' !== ( get_option( 'mainwp_child_htaccess_set' ) ) ) ) {
 
-			$snPluginDir = basename( $this->plugin_dir );
+//			include_once( ABSPATH . '/wp-admin/includes/misc.php' );
+//
+//			$snPluginDir = basename( $this->plugin_dir );
+//
+//			$rules = null;
+//			if ( ( '1' !== get_option( 'heatMapsIndividualOverrideSetting' ) && '0' !== get_option( 'heatMapEnabled' ) ) ||
+//			     ( '1' === get_option( 'heatMapsIndividualOverrideSetting' ) && '1' !== get_option( 'heatMapsIndividualDisable' ) ) ||
+//			     get_option( 'mainwp_kwl_enable_statistic' )
+//			) {
+//				//Heatmap enabled
+//				//Make the plugin invisible, except heatmap
+//				$rules = $this->mod_rewrite_rules( array( 'wp-content/plugins/' . $snPluginDir . '/([^js\/]*)$' => 'wp-content/plugins/THIS_PLUGIN_DOES_NOT_EXIST' ) );
+//			} else {
+//				//Make the plugin invisible
+//				$rules = $this->mod_rewrite_rules( array( 'wp-content/plugins/' . $snPluginDir . '/(.*)$' => 'wp-content/plugins/THIS_PLUGIN_DOES_NOT_EXIST' ) );
+//			}
+//
+//			$home_path     = ABSPATH;
+//			$htaccess_file = $home_path . '.htaccess';
+//			if ( function_exists( 'save_mod_rewrite_rules' ) ) {
+//				$rules = explode( "\n", $rules );
+//
+//				//                $ch = @fopen($htaccess_file,'w');
+//				//                if (@flock($ch, LOCK_EX))
+//				//                {
+//				insert_with_markers( $htaccess_file, 'MainWP', $rules );
+//				//                }
+//				//                @flock($ch, LOCK_UN);
+//				//                @fclose($ch);
+//
+//			}
+//			MainWP_Helper::update_option( 'mainwp_child_htaccess_set', 'yes', 'yes' );
+//
+//		} else
 
-			$rules = null;
-			if ( ( '1' !== get_option( 'heatMapsIndividualOverrideSetting' ) && '0' !== get_option( 'heatMapEnabled' ) ) ||
-			     ( '1' === get_option( 'heatMapsIndividualOverrideSetting' ) && '1' !== get_option( 'heatMapsIndividualDisable' ) ) ||
-			     get_option( 'mainwp_kwl_enable_statistic' )
-			) {
-				//Heatmap enabled
-				//Make the plugin invisible, except heatmap
-				$rules = $this->mod_rewrite_rules( array( 'wp-content/plugins/' . $snPluginDir . '/([^js\/]*)$' => 'wp-content/plugins/THIS_PLUGIN_DOES_NOT_EXIST' ) );
-			} else {
-				//Make the plugin invisible
-				$rules = $this->mod_rewrite_rules( array( 'wp-content/plugins/' . $snPluginDir . '/(.*)$' => 'wp-content/plugins/THIS_PLUGIN_DOES_NOT_EXIST' ) );
-			}
-
-			$home_path     = ABSPATH;
-			$htaccess_file = $home_path . '.htaccess';
-			if ( function_exists( 'save_mod_rewrite_rules' ) ) {
-				$rules = explode( "\n", $rules );
-
-				//                $ch = @fopen($htaccess_file,'w');
-				//                if (@flock($ch, LOCK_EX))
-				//                {
-				insert_with_markers( $htaccess_file, 'MainWP', $rules );
-				//                }
-				//                @flock($ch, LOCK_UN);
-				//                @fclose($ch);
-
-			}
-			MainWP_Helper::update_option( 'mainwp_child_htaccess_set', 'yes', 'yes' );
-		} else if ( $hard ) {
+        if ( $hard ) {
 			include_once( ABSPATH . '/wp-admin/includes/misc.php' );
 
 			$home_path     = ABSPATH;
@@ -1590,11 +1594,11 @@ class MainWP_Child {
             MainWP_Helper::error( __( 'Required version has not been detected. Please, make sure that you are using the latest version of the MainWP Child plugin on your site.', 'mainwp-child' ) );
         }
 
-        // going to retire soon
+       
 		if ( 1 === (int) get_option( 'mainwpKeywordLinks' ) ) {
 			new MainWP_Keyword_Links();
 			if ( ! is_admin() ) {
-				//add_filter( 'the_content', array( MainWP_Keyword_Links::Instance(), 'filter_content' ), 100 );
+				add_filter( 'the_content', array( MainWP_Keyword_Links::Instance(), 'filter_content' ), 100 );
 			}
 			MainWP_Keyword_Links::Instance()->update_htaccess(); // if needed
 			MainWP_Keyword_Links::Instance()->redirect_cloak();

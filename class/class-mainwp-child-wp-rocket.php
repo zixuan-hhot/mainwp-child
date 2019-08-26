@@ -54,6 +54,86 @@ class MainWP_Child_WP_Rocket {
 		}
 	}
 
+	function get_rocket_default_options() {
+		  return array(
+                'cache_mobile'             => 1,
+				'do_caching_mobile_files'     => 0,
+                'cache_logged_user'        => 0,
+                'cache_ssl'                => 0,
+				'emoji'					  => 0,
+                'embeds'                   => 1,
+                'control_heartbeat' => 0,
+                'heartbeat_site_behavior'     => 'reduce_periodicity',
+				'heartbeat_admin_behavior'    => 'reduce_periodicity',
+				'heartbeat_editor_behavior'   => 'reduce_periodicity',
+				'varnish_auto_purge' => 0,
+				'manual_preload' => 0,
+				'automatic_preload' => 0,
+				'sitemap_preload' => 0,
+				'sitemap_preload_url_crawl' => 500000,
+				'sitemaps' => array(),
+				'database_revisions' => 0,
+				'database_auto_drafts' => 0,
+				'database_trashed_posts' => 0,
+				'database_spam_comments' => 0,
+				'database_trashed_comments' => 0,
+				'database_expired_transients' => 0,
+				'database_all_transients' => 0,
+				'database_optimize_tables' => 0,
+				'schedule_automatic_cleanup' => 0,
+				'automatic_cleanup_frequency' => '',
+                'cache_reject_uri'         => array(),
+                'cache_reject_cookies'     => array(),
+                'cache_reject_ua'          => array(),
+                'cache_query_strings'      => array(),
+                'cache_purge_pages'        => array(),
+                'purge_cron_interval'      => 10,
+                'purge_cron_unit'          => 'HOUR_IN_SECONDS',
+                'exclude_css'              => array(),
+                'exclude_js'               => array(),
+                'exclude_inline_js'               => array(),
+				'async_css'					=> 0,
+            	'defer_all_js'              => 0,
+				'defer_all_js_safe'			=> 1,
+                'critical_css'              => '',
+                'deferred_js_files'        => array(),
+                'lazyload'          	   => 0,
+                'lazyload_iframes'         => 0,
+				'lazyload_youtube'			=>0,
+                'minify_css'               => 0,
+//                'minify_css_key'           => $minify_css_key,
+                'minify_concatenate_css'	  => 0,
+                //'minify_css_combine_all'   => 0,
+                'minify_css_legacy'			  => 0,
+                'minify_js'                => 0,
+//                'minify_js_key'            => $minify_js_key,
+                'minify_js_in_footer'      => array(),
+                'minify_concatenate_js'		  => 0,
+                'minify_js_combine_all'    => 0,
+                //'minify_js_legacy'			  => 0,
+                'minify_google_fonts'      => 0,
+                'minify_html'              => 0,
+                'remove_query_strings'     => 0,
+                'dns_prefetch'             => 0,
+                'cdn'                      => 0,
+                'cdn_cnames'               => array(),
+                'cdn_zone'                 => array(),
+                //'cdn_ssl'                  => 0,
+                'cdn_reject_files'         => array(),
+                'do_cloudflare'		   	   => 0,
+                'cloudflare_email'		   => '',
+                'cloudflare_api_key'	   => '',
+                'cloudflare_domain'	   	   => '',
+                //'cloudflare_zone_id'          => '',
+                'cloudflare_devmode'	   => 0,
+                'cloudflare_protocol_rewrite' => 0,
+                'cloudflare_auto_settings' => 0,
+                'cloudflare_old_settings'  => 0,
+                'do_beta'                  => 0,
+			    'analytics_enabled'        => 1,
+        );
+	}
+
     // ok
 	public function syncOthersData( $information, $data = array() ) {
         if ( isset( $data['syncWPRocketData'] ) && ( 'yes' === $data['syncWPRocketData'] ) ) {
@@ -327,39 +407,64 @@ class MainWP_Child_WP_Rocket {
 				$options[ $field ] = $value;
 			}
 		}
-		if (isset($_POST['do_database_optimization']) && !empty($_POST['do_database_optimization'])) {
-			$_POST['wp_rocket_settings']['submit_optimize'] = 1; // simulate POST
-		}
+
 
 		update_option( WP_ROCKET_SLUG, $options );
+
+        if (isset($_POST['do_database_optimization']) && !empty($_POST['do_database_optimization'])) {
+			$this->optimize_database();
+		}
 
 		return array( 'result' => 'SUCCESS' );
 	}
 
 	function optimize_database() {
-		$return = array();
-		if (function_exists('do_rocket_database_optimization')) {
-			do_rocket_database_optimization();
-			$return['result'] = 'SUCCESS';
+
+         MainWP_Helper::check_classes_exists( array( 'WP_Rocket\Admin\Database\Optimization',
+                                                    'WP_Rocket\Admin\Database\Optimization_Process',
+                                                    'WP_Rocket\Admin\Options',
+                                                    'WP_Rocket\Admin\Options_Data'
+                                                ));
+
+        $process = new WP_Rocket\Admin\Database\Optimization_Process();
+        $optimization = new WP_Rocket\Admin\Database\Optimization( $process );
+        MainWP_Helper::check_methods( $optimization, array( 'process_handler', 'get_options' ) );
+
+        $options_api = new WP_Rocket\Admin\Options( 'wp_rocket_' );
+    	$options     = new WP_Rocket\Admin\Options_Data( $options_api->get( 'settings', array() ) );
+
+        $items = array_filter( array_keys( $optimization->get_options() ), [ $options, 'get' ] );
+
+		if ( !empty( $items ) ) {
+            $optimization->process_handler( $items );
 		}
+
+        $return['result'] = 'SUCCESS';
 		return $return;
 	}
 
 	function get_optimize_info() {
 
-		if (function_exists('rocket_database_count_cleanup_items')) {
-			$information['optimize_info'] = array(
-				'total_revisions'         => rocket_database_count_cleanup_items( 'revisions' ),
-				'total_auto_draft'         => rocket_database_count_cleanup_items( 'auto_drafts' ),
-				'total_trashed_posts'      => rocket_database_count_cleanup_items( 'trashed_posts' ),
-				'total_spam_comments'     => rocket_database_count_cleanup_items( 'spam_comments' ),
-				'total_trashed_comments'   => rocket_database_count_cleanup_items( 'trashed_comments' ),
-				'total_expired_transients' => rocket_database_count_cleanup_items( 'expired_transients' ),
-				'total_all_transients'     => rocket_database_count_cleanup_items( 'all_transients' ),
-				'total_optimize_tables'    => rocket_database_count_cleanup_items( 'optimize_tables' )
-			);
-			$information['result'] = 'SUCCESS';
-		}
+        MainWP_Helper::check_classes_exists( array( 'WP_Rocket\Admin\Database\Optimization',
+                                                    'WP_Rocket\Admin\Database\Optimization_Process'
+                                                ));
+
+        $process = new WP_Rocket\Admin\Database\Optimization_Process();
+        $optimization = new WP_Rocket\Admin\Database\Optimization( $process );
+        MainWP_Helper::check_methods($optimization, 'count_cleanup_items');
+
+        $information['optimize_info'] = array(
+            'total_revisions'         => $optimization->count_cleanup_items( 'database_revisions' ),
+            'total_auto_draft'         => $optimization->count_cleanup_items( 'database_auto_drafts' ),
+            'total_trashed_posts'      => $optimization->count_cleanup_items( 'database_trashed_posts' ),
+            'total_spam_comments'     => $optimization->count_cleanup_items( 'database_spam_comments' ),
+            'total_trashed_comments'   => $optimization->count_cleanup_items( 'database_trashed_comments' ),
+            'total_expired_transients' => $optimization->count_cleanup_items( 'database_expired_transients' ),
+            'total_all_transients'     => $optimization->count_cleanup_items( 'database_all_transients' ),
+            'total_optimize_tables'    => $optimization->count_cleanup_items( 'database_optimize_tables' )
+        );
+
+        $information['result'] = 'SUCCESS';
 		return $information;
 	}
 
@@ -368,80 +473,5 @@ class MainWP_Child_WP_Rocket {
 		return array('result' => 'SUCCESS', 'options' => $options);
 	}
 
-	function get_rocket_default_options() {
-		  return array(
-                'cache_mobile'             => 1,
-				'do_caching_mobile_files'     => 0,
-                'cache_logged_user'        => 0,
-                'cache_ssl'                => 0,
-				'emoji'					  => 0,
-                'embeds'                   => 1,
-				'varnish_auto_purge' => 0,
-				'manual_preload' => 0,
-				'automatic_preload' => 0,
-				'sitemap_preload' => 0,
-				'sitemap_preload_url_crawl' => 500000,
-				'sitemaps' => array(),
-				'database_revisions' => 0,
-				'database_auto_drafts' => 0,
-				'database_trashed_posts' => 0,
-				'database_spam_comments' => 0,
-				'database_trashed_comments' => 0,
-				'database_expired_transients' => 0,
-				'database_all_transients' => 0,
-				'database_optimize_tables' => 0,
-				'schedule_automatic_cleanup' => 0,
-				'automatic_cleanup_frequency' => '',
-                'cache_reject_uri'         => array(),
-                'cache_reject_cookies'     => array(),
-                'cache_reject_ua'          => array(),
-                'cache_query_strings'      => array(),
-                'cache_purge_pages'        => array(),
-                'purge_cron_interval'      => 10,
-                'purge_cron_unit'          => 'HOUR_IN_SECONDS',
-                'exclude_css'              => array(),
-                'exclude_js'               => array(),
-                //'exclude_inline_js'               => array(), // for v4
-				'async_css'					=> 0,
-            	'defer_all_js'              => 0,
-				'defer_all_js_safe'			=> 1,
-                'critical_css'              => '',
-                'deferred_js_files'        => array(),
-                'lazyload'          	   => 0,
-                'lazyload_iframes'         => 0,
-				'lazyload_youtube'			=>0,
-                'minify_css'               => 0,
-//                'minify_css_key'           => $minify_css_key,
-                'minify_concatenate_css'	  => 0,
-                //'minify_css_combine_all'   => 0,
-                'minify_css_legacy'			  => 0,
-                'minify_js'                => 0,
-//                'minify_js_key'            => $minify_js_key,
-                'minify_js_in_footer'      => array(),
-                'minify_concatenate_js'		  => 0,
-                'minify_js_combine_all'    => 0,
-                //'minify_js_legacy'			  => 0,
-                'minify_google_fonts'      => 0,
-                'minify_html'              => 0,
-                'remove_query_strings'     => 0,
-                'dns_prefetch'             => 0,
-                'cdn'                      => 0,
-                'cdn_cnames'               => array(),
-                'cdn_zone'                 => array(),
-                //'cdn_ssl'                  => 0,
-                'cdn_reject_files'         => array(),
-                'do_cloudflare'		   	   => 0,
-                'cloudflare_email'		   => '',
-                'cloudflare_api_key'	   => '',
-                'cloudflare_domain'	   	   => '',
-                //'cloudflare_zone_id'          => '',
-                'cloudflare_devmode'	   => 0,
-                'cloudflare_protocol_rewrite' => 0,
-                'cloudflare_auto_settings' => 0,
-                'cloudflare_old_settings'  => 0,
-                'do_beta'                  => 0,
-			    'analytics_enabled'        => 1,
-        );
-	}
 }
 
